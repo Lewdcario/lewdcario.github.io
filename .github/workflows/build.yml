@@ -2,13 +2,13 @@ name: Deploy on push
 
 on:
   push:
+    branches: [dev]
     paths:
       - index.html
       - src/**
-      - public/*
+      - public/**
       - cypress/**
-      - .github/workflows/*
-    branches: [dev]
+      - .github/workflows/**
 
 permissions:
   contents: write
@@ -16,26 +16,31 @@ permissions:
 jobs:
   deploy:
     name: Deploy
-    timeout-minutes: 30
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
       - name: Build application
-        run: yarn build
+        run: yarn build   # must output to ./dist
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:
-            branch: dev
-            folder: dist
-            target-folder: docs
+          branch: gh-pages
+          folder: dist
+          target-folder: docs
+          clean: true
+          single-commit: true
