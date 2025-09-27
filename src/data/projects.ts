@@ -14,8 +14,8 @@ export default [
 		description:
 			'Maintained Discord bot, client services and core functionalities of website.',
 		timeframe: '2021 - 2023',
-		image: 'https://oooh.tv/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Foooh-logo-rendered--white.d0b4f60c.png&w=640&q=75',
-		link: 'https://oooh.tv'
+		image: 'https://i.imgur.com/syRMBFG.png',
+		link: '#'
 	},
 	{
 		alt: 'smashcords',
