@@ -42,6 +42,9 @@ jobs:
           test -f dist/index.html
           cp dist/index.html dist/404.html
 
+      - name: Add custom domain CNAME
+        run: echo 'portfolio.okami.codes' > dist/CNAME
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
