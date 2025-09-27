@@ -14,7 +14,7 @@ export default [
 		description:
 			'Maintained Discord bot, client services and core functionalities of website.',
 		timeframe: '2021 - 2023',
-		image: 'https://i.imgur.com/syRMBFG.png',
+		image: 'https://i.imgur.com/4ZZpbhH.png',
 		link: '#'
 	},
 	{
