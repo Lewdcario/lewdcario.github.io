@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import projects, { type PortfolioProject } from '../data/projects';
 
 type TabId = 'about' | 'projects' | 'contact';
@@ -15,8 +15,8 @@ interface DesktopIcon {
 	recycle?: boolean;
 }
 
-type WindowId = 'links' | 'clock' | 'main' | 'browser';
-type SplashMode = 'boot' | 'login';
+type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle';
+type SplashMode = 'startup' | 'login';
 type PowerState = 'idle' | 'loggingOff' | 'shuttingDown';
 type ResizeDirection = 'n' | 'e' | 's' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -51,18 +51,40 @@ interface WindowMeta {
 	icon: string;
 }
 
+type ContextTargetType = 'desktop' | 'icon' | 'window' | 'taskbar' | 'start';
+
+interface ContextTarget {
+	type: ContextTargetType;
+	id?: string;
+}
+
+interface ContextMenuItem {
+	id: string;
+	label: string;
+	disabled?: boolean;
+	separator?: boolean;
+	action: () => void;
+}
+
+interface BrowserRenderPayload {
+	url: string;
+	html: string;
+	title?: string;
+}
+
+interface BrowserRequestOptions {
+	pushHistory?: boolean;
+}
+
+type BrowserRenderMode = 'direct' | 'snapshot';
+
+const browserHomeUrl = 'https://library.okami.codes/';
+const loginPasswordSeed = 'cobalt_2002';
+
 const tabs: Array<{ id: TabId; label: string }> = [
 	{ id: 'about', label: 'About' },
 	{ id: 'projects', label: 'Projects' },
 	{ id: 'contact', label: 'Contact' }
-];
-
-const bootLines: Array<{ time: string; text: string }> = [
-	{ time: '[0.000]', text: ' loading okami.portfolio...' },
-	{ time: '[0.011]', text: ' mounting /desktop/icons' },
-	{ time: '[0.024]', text: ' initializing 98.css shell' },
-	{ time: '[0.036]', text: ' preparing desktop windows' },
-	{ time: '[0.049]', text: ' all systems nominal' }
 ];
 
 const linkGroups: LinkGroup[] = [
@@ -81,6 +103,15 @@ const linkGroups: LinkGroup[] = [
 			{ label: 'Twitter', href: 'https://twitter.com/okamicario' }
 		]
 	}
+];
+
+const recycleBinLinks: Array<{ label: string; href: string }> = [
+	{ label: 'TheOldNet', href: 'https://theoldnet.com/' },
+	{ label: 'Oldweb.Today', href: 'https://oldweb.today/' },
+	{ label: 'Neocities', href: 'https://neocities.org/browse' },
+	{ label: 'SpaceHey', href: 'https://spacehey.com/' },
+	{ label: 'Wiby', href: 'https://wiby.me/' },
+	{ label: 'Camerons World', href: 'https://www.cameronsworld.net/' }
 ];
 
 const desktopIcons: DesktopIcon[] = [
@@ -152,8 +183,13 @@ const windowsMeta: WindowMeta[] = [
 	},
 	{
 		id: 'browser',
-		label: 'Browser',
+		label: 'Netscape Navigator',
 		icon: 'https://win98icons.alexmeub.com/icons/png/msie1-2.png'
+	},
+	{
+		id: 'recycle',
+		label: 'Recycle Bin',
+		icon: 'https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png'
 	}
 ];
 
@@ -162,7 +198,8 @@ function createDefaultWindowPositions(): Record<WindowId, WindowPosition> {
 		links: { x: 150, y: 66, z: 6 },
 		clock: { x: 150, y: 330, z: 7 },
 		main: { x: 380, y: 58, z: 8 },
-		browser: { x: 300, y: 96, z: 9 }
+		browser: { x: 300, y: 96, z: 9 },
+		recycle: { x: 540, y: 132, z: 10 }
 	};
 }
 
@@ -171,7 +208,8 @@ function createDefaultWindowState() {
 		links: { isOpen: true, isMinimized: false, isMaximized: false },
 		clock: { isOpen: true, isMinimized: false, isMaximized: false },
 		main: { isOpen: true, isMinimized: false, isMaximized: false },
-		browser: { isOpen: false, isMinimized: false, isMaximized: false }
+		browser: { isOpen: false, isMinimized: false, isMaximized: false },
+		recycle: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
 }
 
@@ -180,15 +218,17 @@ function createDefaultWindowSizes() {
 		links: { width: 220, height: 230 },
 		clock: { width: 220, height: 150 },
 		main: { width: 860, height: 620 },
-		browser: { width: 760, height: 560 }
+		browser: { width: 760, height: 560 },
+		recycle: { width: 360, height: 280 }
 	};
 }
 
 const splashVisible = ref(true);
-const splashMode = ref<SplashMode>('boot');
+const splashMode = ref<SplashMode>('startup');
 const powerState = ref<PowerState>('idle');
 const showContinueButton = ref(false);
-const bootOutput = ref<Array<{ time: string; text: string }>>([]);
+const loginPasswordDisplay = ref('');
+const loginTypingInProgress = ref(false);
 const activeTab = ref<TabId>('about');
 const startMenuOpen = ref(false);
 const liveClock = ref('--:--:--');
@@ -215,12 +255,24 @@ const linksWindowRef = ref<HTMLElement | null>(null);
 const clockWindowRef = ref<HTMLElement | null>(null);
 const mainWindowRef = ref<HTMLElement | null>(null);
 const browserWindowRef = ref<HTMLElement | null>(null);
+const recycleWindowRef = ref<HTMLElement | null>(null);
 const activeDrag = ref<DragState | null>(null);
-const browserUrl = ref('https://vmfunc.re/');
-const browserAddress = ref('https://vmfunc.re/');
+const browserAddress = ref(browserHomeUrl);
+const browserCurrentUrl = ref(browserHomeUrl);
+const browserDocument = ref(navigatorPlaceholderDocument('Type a URL and press Go.', browserHomeUrl));
+const browserFrameSrc = ref(browserHomeUrl);
+const browserRenderMode = ref<BrowserRenderMode>('snapshot');
 const browserFrameRef = ref<HTMLIFrameElement | null>(null);
 const browserLoading = ref(false);
-const browserBlocked = ref(false);
+const browserError = ref('');
+const browserTitle = ref('Netscape Navigator');
+const browserHistory = ref<string[]>([browserHomeUrl]);
+const browserHistoryIndex = ref(0);
+const contextMenuRef = ref<HTMLElement | null>(null);
+const contextMenuVisible = ref(false);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+const contextTarget = ref<ContextTarget>({ type: 'desktop' });
 
 const marqueeText =
 	'okami portfolio - windows shell rewrite - click around like it is 2002';
@@ -228,12 +280,6 @@ const onlineStatus = 'online';
 
 const visitorDisplay = computed(
 	() => `visitors: ${visitorCount.value.toString().padStart(6, '0')}`
-);
-const splashTitle = computed(() =>
-	splashMode.value === 'boot' ? 'sys/init' : 'winlogon'
-);
-const splashButtonLabel = computed(() =>
-	splashMode.value === 'boot' ? 'continue' : 'OK'
 );
 const powerPrimaryText = computed(() =>
 	powerState.value === 'loggingOff'
@@ -249,12 +295,135 @@ const taskbarWindows = computed(() =>
 			...windowState.value[windowMeta.id]
 		}))
 );
+const canBrowserGoBack = computed(() => browserHistoryIndex.value > 0);
+const canBrowserGoForward = computed(
+	() => browserHistoryIndex.value < browserHistory.value.length - 1
+);
+const contextMenuTitle = computed(() => {
+	if (contextTarget.value.type === 'icon') {
+		const icon = desktopIcons.find((entry) => entry.id === contextTarget.value.id);
+		return icon?.label ?? 'Desktop Item';
+	}
+
+	if (contextTarget.value.type === 'window' || contextTarget.value.type === 'taskbar') {
+		const windowMeta = windowsMeta.find((entry) => entry.id === contextTarget.value.id);
+		return windowMeta?.label ?? 'Window';
+	}
+
+	if (contextTarget.value.type === 'start') {
+		return 'Start Menu';
+	}
+
+	return 'Desktop';
+});
+const contextMenuItems = computed<ContextMenuItem[]>(() => {
+	if (contextTarget.value.type === 'icon') {
+		const icon = desktopIcons.find((entry) => entry.id === contextTarget.value.id);
+		if (!icon) return [];
+
+		return [
+			{
+				id: 'open',
+				label: 'Open',
+				action: () => handleDesktopIconContextAction(icon)
+			},
+			{
+				id: 'open-navigator',
+				label: 'Open In Navigator',
+				disabled: !icon.href,
+				action: () => {
+					if (!icon.href) return;
+					openInBrowser(icon.href, icon.label);
+				}
+			},
+			{ id: 'sep-1', label: '', separator: true, action: () => undefined },
+			{
+				id: 'properties',
+				label: 'Properties',
+				action: () => pushStatus(`${icon.label} properties are unavailable in this build.`)
+			}
+		];
+	}
+
+	if (contextTarget.value.type === 'window' || contextTarget.value.type === 'taskbar') {
+		const windowId = contextTarget.value.id as WindowId | undefined;
+		if (!windowId) return [];
+
+		const state = windowState.value[windowId];
+		if (!state) return [];
+
+		return [
+			{
+				id: 'restore',
+				label: state.isMaximized ? 'Restore' : 'Maximize',
+				disabled: isCompactLayout.value,
+				action: () => toggleMaximizeWindow(windowId)
+			},
+			{
+				id: 'minimize',
+				label: 'Minimize',
+				action: () => minimizeWindow(windowId)
+			},
+			{ id: 'sep-1', label: '', separator: true, action: () => undefined },
+			{
+				id: 'close',
+				label: 'Close',
+				action: () => closeWindow(windowId)
+			}
+		];
+	}
+
+	if (contextTarget.value.type === 'start') {
+		return [
+			{
+				id: 'open-browser',
+				label: 'Open Navigator',
+				action: () => openWindowFromMenu('browser')
+			},
+			{
+				id: 'logoff',
+				label: 'Log Off...',
+				action: () => {
+					void performLogoff();
+				}
+			}
+		];
+	}
+
+	return [
+		{
+			id: 'refresh',
+			label: 'Refresh',
+			action: () => pushStatus('Desktop refreshed.')
+		},
+		{
+			id: 'open-navigator',
+			label: 'Open Navigator',
+			action: () => openWindowFromMenu('browser')
+		},
+		{
+			id: 'show-desktop',
+			label: 'Show Desktop',
+			action: () => minimizeAllWindows()
+		},
+		{ id: 'sep-1', label: '', separator: true, action: () => undefined },
+		{
+			id: 'arrange-icons',
+			label: 'Arrange Icons',
+			action: () => resetDesktopIcons()
+		}
+	];
+});
 
 let statusTimer: number | null = null;
 let clockTimer: number | null = null;
-let browserLoadTimer: number | null = null;
+let browserRequestSerial = 0;
+let browserFallbackTimer: number | null = null;
+let loginTypingTimer: number | null = null;
+let loginTypingRun = 0;
+let typingAudioContext: AudioContext | null = null;
 let disposed = false;
-let zCounter = 9;
+let zCounter = 10;
 const draggedIconIds = new Set<string>();
 
 function randomBetween(min: number, max: number) {
@@ -327,6 +496,7 @@ function iconBounds() {
 function windowMinSize(windowId: WindowId) {
 	if (windowId === 'main') return { width: 520, height: 360 };
 	if (windowId === 'browser') return { width: 460, height: 320 };
+	if (windowId === 'recycle') return { width: 260, height: 180 };
 	return { width: 180, height: 120 };
 }
 
@@ -617,71 +787,233 @@ function windowLabel(windowId: WindowId) {
 
 function normalizeBrowserUrl(rawUrl: string) {
 	const trimmed = rawUrl.trim();
-	if (!trimmed) return 'https://vmfunc.re/';
+	if (!trimmed) return browserHomeUrl;
 	if (/^https?:\/\//i.test(trimmed)) return trimmed;
 	return `https://${trimmed}`;
 }
 
-function openInBrowser(url: string, label?: string) {
+function escapeHtml(value: string) {
+	return value
+		.replaceAll('&', '&amp;')
+		.replaceAll('<', '&lt;')
+		.replaceAll('>', '&gt;')
+		.replaceAll('"', '&quot;')
+		.replaceAll("'", '&#39;');
+}
+
+function navigatorPlaceholderDocument(message: string, url: string) {
+	const safeMessage = escapeHtml(message);
+	const safeUrl = escapeHtml(url);
+	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>Netscape Navigator</h1><p>${safeMessage}</p><p class="hint">${safeUrl}</p></body></html>`;
+}
+
+function replaceCurrentBrowserHistory(url: string) {
+	const nextHistory = [...browserHistory.value];
+	nextHistory[browserHistoryIndex.value] = url;
+	browserHistory.value = nextHistory;
+}
+
+function clearBrowserFallbackTimer() {
+	if (browserFallbackTimer !== null) {
+		window.clearTimeout(browserFallbackTimer);
+		browserFallbackTimer = null;
+	}
+}
+
+function clearLoginTypingTimer() {
+	if (loginTypingTimer !== null) {
+		window.clearTimeout(loginTypingTimer);
+		loginTypingTimer = null;
+	}
+}
+
+function browserWindowTitleFromUrl(url: string) {
+	try {
+		const hostname = new URL(url).hostname;
+		return hostname || 'Netscape Navigator';
+	} catch {
+		return 'Netscape Navigator';
+	}
+}
+
+function pushBrowserHistory(url: string) {
+	const current = browserHistory.value[browserHistoryIndex.value];
+	if (current === url) return;
+	const nextHistory = browserHistory.value.slice(0, browserHistoryIndex.value + 1);
+	nextHistory.push(url);
+	browserHistory.value = nextHistory;
+	browserHistoryIndex.value = nextHistory.length - 1;
+}
+
+async function loadBrowserSnapshot(
+	requestSerial: number,
+	url: string,
+	options: BrowserRequestOptions = {}
+) {
+	try {
+		const payload = await $fetch<BrowserRenderPayload>('/api/browser/render', {
+			query: { url }
+		});
+		if (disposed || requestSerial !== browserRequestSerial) return;
+
+		browserRenderMode.value = 'snapshot';
+		browserCurrentUrl.value = payload.url;
+		browserAddress.value = payload.url;
+		browserDocument.value = payload.html;
+		browserTitle.value = payload.title?.trim() || browserWindowTitleFromUrl(payload.url);
+		browserError.value = '';
+		browserLoading.value = false;
+
+		const pushHistory = options.pushHistory ?? false;
+		if (pushHistory) {
+			replaceCurrentBrowserHistory(payload.url);
+		} else if (browserHistory.value[browserHistoryIndex.value] !== payload.url) {
+			replaceCurrentBrowserHistory(payload.url);
+		}
+	} catch (error) {
+		if (disposed || requestSerial !== browserRequestSerial) return;
+		const message =
+			error instanceof Error ? error.message : 'Unable to load this page in navigator.';
+		browserError.value = message;
+		browserRenderMode.value = 'snapshot';
+		browserDocument.value = navigatorPlaceholderDocument(
+			'Navigator could not render this page.',
+			url
+		);
+		browserLoading.value = false;
+		pushStatus('Navigator failed to load the requested page.');
+	}
+}
+
+function openInBrowser(url: string, label?: string, options: BrowserRequestOptions = {}) {
 	const normalized = normalizeBrowserUrl(url);
-	if (browserLoadTimer !== null) {
-		window.clearTimeout(browserLoadTimer);
-		browserLoadTimer = null;
+	const pushHistory = options.pushHistory ?? true;
+	if (pushHistory) {
+		pushBrowserHistory(normalized);
+	} else if (browserHistory.value[browserHistoryIndex.value] !== normalized) {
+		replaceCurrentBrowserHistory(normalized);
 	}
 
-	browserLoading.value = true;
-	browserBlocked.value = false;
-	browserUrl.value = normalized;
-	browserAddress.value = normalized;
+	const requestSerial = ++browserRequestSerial;
+	clearBrowserFallbackTimer();
 
-	browserLoadTimer = window.setTimeout(() => {
-		if (!browserLoading.value) return;
-		browserLoading.value = false;
-		browserBlocked.value = true;
-		pushStatus('This site is taking too long or blocks iframe embedding.');
-		browserLoadTimer = null;
-	}, 6000);
+	browserLoading.value = true;
+	browserError.value = '';
+	browserCurrentUrl.value = normalized;
+	browserAddress.value = normalized;
+	browserTitle.value = browserWindowTitleFromUrl(normalized);
+	browserRenderMode.value = 'direct';
+	browserFrameSrc.value = normalized;
+	browserDocument.value = navigatorPlaceholderDocument(
+		'Rendering in compatibility mode...',
+		normalized
+	);
 
 	restoreWindow('browser', false);
 	startMenuOpen.value = false;
 	focusWindow('browser');
-	pushStatus(`${label ?? normalized} opened in browser.`);
+	pushStatus(`${label ?? normalized} opened in navigator.`);
+
+	browserFallbackTimer = window.setTimeout(() => {
+		if (disposed || requestSerial !== browserRequestSerial) return;
+		if (browserRenderMode.value !== 'direct') return;
+		void loadBrowserSnapshot(requestSerial, normalized, { pushHistory: false });
+	}, 2600);
+}
+
+function isIframeBlockedLocation(href: string) {
+	const lowered = href.trim().toLowerCase();
+	return (
+		lowered === 'about:blank' ||
+		lowered.startsWith('chrome-error://') ||
+		lowered.includes('chromewebdata')
+	);
+}
+
+function handleDirectBrowserFrameLoad() {
+	if (browserRenderMode.value !== 'direct') return;
+	if (!browserLoading.value) return;
+
+	const requestSerial = browserRequestSerial;
+	let locationHref = '';
+	let canInspectLocation = true;
+	try {
+		locationHref = browserFrameRef.value?.contentWindow?.location.href ?? '';
+	} catch {
+		canInspectLocation = false;
+	}
+
+	if (locationHref && isIframeBlockedLocation(locationHref)) {
+		void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
+		return;
+	}
+
+	if (!canInspectLocation) {
+		return;
+	}
+
+	clearBrowserFallbackTimer();
+	browserLoading.value = false;
+	browserError.value = '';
+}
+
+function handleDirectBrowserFrameError() {
+	if (browserRenderMode.value !== 'direct') return;
+	const requestSerial = browserRequestSerial;
+	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
+}
+
+function forceBrowserCompatibilityMode() {
+	const requestSerial = ++browserRequestSerial;
+	clearBrowserFallbackTimer();
+	browserLoading.value = true;
+	browserError.value = '';
+	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
 }
 
 function navigateBrowserAddress() {
-	openInBrowser(browserAddress.value, 'Browser');
+	openInBrowser(browserAddress.value, 'Netscape Navigator');
 }
 
-function handleBrowserFrameLoad() {
-	if (browserLoadTimer !== null) {
-		window.clearTimeout(browserLoadTimer);
-		browserLoadTimer = null;
-	}
+function goBrowserBack() {
+	if (!canBrowserGoBack.value) return;
+	browserHistoryIndex.value -= 1;
+	openInBrowser(browserHistory.value[browserHistoryIndex.value], 'Back', { pushHistory: false });
+}
 
-	browserLoading.value = false;
+function goBrowserForward() {
+	if (!canBrowserGoForward.value) return;
+	browserHistoryIndex.value += 1;
+	openInBrowser(browserHistory.value[browserHistoryIndex.value], 'Forward', {
+		pushHistory: false
+	});
+}
 
-	const frame = browserFrameRef.value;
-	if (!frame) return;
+function reloadBrowserPage() {
+	openInBrowser(browserCurrentUrl.value, 'Reload', { pushHistory: false });
+}
 
-	try {
-		const href = frame.contentWindow?.location.href ?? '';
-		if (browserUrl.value !== 'about:blank' && href === 'about:blank') {
-			browserBlocked.value = true;
-			pushStatus('This site blocks in-window embedding. Use Open externally.');
-		}
-	} catch {
-		// Cross-origin content loaded normally.
-		browserBlocked.value = false;
-	}
+function goBrowserHome() {
+	openInBrowser(browserHomeUrl, 'Home');
 }
 
 function openBrowserExternally() {
-	const target = browserUrl.value || browserAddress.value;
+	const target = browserCurrentUrl.value || browserAddress.value;
 	const externalWindow = window.open(target, '_blank', 'noopener,noreferrer');
 	if (externalWindow) {
 		externalWindow.opener = null;
 	}
 	pushStatus('Opened in external browser tab.');
+}
+
+function handleBrowserWindowMessage(event: MessageEvent) {
+	const frameWindow = browserFrameRef.value?.contentWindow;
+	if (!frameWindow || event.source !== frameWindow) return;
+
+	const data = event.data as { type?: string; href?: string } | null;
+	if (!data || data.type !== 'navigator:navigate' || typeof data.href !== 'string') return;
+
+	openInBrowser(data.href, data.href);
 }
 
 function minimizeWindow(windowId: WindowId) {
@@ -793,7 +1125,8 @@ function handleDesktopIconClick(icon: DesktopIcon, event: MouseEvent) {
 
 	if (icon.recycle) {
 		event.preventDefault();
-		pushStatus('Recycle Bin is already empty.');
+		restoreWindow('recycle', false);
+		pushStatus('Recycle Bin opened.');
 		return;
 	}
 
@@ -812,6 +1145,102 @@ function handleDesktopIconClick(icon: DesktopIcon, event: MouseEvent) {
 	openInBrowser(icon.href, icon.label);
 }
 
+function handleDesktopIconContextAction(icon: DesktopIcon) {
+	if (icon.recycle) {
+		restoreWindow('recycle', false);
+		pushStatus('Recycle Bin opened.');
+		return;
+	}
+
+	if (icon.tab) {
+		setTab(icon.tab);
+		return;
+	}
+
+	if (icon.href) {
+		openInBrowser(icon.href, icon.label);
+	}
+}
+
+function minimizeAllWindows() {
+	for (const windowId of Object.keys(windowState.value) as WindowId[]) {
+		if (windowState.value[windowId].isOpen) {
+			windowState.value[windowId].isMinimized = true;
+		}
+	}
+
+	pushStatus('All windows minimized.');
+}
+
+function resetDesktopIcons() {
+	iconPositions.value = {};
+	normalizeDesktopLayout();
+	pushStatus('Desktop icons arranged.');
+}
+
+function resolveContextTarget(rawTarget: EventTarget | null): ContextTarget {
+	if (!(rawTarget instanceof Element)) {
+		return { type: 'desktop' };
+	}
+	const target = rawTarget as HTMLElement;
+
+	if (target.closest('#start-menu')) {
+		return { type: 'start' };
+	}
+
+	if (target.closest('.start-button')) {
+		return { type: 'start' };
+	}
+
+	const taskbarWindow = target.closest('[data-taskbar-window-id]') as HTMLElement | null;
+	if (taskbarWindow?.dataset.taskbarWindowId) {
+		return { type: 'taskbar', id: taskbarWindow.dataset.taskbarWindowId };
+	}
+
+	const icon = target.closest('[data-icon-id]') as HTMLElement | null;
+	if (icon?.dataset.iconId) {
+		return { type: 'icon', id: icon.dataset.iconId };
+	}
+
+	const windowElement = target.closest('[data-window-id]') as HTMLElement | null;
+	if (windowElement?.dataset.windowId) {
+		return { type: 'window', id: windowElement.dataset.windowId };
+	}
+
+	return { type: 'desktop' };
+}
+
+function closeContextMenu() {
+	contextMenuVisible.value = false;
+}
+
+async function openContextMenu(event: MouseEvent) {
+	if (splashVisible.value || powerState.value !== 'idle') return;
+
+	event.preventDefault();
+	contextTarget.value = resolveContextTarget(event.target);
+	startMenuOpen.value = false;
+	contextMenuVisible.value = true;
+	contextMenuX.value = event.clientX;
+	contextMenuY.value = event.clientY;
+
+	await nextTick();
+	const menuElement = contextMenuRef.value;
+	if (!menuElement) return;
+
+	const gutter = 8;
+	const maxX = Math.max(gutter, window.innerWidth - menuElement.offsetWidth - gutter);
+	const maxY = Math.max(gutter, window.innerHeight - menuElement.offsetHeight - gutter);
+	contextMenuX.value = clamp(event.clientX, gutter, maxX);
+	contextMenuY.value = clamp(event.clientY, gutter, maxY);
+}
+
+function invokeContextMenuItem(item: ContextMenuItem) {
+	if (item.separator || item.disabled) return;
+	item.action();
+	closeContextMenu();
+}
+
 function handleProjectOpen(project: PortfolioProject, event: MouseEvent) {
 	if (project.link === '#') {
 		event.preventDefault();
@@ -824,6 +1253,7 @@ function handleProjectOpen(project: PortfolioProject, event: MouseEvent) {
 }
 
 function toggleStartMenu() {
+	closeContextMenu();
 	startMenuOpen.value = !startMenuOpen.value;
 }
 
@@ -832,6 +1262,16 @@ function closeStartMenuOnOutsideClick(event: MouseEvent) {
 	if (!target?.closest('.start-button')) {
 		startMenuOpen.value = false;
 	}
+
+	if (!target?.closest('.xp-context-menu')) {
+		closeContextMenu();
+	}
+}
+
+function closeMenusOnEscape(event: KeyboardEvent) {
+	if (event.key !== 'Escape') return;
+	startMenuOpen.value = false;
+	closeContextMenu();
 }
 
 function runSoftAction(name: string) {
@@ -839,25 +1279,100 @@ function runSoftAction(name: string) {
 	pushStatus(name);
 }
 
-function resetSessionState() {
-	if (browserLoadTimer !== null) {
-		window.clearTimeout(browserLoadTimer);
-		browserLoadTimer = null;
-	}
+function playTypingSound() {
+	const AudioContextConstructor =
+		window.AudioContext ||
+		(window as Window & { webkitAudioContext?: typeof AudioContext })
+			.webkitAudioContext;
+	if (!AudioContextConstructor) return;
 
+	try {
+		if (!typingAudioContext || typingAudioContext.state === 'closed') {
+			typingAudioContext = new AudioContextConstructor();
+		}
+
+		const context = typingAudioContext;
+		void context.resume().catch(() => undefined);
+
+		const oscillator = context.createOscillator();
+		const gain = context.createGain();
+		oscillator.type = 'square';
+		oscillator.frequency.setValueAtTime(1600 + Math.random() * 450, context.currentTime);
+		gain.gain.setValueAtTime(0.0001, context.currentTime);
+		gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.004);
+		gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.03);
+		oscillator.connect(gain);
+		gain.connect(context.destination);
+		oscillator.start(context.currentTime);
+		oscillator.stop(context.currentTime + 0.03);
+		oscillator.onended = () => {
+			oscillator.disconnect();
+			gain.disconnect();
+		};
+	} catch {
+		// Ignore when audio is unavailable.
+	}
+}
+
+function startLoginPasswordTyping() {
+	clearLoginTypingTimer();
+	loginTypingRun += 1;
+	const run = loginTypingRun;
+	loginPasswordDisplay.value = '';
+	loginTypingInProgress.value = true;
+
+	const totalCharacters = loginPasswordSeed.length;
+	const typeNext = () => {
+		if (
+			disposed ||
+			run !== loginTypingRun ||
+			splashMode.value !== 'login' ||
+			!splashVisible.value
+		) {
+			loginTypingInProgress.value = false;
+			return;
+		}
+
+		if (loginPasswordDisplay.value.length >= totalCharacters) {
+			loginTypingInProgress.value = false;
+			return;
+		}
+
+		loginPasswordDisplay.value += '•';
+		playTypingSound();
+		loginTypingTimer = window.setTimeout(typeNext, 48 + Math.floor(Math.random() * 38));
+	};
+
+	loginTypingTimer = window.setTimeout(typeNext, 250);
+}
+
+function resetSessionState() {
 	activeDrag.value = null;
 	draggedIconIds.clear();
 	activeTab.value = 'about';
 	startMenuOpen.value = false;
+	closeContextMenu();
+	clearBrowserFallbackTimer();
+	clearLoginTypingTimer();
+	loginTypingRun += 1;
+	loginTypingInProgress.value = false;
+	loginPasswordDisplay.value = '';
 	statusMessage.value = 'desktop ready.';
+	browserRequestSerial += 1;
 	browserLoading.value = false;
-	browserBlocked.value = false;
-	browserUrl.value = 'https://vmfunc.re/';
-	browserAddress.value = browserUrl.value;
+	browserError.value = '';
+	browserTitle.value = 'Netscape Navigator';
+	browserCurrentUrl.value = browserHomeUrl;
+	browserAddress.value = browserHomeUrl;
+	browserFrameSrc.value = browserHomeUrl;
+	browserRenderMode.value = 'snapshot';
+	browserDocument.value = navigatorPlaceholderDocument('Type a URL and press Go.', browserHomeUrl);
+	browserHistory.value = [browserHomeUrl];
+	browserHistoryIndex.value = 0;
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
 	windowSizes.value = createDefaultWindowSizes();
-	zCounter = 9;
+	zCounter = 10;
 	normalizeDesktopLayout();
 }
 
@@ -920,42 +1435,33 @@ async function performLogoff() {
 	splashMode.value = 'login';
 	splashVisible.value = true;
 	showContinueButton.value = true;
-	bootOutput.value = [];
 	resetSessionState();
+	startLoginPasswordTyping();
 }
 
-async function runBootSequence() {
-	splashMode.value = 'boot';
-	bootOutput.value = [];
+async function runStartupSequence() {
+	splashMode.value = 'startup';
 	showContinueButton.value = false;
 
-	for (const line of bootLines) {
-		if (disposed) return;
-
-		const nextLine = { time: line.time, text: '' };
-		bootOutput.value = [...bootOutput.value, nextLine];
-
-		for (const character of line.text) {
-			if (disposed) return;
-			nextLine.text += character;
-			bootOutput.value = [...bootOutput.value];
-			await pause(randomBetween(3, 8));
-		}
-
-		await pause(randomBetween(70, 130));
-	}
-
+	await pause(1800);
+	if (disposed) return;
+	splashMode.value = 'login';
 	showContinueButton.value = true;
+	startLoginPasswordTyping();
 }
 
 function continueToDesktop() {
-	const mode = splashMode.value;
+	clearLoginTypingTimer();
+	loginTypingRun += 1;
+	loginTypingInProgress.value = false;
+	loginPasswordDisplay.value = '';
 	splashVisible.value = false;
-	pushStatus(mode === 'login' ? 'signed in.' : 'desktop loaded.');
+	pushStatus('signed in.');
 }
 
 function handleWindowResize() {
 	normalizeDesktopLayout();
+	closeContextMenu();
 }
 
 onMounted(() => {
@@ -965,11 +1471,13 @@ onMounted(() => {
 	updateClocks();
 	clockTimer = window.setInterval(updateClocks, 1000);
 	document.addEventListener('click', closeStartMenuOnOutsideClick);
+	document.addEventListener('keydown', closeMenusOnEscape);
 	window.addEventListener('resize', handleWindowResize);
 	window.addEventListener('pointermove', handlePointerMove);
 	window.addEventListener('pointerup', releaseActiveDrag);
 	window.addEventListener('pointercancel', releaseActiveDrag);
-	void runBootSequence();
+	window.addEventListener('message', handleBrowserWindowMessage);
+	void runStartupSequence();
 });
 
 onBeforeUnmount(() => {
@@ -983,48 +1491,51 @@ onBeforeUnmount(() => {
 		window.clearInterval(clockTimer);
 	}
 
-	if (browserLoadTimer !== null) {
-		window.clearTimeout(browserLoadTimer);
+	clearBrowserFallbackTimer();
+	clearLoginTypingTimer();
+	loginTypingRun += 1;
+	loginTypingInProgress.value = false;
+	if (typingAudioContext && typingAudioContext.state !== 'closed') {
+		void typingAudioContext.close();
 	}
+	typingAudioContext = null;
+	browserRequestSerial += 1;
 
 	document.removeEventListener('click', closeStartMenuOnOutsideClick);
+	document.removeEventListener('keydown', closeMenusOnEscape);
 	window.removeEventListener('resize', handleWindowResize);
 	window.removeEventListener('pointermove', handlePointerMove);
 	window.removeEventListener('pointerup', releaseActiveDrag);
 	window.removeEventListener('pointercancel', releaseActiveDrag);
+	window.removeEventListener('message', handleBrowserWindowMessage);
 });
 </script>
 
 <template>
-	<div class="xp-shell">
+	<div class="xp-shell" @contextmenu.prevent="openContextMenu">
 		<div
 			v-if="splashVisible"
 			id="splash-screen"
 			class="splash-screen"
 			:class="`splash-screen-${splashMode}`"
 		>
-			<div v-if="splashMode === 'boot'" class="splash-content">
-				<div class="window splash-window">
-					<div class="title-bar">
-						<div class="title-bar-text">{{ splashTitle }}</div>
-						<div class="title-bar-controls">
-							<button aria-label="Minimize"></button>
-							<button aria-label="Maximize"></button>
-							<button aria-label="Close"></button>
+			<div v-if="splashMode === 'startup'" class="xp-startup-screen">
+				<div class="xp-startup-content">
+					<div class="power-brand" aria-hidden="true">
+						<div class="power-flag">
+							<span class="pane pane-red"></span>
+							<span class="pane pane-green"></span>
+							<span class="pane pane-blue"></span>
+							<span class="pane pane-yellow"></span>
+						</div>
+						<div class="power-wordmark">
+							<span class="power-word-windows">Windows</span>
+							<span class="power-word-xp">XP</span>
 						</div>
 					</div>
-					<div class="window-body splash-body">
-						<div id="boot-log">
-							<div v-for="line in bootOutput" :key="line.time + line.text">
-								<span class="boot-time">{{ line.time }}</span>
-								{{ line.text }}
-							</div>
-						</div>
-						<div v-if="showContinueButton" id="boot-continue">
-							<button id="enter-button" @click="continueToDesktop">
-								{{ splashButtonLabel }}
-							</button>
-						</div>
+					<p class="xp-startup-caption">Microsoft Windows XP</p>
+					<div class="xp-startup-loader" aria-hidden="true">
+						<span class="xp-startup-loader-strip"></span>
 					</div>
 				</div>
 			</div>
@@ -1033,32 +1544,46 @@ onBeforeUnmount(() => {
 				<div class="xp-login-main">
 					<div class="xp-login-panel">
 						<div class="xp-login-left">
-							<div class="power-brand" aria-hidden="true">
-								<div class="power-flag">
-									<span class="pane pane-red"></span>
-									<span class="pane pane-green"></span>
-									<span class="pane pane-blue"></span>
-									<span class="pane pane-yellow"></span>
-								</div>
-								<div class="power-wordmark">
-									<span class="power-word-windows">Windows</span>
-									<span class="power-word-xp">XP</span>
-								</div>
-							</div>
+							<img class="xp-login-brand-logo" src="/windows-xp-logo.png" alt="Windows XP" />
 							<p class="xp-login-prompt">To begin, click your user name</p>
 						</div>
 						<div class="xp-login-divider"></div>
-						<div class="xp-login-user">
-							<div class="xp-login-avatar" aria-hidden="true">O</div>
-							<p class="xp-login-user-name">okami</p>
-							<button
-								v-if="showContinueButton"
-								id="enter-button"
-								class="xp-login-ok"
-								@click="continueToDesktop"
-							>
-								{{ splashButtonLabel }}
-							</button>
+						<div class="xp-login-user" :class="{ typing: loginTypingInProgress }">
+							<div class="xp-login-card">
+								<div class="xp-login-card-header">
+									<div class="xp-login-avatar" aria-hidden="true"></div>
+									<div class="xp-login-card-header-copy">
+										<p class="xp-login-user-name">Okami</p>
+										<p class="xp-login-card-subtitle">Type your password</p>
+									</div>
+								</div>
+								<div class="xp-login-password-row">
+									<input
+										id="xp-login-password"
+										type="password"
+										:value="loginPasswordDisplay"
+										readonly
+										autocomplete="off"
+									/>
+									<span class="xp-login-language">EN</span>
+									<button
+										v-if="showContinueButton"
+										id="enter-button"
+										class="xp-login-arrow"
+										:disabled="loginTypingInProgress"
+										@click="continueToDesktop"
+									>
+										➜
+									</button>
+									<button class="xp-login-help-btn" type="button" aria-label="Help">?</button>
+								</div>
+							</div>
+							<div class="xp-login-hint">
+								<p class="xp-login-hint-title">Did you forget your password?</p>
+								<p>You can click the "?" button to see your password hint.</p>
+								<p>Please type your password again.</p>
+								<p>Be sure to use the correct uppercase and lowercase letters.</p>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -1098,6 +1623,7 @@ onBeforeUnmount(() => {
 				:key="icon.label"
 				:href="icon.href ?? '#'"
 				class="desktop-icon"
+				:data-icon-id="icon.id"
 				:style="iconStyle(icon)"
 				draggable="false"
 				@dragstart.prevent
@@ -1123,6 +1649,7 @@ onBeforeUnmount(() => {
 							v-if="isWindowVisible('links')"
 							ref="linksWindowRef"
 							class="window side-window draggable-window"
+							data-window-id="links"
 							:class="{ 'window-maximized': isWindowMaximized('links') }"
 							:style="windowStyle('links')"
 							@pointerdown="focusWindow('links')"
@@ -1173,6 +1700,7 @@ onBeforeUnmount(() => {
 							v-if="isWindowVisible('clock')"
 							ref="clockWindowRef"
 							class="window side-window draggable-window"
+							data-window-id="clock"
 							:class="{ 'window-maximized': isWindowMaximized('clock') }"
 							:style="windowStyle('clock')"
 							@pointerdown="focusWindow('clock')"
@@ -1223,62 +1751,92 @@ onBeforeUnmount(() => {
 					v-if="isWindowVisible('browser')"
 					ref="browserWindowRef"
 					class="window browser-window draggable-window"
+					data-window-id="browser"
 					:class="{ 'window-maximized': isWindowMaximized('browser') }"
 					:style="windowStyle('browser')"
 					@pointerdown="focusWindow('browser')"
 				>
-					<div
-						class="title-bar drag-handle"
-						@pointerdown.stop="startWindowDrag('browser', $event)"
-					>
-						<div class="title-bar-text">
-							<img
-								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
-								width="12"
-								height="12"
-								alt="browser icon"
-							/>
-							Browser
-						</div>
-						<div class="title-bar-controls">
-							<button aria-label="Minimize" @click.stop="minimizeWindow('browser')"></button>
-							<button
+						<div
+							class="title-bar drag-handle"
+							@pointerdown.stop="startWindowDrag('browser', $event)"
+						>
+							<div class="title-bar-text">
+								<img
+									src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
+									width="12"
+									height="12"
+									alt="navigator icon"
+								/>
+								Netscape Navigator - {{ browserTitle }}
+							</div>
+							<div class="title-bar-controls">
+								<button aria-label="Minimize" @click.stop="minimizeWindow('browser')"></button>
+								<button
 								:aria-label="isWindowMaximized('browser') ? 'Restore' : 'Maximize'"
 								@click.stop="toggleMaximizeWindow('browser')"
 							></button>
 							<button aria-label="Close" @click.stop="closeWindow('browser')"></button>
 						</div>
-					</div>
-					<div class="window-body browser-window-body">
-						<div class="field-row browser-toolbar">
-							<label for="browser-address">Address</label>
-							<input
-								id="browser-address"
-								v-model="browserAddress"
-								type="text"
-								@keydown.enter.prevent="navigateBrowserAddress"
-							/>
-							<button @click="navigateBrowserAddress">Go</button>
 						</div>
-						<iframe
-							ref="browserFrameRef"
-							class="browser-frame"
-							:src="browserUrl"
-							title="Internal browser"
-							loading="lazy"
-							@load="handleBrowserFrameLoad"
-						></iframe>
-						<div v-if="browserLoading" class="browser-overlay browser-loading">
-							Loading page...
+						<div class="window-body browser-window-body">
+							<div class="browser-nav-row">
+								<button :disabled="!canBrowserGoBack" @click="goBrowserBack">Back</button>
+								<button :disabled="!canBrowserGoForward" @click="goBrowserForward">
+									Forward
+								</button>
+								<button @click="reloadBrowserPage">Reload</button>
+								<button @click="goBrowserHome">Home</button>
+								<button @click="forceBrowserCompatibilityMode">Compat</button>
+								<button @click="openBrowserExternally">Open External</button>
+							</div>
+							<div class="field-row browser-toolbar">
+								<label for="browser-address">Location</label>
+								<input
+									id="browser-address"
+									v-model="browserAddress"
+									type="text"
+									@keydown.enter.prevent="navigateBrowserAddress"
+								/>
+								<button class="default" @click="navigateBrowserAddress">Go</button>
+							</div>
+							<iframe
+								v-if="browserRenderMode === 'direct'"
+								ref="browserFrameRef"
+								class="browser-frame"
+								:src="browserFrameSrc"
+								title="Netscape Navigator content"
+								loading="lazy"
+								referrerpolicy="no-referrer"
+								@load="handleDirectBrowserFrameLoad"
+								@error="handleDirectBrowserFrameError"
+							></iframe>
+							<iframe
+								v-else
+								ref="browserFrameRef"
+								class="browser-frame"
+								:srcdoc="browserDocument"
+								title="Netscape Navigator compatibility content"
+								loading="lazy"
+								sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+								referrerpolicy="no-referrer"
+							></iframe>
+							<div v-if="browserLoading" class="browser-overlay browser-loading">
+								{{
+									browserRenderMode === 'direct'
+										? 'Opening in iframe. Compatibility mode will auto-load if blocked...'
+										: 'Rendering compatibility snapshot through headless browser...'
+								}}
+							</div>
+							<div v-else-if="browserError" class="browser-overlay browser-blocked">
+								<div>{{ browserError }}</div>
+								<button @click="forceBrowserCompatibilityMode">Retry compatibility mode</button>
+								<button @click="openBrowserExternally">Open externally</button>
+							</div>
+							<p class="browser-note">
+								Navigator uses direct iframe mode first, then falls back to headless-rendered
+								compatibility mode for blocked pages.
+							</p>
 						</div>
-						<div v-else-if="browserBlocked" class="browser-overlay browser-blocked">
-							<div>This site refused iframe embedding.</div>
-							<button @click="openBrowserExternally">Open externally</button>
-						</div>
-						<p class="browser-note">
-							Some sites block iframe embedding. If that happens, try another link.
-						</p>
-					</div>
 					<div
 						v-for="direction in resizeDirections"
 						v-if="canResizeWindow('browser')"
@@ -1292,9 +1850,64 @@ onBeforeUnmount(() => {
 
 			<Transition name="xp-window">
 				<div
+					v-if="isWindowVisible('recycle')"
+					ref="recycleWindowRef"
+					class="window recycle-window draggable-window"
+					data-window-id="recycle"
+					:class="{ 'window-maximized': isWindowMaximized('recycle') }"
+					:style="windowStyle('recycle')"
+					@pointerdown="focusWindow('recycle')"
+				>
+					<div
+						class="title-bar drag-handle"
+						@pointerdown.stop="startWindowDrag('recycle', $event)"
+					>
+						<div class="title-bar-text">
+							<img
+								src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png"
+								width="12"
+								height="12"
+								alt="recycle bin icon"
+							/>
+							Recycle Bin
+						</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize" @click.stop="minimizeWindow('recycle')"></button>
+							<button
+								:aria-label="isWindowMaximized('recycle') ? 'Restore' : 'Maximize'"
+								@click.stop="toggleMaximizeWindow('recycle')"
+							></button>
+							<button aria-label="Close" @click.stop="closeWindow('recycle')"></button>
+						</div>
+					</div>
+					<div class="window-body links-window-body recycle-window-body">
+						<span class="group-title">-- saved links --</span>
+						<br />
+						<template v-for="link in recycleBinLinks" :key="link.href">
+							<span class="link-prefix">[-]</span>
+							<a :href="link.href" @click.prevent="openInBrowser(link.href, link.label)">
+								{{ link.label }}
+							</a>
+							<br />
+						</template>
+					</div>
+					<div
+						v-for="direction in resizeDirections"
+						v-if="canResizeWindow('recycle')"
+						:key="`recycle-${direction}`"
+						class="window-resize-handle"
+						:class="`handle-${direction}`"
+						@pointerdown="startWindowResize('recycle', direction, $event)"
+					></div>
+				</div>
+			</Transition>
+
+			<Transition name="xp-window">
+				<div
 					v-if="isWindowVisible('main')"
 					ref="mainWindowRef"
 					class="window main-window draggable-window"
+					data-window-id="main"
 					:class="{ 'window-maximized': isWindowMaximized('main') }"
 					:style="windowStyle('main')"
 					@pointerdown="focusWindow('main')"
@@ -1345,10 +1958,7 @@ onBeforeUnmount(() => {
 							<legend>Profile</legend>
 							<p>
 								okami / she-her / full-stack engineer.
-								<br />
-								this portfolio shell is a full rewrite inspired by
-								<a href="https://vmfunc.re/" @click.prevent="openInBrowser('https://vmfunc.re/', 'vmfunc.re')">vmfunc.re</a>
-								with a windows xp/98 navigation feel.
+								<br />this portfolio shell is a full rewrite with a windows xp navigation feel.
 							</p>
 						</fieldset>
 
@@ -1463,6 +2073,30 @@ onBeforeUnmount(() => {
 			</Transition>
 		</div>
 
+		<div
+			v-if="contextMenuVisible"
+			ref="contextMenuRef"
+			class="xp-context-menu"
+			:style="{ left: `${contextMenuX}px`, top: `${contextMenuY}px` }"
+			@contextmenu.stop.prevent
+		>
+			<div class="xp-context-menu-title">{{ contextMenuTitle }}</div>
+			<div class="xp-context-menu-list">
+				<template v-for="item in contextMenuItems" :key="item.id">
+					<div v-if="item.separator" class="xp-context-menu-separator"></div>
+					<button
+						v-else
+						type="button"
+						class="xp-context-menu-item"
+						:disabled="item.disabled"
+						@click.stop="invokeContextMenuItem(item)"
+					>
+						{{ item.label }}
+					</button>
+				</template>
+			</div>
+		</div>
+
 		<div class="taskbar">
 			<div class="start-button">
 				<button class="start-button-inner" @click.stop="toggleStartMenu">
@@ -1504,7 +2138,7 @@ onBeforeUnmount(() => {
 								height="16"
 								alt="browser icon"
 							/>
-							<span>Open Browser</span>
+							<span>Open Navigator</span>
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('links')">
 							<img
@@ -1527,15 +2161,15 @@ onBeforeUnmount(() => {
 						<div class="start-menu-divider"></div>
 						<button
 							class="start-menu-item"
-							@click="openInBrowser('https://vmfunc.re/', 'Reference design')"
+							@click="openInBrowser(browserHomeUrl, 'Home Page')"
 						>
 							<img
 								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
 								width="16"
 								height="16"
-								alt="reference icon"
+								alt="home icon"
 							/>
-							<span>Reference Site</span>
+							<span>Home Page</span>
 						</button>
 						<button
 							class="start-menu-item"
@@ -1560,6 +2194,7 @@ onBeforeUnmount(() => {
 					v-for="taskbarWindow in taskbarWindows"
 					:key="taskbarWindow.id"
 					class="taskbar-app"
+					:data-taskbar-window-id="taskbarWindow.id"
 					:class="{
 						active: isTaskbarWindowActive(taskbarWindow.id),
 						minimized: taskbarWindow.isMinimized,

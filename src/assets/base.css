@@ -18,10 +18,11 @@ body,
 }
 
 body {
-	background:
-		radial-gradient(circle at 18% 22%, rgba(116, 176, 255, 0.45), transparent 34%),
-		radial-gradient(circle at 76% 12%, rgba(67, 122, 243, 0.55), transparent 30%),
-		linear-gradient(180deg, var(--desktop-blue), var(--desktop-blue-dark));
+	background-color: #3b82e8;
+	background-image: url('/bliss.jpg');
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
 	background-attachment: fixed;
 	color: #000;
 }
