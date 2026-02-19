@@ -1,89 +1,31 @@
-/* color palette from <https://github.com/vuejs/theme> */
 :root {
-	--vt-c-white: #ffffff;
-	--vt-c-white-soft: #f8f8f8;
-	--vt-c-white-mute: #f2f2f2;
-
-	--vt-c-black: #2c2d39;
-	--vt-c-black-soft: #222222;
-	--vt-c-black-mute: #282828;
-
-	--vt-c-indigo: #587ea3;
-
-	--vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-	--vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-	--vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-	--vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-	--vt-c-text-light-1: var(--vt-c-indigo);
-	--vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-	--vt-c-text-dark-1: var(--vt-c-white);
-	--vt-c-text-dark-2: rgba(255, 255, 255, 0.854);
+	--desktop-blue: #0f4ca6;
+	--desktop-blue-dark: #07295b;
+	--desktop-grid: rgba(196, 228, 255, 0.18);
 }
 
-/* semantic color variables for this project */
-:root {
-	--color-background: var(--vt-c-white);
-	--color-background-soft: var(--vt-c-white-soft);
-	--color-background-mute: var(--vt-c-white-mute);
-
-	--color-border: var(--vt-c-divider-light-2);
-	--color-border-hover: var(--vt-c-divider-light-1);
-
-	--color-heading: var(--vt-c-text-light-1);
-	--color-text: var(--vt-c-text-light-1);
-
-	--section-gap: 160px;
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--color-background: var(--vt-c-black);
-		--color-background-soft: var(--vt-c-black-soft);
-		--color-background-mute: var(--vt-c-black-mute);
-
-		--color-border: var(--vt-c-divider-dark-2);
-		--color-border-hover: var(--vt-c-divider-dark-1);
-
-		--color-heading: var(--vt-c-text-dark-1);
-		--color-text: var(--vt-c-text-dark-2);
-	}
+html,
+body,
+#app {
+	margin: 0;
+	min-height: 100%;
 }
 
 body {
-	min-height: 100vh;
-	color: var(--color-text);
-	background: var(--color-background);
-	transition:
-		color 0.5s,
-		background-color 0.5s;
-	line-height: 1.6;
-	font-family:
-		Inter,
-		-apple-system,
-		BlinkMacSystemFont,
-		'Segoe UI',
-		Roboto,
-		Oxygen,
-		Ubuntu,
-		Cantarell,
-		'Fira Sans',
-		'Droid Sans',
-		'Helvetica Neue',
-		sans-serif;
-	font-size: 15px;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+	background:
+		radial-gradient(circle at 18% 22%, rgba(116, 176, 255, 0.45), transparent 34%),
+		radial-gradient(circle at 76% 12%, rgba(67, 122, 243, 0.55), transparent 30%),
+		linear-gradient(180deg, var(--desktop-blue), var(--desktop-blue-dark));
+	background-attachment: fixed;
+	color: #000;
 }
 
-textarea {
-	color: var(--color-text) !important;
-	background-color: transparent !important;
-	border-style: none;
-	background-color: white;
-	white-space: normal;
-	text-align: justify;
-	-moz-text-align-last: center;
-	text-align-last: center;
+a {
+	color: #0000ee;
 }

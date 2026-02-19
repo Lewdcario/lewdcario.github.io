@@ -1,12 +1,22 @@
 # Portfolio
 
-This is my portfolio website.
+Windows XP/98-style portfolio rewrite with:
+
+- Boot splash that types logs and requires pressing `continue`
+- Desktop icons, taskbar, start menu, and tabbed window navigation
+- Styling inspired by `https://vmfunc.re/`
 
 ## Setup
 
-* Run `yarn install && yarn dev` to start the development server
-* Run `yarn lint` to lint the code
-* Run `yarn build` to build the project for production
-* Run `yarn test:e2e:dev` to run end-to-end tests with Cypress
-* Run `yarn test:unit` to run unit tests with Jest
-* [Domain Configuration](https://gist.github.com/plembo/84f80c920bb5ac6f19e53fe6f8db1ff7)
+1. Run `yarn install`
+2. Run `yarn dev` to start the dev server
+3. Run `yarn build` for production build + type check
+4. Run `yarn lint` to auto-fix lint issues
+5. Run `yarn test:unit` for Vitest unit tests
+6. Run `yarn test:e2e:dev` for Cypress against local dev server
+
+## Notes
+
+- `public/98.css` is vendored from the reference design stack so the retro shell styles are local.
+- Main implementation lives in `src/views/HomeView.vue`.
+- Domain configuration reference: <https://gist.github.com/plembo/84f80c920bb5ac6f19e53fe6f8db1ff7>

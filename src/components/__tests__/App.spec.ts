@@ -1,13 +1,8 @@
-// import items from '../../data/projects';
-
-import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import TheBio from '../Bio.vue';
+import projects from '../../data/projects';
 
-describe('The Welcome', () => {
-	it('Mounts properly', () => {
-		const wrapper = mount(TheBio);
-
-		expect(wrapper.text()).toContain('Projects');
+describe('Project data', () => {
+	it('contains at least one project entry', () => {
+		expect(projects.length).toBeGreaterThan(0);
 	});
 });
