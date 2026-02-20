@@ -4,6 +4,7 @@ import projects, { type PortfolioProject } from '../data/projects';
 import { blinkieBadges, blinkieStamps } from '../data/blinkies';
 
 type TabId = 'about' | 'projects' | 'contact';
+type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc';
 
 interface ShellShortcut {
 	id: string;
@@ -13,6 +14,7 @@ interface ShellShortcut {
 	tab?: TabId;
 	tor?: boolean;
 	recycle?: boolean;
+	windowId?: WindowId;
 }
 
 interface DesktopIcon extends ShellShortcut {
@@ -20,7 +22,6 @@ interface DesktopIcon extends ShellShortcut {
 	y: number;
 }
 
-type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle';
 type SplashMode = 'startup' | 'login';
 type PowerState = 'idle' | 'loggingOff' | 'shuttingDown';
 type ResizeDirection = 'n' | 'e' | 's' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -91,10 +92,14 @@ type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'startpage';
 const browserHomeUrl = 'https://library.okami.codes/';
 const torBrowserHomeUrl = 'https://check.torproject.org/';
 const torSearchHomeUrl = 'https://ahmia.fi/';
+const vlcDefaultPlaylistUrl =
+	'https://www.youtube.com/watch?v=_laE9-4N3bA&list=PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
+const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
 const loginPasswordSeed = 'cobalt_2002';
 const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	browser: '/xp-icons/pack/browser.png',
+	vlc: '/xp-icons/pack/media.png',
 	folder: '/xp-icons/pack/folder-closed.png',
 	folderOpen: '/xp-icons/pack/folder-open.png',
 	contact: '/xp-icons/pack/mail.png',
@@ -196,6 +201,14 @@ const desktopIcons: DesktopIcon[] = [
 		y: 370
 	},
 	{
+		id: 'vlc-player',
+		label: 'VLC Player',
+		icon: shellIcons.vlc,
+		windowId: 'vlc',
+		x: 222,
+		y: 370
+	},
+	{
 		id: 'library',
 		label: 'Library',
 		icon: shellIcons.folder,
@@ -254,6 +267,11 @@ const windowsMeta: WindowMeta[] = [
 		id: 'recycle',
 		label: 'Recycle Bin',
 		icon: shellIcons.recycle
+	},
+	{
+		id: 'vlc',
+		label: 'VLC media player',
+		icon: shellIcons.vlc
 	}
 ];
 
@@ -263,7 +281,8 @@ function createDefaultWindowPositions(): Record<WindowId, WindowPosition> {
 		clock: { x: 150, y: 330, z: 7 },
 		main: { x: 380, y: 58, z: 8 },
 		browser: { x: 300, y: 96, z: 9 },
-		recycle: { x: 540, y: 132, z: 10 }
+		recycle: { x: 540, y: 132, z: 10 },
+		vlc: { x: 460, y: 120, z: 11 }
 	};
 }
 
@@ -273,7 +292,8 @@ function createDefaultWindowState() {
 		clock: { isOpen: true, isMinimized: false, isMaximized: false },
 		main: { isOpen: true, isMinimized: false, isMaximized: false },
 		browser: { isOpen: false, isMinimized: false, isMaximized: false },
-		recycle: { isOpen: false, isMinimized: false, isMaximized: false }
+		recycle: { isOpen: false, isMinimized: false, isMaximized: false },
+		vlc: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
 }
 
@@ -283,7 +303,8 @@ function createDefaultWindowSizes() {
 		clock: { width: 220, height: 150 },
 		main: { width: 860, height: 620 },
 		browser: { width: 640, height: 600 },
-		recycle: { width: 360, height: 280 }
+		recycle: { width: 360, height: 280 },
+		vlc: { width: 640, height: 430 }
 	};
 }
 
@@ -320,6 +341,7 @@ const clockWindowRef = ref<HTMLElement | null>(null);
 const mainWindowRef = ref<HTMLElement | null>(null);
 const browserWindowRef = ref<HTMLElement | null>(null);
 const recycleWindowRef = ref<HTMLElement | null>(null);
+const vlcWindowRef = ref<HTMLElement | null>(null);
 const activeDrag = ref<DragState | null>(null);
 const browserAddress = ref(browserHomeUrl);
 const browserCurrentUrl = ref(browserHomeUrl);
@@ -339,6 +361,17 @@ const browserHistoryIndex = ref(0);
 const browserSearchMenuOpen = ref(false);
 const browserSearchQuery = ref('');
 const browserSearchEngine = ref<BrowserSearchEngineId>('duckduckgo');
+const vlcFrameRef = ref<HTMLIFrameElement | null>(null);
+const vlcPlaylistInput = ref(vlcDefaultPlaylistUrl);
+const vlcPlaylistId = ref(vlcDefaultPlaylistId);
+const vlcError = ref('');
+const vlcVolume = ref(72);
+const vlcMuted = ref(false);
+const vlcHideYoutubeControls = ref(true);
+const vlcEmbedOrigin = ref('');
+const vlcSourcePanelOpen = ref(false);
+const vlcCurrentSeconds = ref(0);
+const vlcDurationSeconds = ref(0);
 const contextMenuRef = ref<HTMLElement | null>(null);
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
@@ -407,6 +440,32 @@ const browserSearchEngines = computed<Array<{ id: BrowserSearchEngineId; label: 
 const browserNetSearchLabel = computed(() =>
 	browserBackend.value === 'tor' ? 'Tor Search' : 'Net Search'
 );
+const vlcEmbedUrl = computed(() => {
+	const parameters = new URLSearchParams({
+		list: vlcPlaylistId.value,
+		enablejsapi: '1',
+		autoplay: '0',
+		modestbranding: '1',
+		rel: '0',
+		iv_load_policy: '3',
+		playsinline: '1'
+	});
+
+	parameters.set('controls', vlcHideYoutubeControls.value ? '0' : '1');
+	parameters.set('fs', vlcHideYoutubeControls.value ? '0' : '1');
+
+	if (vlcEmbedOrigin.value) {
+		parameters.set('origin', vlcEmbedOrigin.value);
+	}
+
+	return `https://www.youtube.com/embed/videoseries?${parameters.toString()}`;
+});
+const vlcProgressPercent = computed(() => {
+	if (vlcDurationSeconds.value <= 0) return 0;
+	return clamp((vlcCurrentSeconds.value / vlcDurationSeconds.value) * 100, 0, 100);
+});
+const vlcCurrentTimeLabel = computed(() => formatVlcTime(vlcCurrentSeconds.value));
+const vlcDurationLabel = computed(() => formatVlcTime(vlcDurationSeconds.value));
 const contextMenuTitle = computed(() => {
 	if (contextTarget.value.type === 'icon') {
 		const icon = desktopIcons.find((entry) => entry.id === contextTarget.value.id);
@@ -488,21 +547,26 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 		];
 	}
 
-	if (contextTarget.value.type === 'start') {
-		return [
-			{
-				id: 'open-browser',
-				label: 'Open Navigator',
-				action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
-			},
-			{
-				id: 'open-tor-browser',
-				label: 'Open Tor Browser',
-				action: () => openTorBrowser(browserCurrentUrl.value || torBrowserHomeUrl, 'Tor Browser')
-			},
-			{
-				id: 'logoff',
-				label: 'Log Off...',
+		if (contextTarget.value.type === 'start') {
+			return [
+				{
+					id: 'open-browser',
+					label: 'Open Navigator',
+					action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
+				},
+				{
+					id: 'open-tor-browser',
+					label: 'Open Tor Browser',
+					action: () => openTorBrowser(browserCurrentUrl.value || torBrowserHomeUrl, 'Tor Browser')
+				},
+				{
+					id: 'open-vlc',
+					label: 'Open VLC',
+					action: () => openVlcWindow()
+				},
+				{
+					id: 'logoff',
+					label: 'Log Off...',
 				action: () => {
 					void performLogoff();
 				}
@@ -543,7 +607,7 @@ let loginTypingTimer: number | null = null;
 let loginTypingRun = 0;
 let typingAudioContext: AudioContext | null = null;
 let disposed = false;
-let zCounter = 10;
+let zCounter = 11;
 const draggedIconIds = new Set<string>();
 
 function randomBetween(min: number, max: number) {
@@ -616,6 +680,7 @@ function iconBounds() {
 function windowMinSize(windowId: WindowId) {
 	if (windowId === 'main') return { width: 520, height: 360 };
 	if (windowId === 'browser') return { width: 460, height: 320 };
+	if (windowId === 'vlc') return { width: 420, height: 280 };
 	if (windowId === 'recycle') return { width: 260, height: 180 };
 	return { width: 180, height: 120 };
 }
@@ -1171,6 +1236,240 @@ function browserSearchUrl(engineId: BrowserSearchEngineId, query: string) {
 	}
 }
 
+function extractYouTubePlaylistId(rawValue: string) {
+	const trimmed = rawValue.trim();
+	if (!trimmed) return null;
+
+	if (/^[A-Za-z0-9_-]{12,}$/.test(trimmed)) {
+		return trimmed;
+	}
+
+	const listMatch = trimmed.match(/[?&]list=([A-Za-z0-9_-]{12,})/i);
+	if (listMatch?.[1]) {
+		return listMatch[1];
+	}
+
+	const normalizedUrl =
+		/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) || trimmed.startsWith('//')
+			? trimmed
+			: `https://${trimmed}`;
+
+	try {
+		const parsedUrl = new URL(normalizedUrl);
+		const playlistId = parsedUrl.searchParams.get('list');
+		if (playlistId && /^[A-Za-z0-9_-]{12,}$/.test(playlistId)) {
+			return playlistId;
+		}
+	} catch {
+		// Ignore parse errors and report validation message below.
+	}
+
+	return null;
+}
+
+function loadVlcPlaylist() {
+	const playlistId = extractYouTubePlaylistId(vlcPlaylistInput.value);
+	if (!playlistId) {
+		vlcError.value = 'Enter a valid YouTube playlist URL or playlist ID.';
+		pushStatus('VLC playlist URL is invalid.');
+		return;
+	}
+
+	vlcPlaylistId.value = playlistId;
+	vlcError.value = '';
+	vlcCurrentSeconds.value = 0;
+	vlcDurationSeconds.value = 0;
+	vlcSourcePanelOpen.value = false;
+	pushStatus('Playlist loaded in VLC.');
+}
+
+function postVlcCommand(func: string, args: unknown[] = []) {
+	const frameWindow = vlcFrameRef.value?.contentWindow;
+	if (!frameWindow) return false;
+
+	frameWindow.postMessage(
+		JSON.stringify({
+			event: 'command',
+			func,
+			args
+		}),
+		'*'
+	);
+	return true;
+}
+
+function formatVlcTime(totalSeconds: number) {
+	const safeSeconds = Number.isFinite(totalSeconds)
+		? Math.max(0, Math.floor(totalSeconds))
+		: 0;
+	const hours = Math.floor(safeSeconds / 3600);
+	const minutes = Math.floor((safeSeconds % 3600) / 60);
+	const seconds = safeSeconds % 60;
+
+	if (hours > 0) {
+		return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
+			.toString()
+			.padStart(2, '0')}`;
+	}
+
+	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function toggleVlcSourcePanel() {
+	vlcSourcePanelOpen.value = !vlcSourcePanelOpen.value;
+	pushStatus(vlcSourcePanelOpen.value ? 'Open media panel shown.' : 'Open media panel hidden.');
+}
+
+function openVlcMenuItem(item: string) {
+	if (item === 'Media') {
+		toggleVlcSourcePanel();
+		return;
+	}
+
+	pushStatus(`${item} menu is not available in this build.`);
+}
+
+function playVlc() {
+	if (!postVlcCommand('playVideo')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+	pushStatus('VLC play.');
+}
+
+function pauseVlc() {
+	if (!postVlcCommand('pauseVideo')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+	pushStatus('VLC paused.');
+}
+
+function stopVlc() {
+	if (!postVlcCommand('stopVideo')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+	pushStatus('VLC stopped.');
+}
+
+function previousVlcTrack() {
+	if (!postVlcCommand('previousVideo')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+	pushStatus('VLC previous track.');
+}
+
+function nextVlcTrack() {
+	if (!postVlcCommand('nextVideo')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+	pushStatus('VLC next track.');
+}
+
+function toggleVlcMute() {
+	const targetMuted = !vlcMuted.value;
+	vlcMuted.value = targetMuted;
+
+	if (!postVlcCommand(targetMuted ? 'mute' : 'unMute')) {
+		pushStatus('VLC player is still loading.');
+		return;
+	}
+
+	pushStatus(targetMuted ? 'VLC muted.' : 'VLC unmuted.');
+}
+
+function setVlcVolume(event: Event) {
+	const target = event.target as HTMLInputElement | null;
+	if (!target) return;
+
+	const nextVolume = clamp(Number.parseInt(target.value, 10) || 0, 0, 100);
+	vlcVolume.value = nextVolume;
+
+	if (nextVolume <= 0) {
+		vlcMuted.value = true;
+		void postVlcCommand('mute');
+	} else if (vlcMuted.value) {
+		vlcMuted.value = false;
+		void postVlcCommand('unMute');
+	}
+
+	void postVlcCommand('setVolume', [nextVolume]);
+}
+
+function seekVlcTimeline(event: Event) {
+	const target = event.target as HTMLInputElement | null;
+	if (!target || vlcDurationSeconds.value <= 0) return;
+
+	const nextPercent = clamp(Number.parseFloat(target.value) || 0, 0, 100);
+	const seekSeconds = Math.floor((nextPercent / 100) * vlcDurationSeconds.value);
+	vlcCurrentSeconds.value = seekSeconds;
+	void postVlcCommand('seekTo', [seekSeconds, true]);
+}
+
+function handleVlcFrameLoad() {
+	const frameWindow = vlcFrameRef.value?.contentWindow;
+	if (frameWindow) {
+		frameWindow.postMessage(
+			JSON.stringify({
+				event: 'listening',
+				id: 'okami-vlc'
+			}),
+			'*'
+		);
+	}
+
+	void postVlcCommand('setVolume', [vlcVolume.value]);
+	void postVlcCommand(vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute');
+}
+
+function handleVlcUiToggle() {
+	pushStatus(
+		vlcHideYoutubeControls.value
+			? 'VLC using minimal YouTube UI.'
+			: 'VLC showing YouTube controls.'
+	);
+}
+
+function handleVlcFrameMessage(rawData: unknown) {
+	let data: unknown = rawData;
+	if (typeof data === 'string') {
+		try {
+			data = JSON.parse(data);
+		} catch {
+			return;
+		}
+	}
+
+	if (!data || typeof data !== 'object') return;
+	const eventPayload = data as { event?: unknown; info?: unknown };
+	const eventType = eventPayload.event;
+	const info =
+		eventPayload.info && typeof eventPayload.info === 'object'
+			? (eventPayload.info as Record<string, unknown>)
+			: null;
+
+	if (eventType === 'onReady') {
+		void postVlcCommand('setVolume', [vlcVolume.value]);
+		void postVlcCommand(vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute');
+		return;
+	}
+
+	if (eventType !== 'infoDelivery' || !info) return;
+
+	const currentTime = info.currentTime;
+	if (typeof currentTime === 'number' && Number.isFinite(currentTime)) {
+		vlcCurrentSeconds.value = Math.max(0, currentTime);
+	}
+
+	const duration = info.duration;
+	if (typeof duration === 'number' && Number.isFinite(duration) && duration > 0) {
+		vlcDurationSeconds.value = duration;
+	}
+}
+
 function syncBrowserSearchEngine(backend: BrowserBackend) {
 	if (backend === 'tor') {
 		browserSearchEngine.value = 'ahmia';
@@ -1224,6 +1523,14 @@ function openNetscapeBrowser(url = browserHomeUrl, label = 'Netscape Navigator')
 	openInBrowser(url, label, { backend: 'standard', skin: 'netscape' });
 }
 
+function openVlcWindow() {
+	startMenuOpen.value = false;
+	restoreWindow('vlc', false);
+	focusWindow('vlc');
+	vlcSourcePanelOpen.value = false;
+	pushStatus('VLC media player opened.');
+}
+
 function goBrowserBack() {
 	if (!canBrowserGoBack.value) return;
 	browserHistoryIndex.value -= 1;
@@ -1263,13 +1570,19 @@ function openBrowserExternally() {
 }
 
 function handleBrowserWindowMessage(event: MessageEvent) {
-	const frameWindow = browserFrameRef.value?.contentWindow;
-	if (!frameWindow || event.source !== frameWindow) return;
+	const browserFrameWindow = browserFrameRef.value?.contentWindow;
+	if (browserFrameWindow && event.source === browserFrameWindow) {
+		const data = event.data as { type?: string; href?: string } | null;
+		if (!data || data.type !== 'navigator:navigate' || typeof data.href !== 'string') return;
 
-	const data = event.data as { type?: string; href?: string } | null;
-	if (!data || data.type !== 'navigator:navigate' || typeof data.href !== 'string') return;
+		openInBrowser(data.href, data.href);
+		return;
+	}
 
-	openInBrowser(data.href, data.href);
+	const vlcFrameWindow = vlcFrameRef.value?.contentWindow;
+	if (vlcFrameWindow && event.source === vlcFrameWindow) {
+		handleVlcFrameMessage(event.data);
+	}
 }
 
 function minimizeWindow(windowId: WindowId) {
@@ -1373,6 +1686,16 @@ function isTaskbarWindowActive(windowId: WindowId) {
 }
 
 function openShellShortcut(shortcut: ShellShortcut) {
+	if (shortcut.windowId === 'vlc') {
+		openVlcWindow();
+		return;
+	}
+
+	if (shortcut.windowId) {
+		openWindowFromMenu(shortcut.windowId);
+		return;
+	}
+
 	if (shortcut.recycle) {
 		restoreWindow('recycle', false);
 		pushStatus('Recycle Bin opened.');
@@ -1626,10 +1949,19 @@ function resetSessionState() {
 	browserSearchMenuOpen.value = false;
 	browserSearchQuery.value = '';
 	browserSearchEngine.value = 'duckduckgo';
+	vlcPlaylistInput.value = vlcDefaultPlaylistUrl;
+	vlcPlaylistId.value = vlcDefaultPlaylistId;
+	vlcError.value = '';
+	vlcVolume.value = 72;
+	vlcMuted.value = false;
+	vlcHideYoutubeControls.value = true;
+	vlcSourcePanelOpen.value = false;
+	vlcCurrentSeconds.value = 0;
+	vlcDurationSeconds.value = 0;
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
 	windowSizes.value = createDefaultWindowSizes();
-	zCounter = 10;
+	zCounter = 11;
 	normalizeDesktopLayout();
 }
 
@@ -1723,6 +2055,7 @@ function handleWindowResize() {
 
 onMounted(() => {
 	document.title = 'Okami Portfolio';
+	vlcEmbedOrigin.value = window.location.origin;
 	incrementVisitorCount();
 	normalizeDesktopLayout();
 	updateClocks();
@@ -2211,6 +2544,142 @@ onBeforeUnmount(() => {
 
 			<Transition name="xp-window">
 				<div
+					v-if="isWindowVisible('vlc')"
+					ref="vlcWindowRef"
+					class="window vlc-window draggable-window"
+					data-window-id="vlc"
+					:class="{ 'window-maximized': isWindowMaximized('vlc') }"
+					:style="windowStyle('vlc')"
+					@pointerdown="focusWindow('vlc')"
+				>
+					<div
+						class="title-bar drag-handle"
+						@pointerdown.stop="startWindowDrag('vlc', $event)"
+					>
+						<div class="title-bar-text">
+							<img
+								:src="shellIcons.vlc"
+								width="12"
+								height="12"
+								alt="vlc icon"
+							/>
+							VLC media player
+						</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize" @click.stop="minimizeWindow('vlc')"></button>
+							<button
+								:aria-label="isWindowMaximized('vlc') ? 'Restore' : 'Maximize'"
+								@click.stop="toggleMaximizeWindow('vlc')"
+							></button>
+							<button aria-label="Close" @click.stop="closeWindow('vlc')"></button>
+						</div>
+					</div>
+					<div class="window-body vlc-window-body">
+						<div class="vlc-menubar" role="menubar" aria-label="VLC menu">
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Media')">Media</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Playback')">Playback</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Audio')">Audio</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Video')">Video</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Subtitle')">Subtitle</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Tools')">Tools</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('View')">View</button>
+							<button type="button" class="vlc-menu-item" @click="openVlcMenuItem('Help')">Help</button>
+						</div>
+						<div v-show="vlcSourcePanelOpen" class="vlc-source-panel">
+							<form class="vlc-source-form" @submit.prevent="loadVlcPlaylist">
+								<input
+									id="vlc-playlist-input"
+									v-model="vlcPlaylistInput"
+									type="text"
+									autocomplete="off"
+									placeholder="Paste YouTube playlist link or ID"
+								/>
+								<button type="submit">Open</button>
+								<label class="vlc-ui-toggle" for="vlc-hide-youtube-controls">
+									<input
+										id="vlc-hide-youtube-controls"
+										v-model="vlcHideYoutubeControls"
+										type="checkbox"
+										@change="handleVlcUiToggle"
+									/>
+									Hide YouTube UI
+								</label>
+							</form>
+							<p v-if="vlcError" class="vlc-error">{{ vlcError }}</p>
+						</div>
+						<div class="vlc-content">
+							<iframe
+								ref="vlcFrameRef"
+								class="vlc-frame"
+								:src="vlcEmbedUrl"
+								title="VLC playlist player"
+								loading="lazy"
+								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+								allowfullscreen
+								@load="handleVlcFrameLoad"
+							></iframe>
+						</div>
+						<div class="vlc-bottom">
+							<div class="vlc-seek-row">
+								<span class="vlc-time">{{ vlcCurrentTimeLabel }}</span>
+								<input
+									class="vlc-timeline"
+									type="range"
+									min="0"
+									max="100"
+									step="0.1"
+									:value="vlcProgressPercent"
+									@input="seekVlcTimeline"
+								/>
+								<span class="vlc-time">{{ vlcDurationLabel }}</span>
+							</div>
+							<div class="vlc-controls" role="toolbar" aria-label="VLC controls">
+								<div class="vlc-controls-left">
+									<button type="button" class="vlc-control-button" aria-label="Previous track" @click="previousVlcTrack">|&lt;&lt;</button>
+									<button type="button" class="vlc-control-button" aria-label="Play" @click="playVlc">&gt;</button>
+									<button type="button" class="vlc-control-button" aria-label="Pause" @click="pauseVlc">||</button>
+									<button type="button" class="vlc-control-button" aria-label="Stop" @click="stopVlc">[]</button>
+									<button type="button" class="vlc-control-button" aria-label="Next track" @click="nextVlcTrack">&gt;&gt;|</button>
+									<button type="button" class="vlc-control-button" aria-label="Playlist" @click="pushStatus('Playlist view is not available in this build.')">List</button>
+									<button type="button" class="vlc-control-button" aria-label="Loop" @click="pushStatus('Loop toggle is not available in this build.')">Loop</button>
+								</div>
+								<div class="vlc-controls-right">
+									<button
+										type="button"
+										class="vlc-control-button vlc-mute-button"
+										aria-label="Mute"
+										@click="toggleVlcMute"
+									>
+										{{ vlcMuted ? 'Muted' : 'Mute' }}
+									</button>
+									<label class="vlc-volume-wrap" for="vlc-volume-slider">
+										<input
+											id="vlc-volume-slider"
+											type="range"
+											min="0"
+											max="100"
+											:value="vlcVolume"
+											@input="setVlcVolume"
+										/>
+										<span class="vlc-volume-value">{{ vlcVolume }}%</span>
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div
+						v-for="direction in resizeDirections"
+						v-if="canResizeWindow('vlc')"
+						:key="`vlc-${direction}`"
+						class="window-resize-handle"
+						:class="`handle-${direction}`"
+						@pointerdown="startWindowResize('vlc', direction, $event)"
+					></div>
+				</div>
+			</Transition>
+
+			<Transition name="xp-window">
+				<div
 					v-if="isWindowVisible('recycle')"
 					ref="recycleWindowRef"
 					class="window recycle-window draggable-window"
@@ -2553,6 +3022,15 @@ onBeforeUnmount(() => {
 								alt="tor browser icon"
 							/>
 							<span>Open Tor Browser</span>
+						</button>
+						<button class="start-menu-item" @click="openVlcWindow">
+							<img
+								:src="shellIcons.vlc"
+								width="16"
+								height="16"
+								alt="vlc icon"
+							/>
+							<span>Open VLC</span>
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('links')">
 							<img

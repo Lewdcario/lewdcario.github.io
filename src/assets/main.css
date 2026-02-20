@@ -1061,6 +1061,11 @@ legend {
 	max-width: none;
 }
 
+.vlc-window {
+	width: auto;
+	max-width: none;
+}
+
 .main-window .window-body {
 	padding: 10px 10px 8px;
 	height: calc(100% - 22px);
@@ -1091,6 +1096,205 @@ legend {
 .recycle-window-body {
 	overflow: auto;
 	padding: 6px 8px;
+}
+
+.vlc-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: #b6b6b6;
+}
+
+.vlc-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.vlc-menubar {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: 2px 6px;
+	border-bottom: 1px solid #9f9f9f;
+	background: #f3f3f3;
+}
+
+.vlc-menu-item {
+	min-width: 0;
+	min-height: 20px;
+	padding: 1px 7px 2px;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	font-size: 11px;
+	color: #111;
+}
+
+.vlc-menu-item:hover {
+	background: #e0e0e0;
+}
+
+.vlc-menu-item:active {
+	background: #d4d4d4;
+}
+
+.vlc-source-panel {
+	padding: 6px;
+	border-bottom: 1px solid #9a9a9a;
+	background: linear-gradient(180deg, #efefef 0%, #dddddd 100%);
+}
+
+.vlc-source-form {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.vlc-source-form input[type='text'] {
+	flex: 1;
+	min-width: 160px;
+	height: 23px;
+	padding: 2px 5px;
+	border: 1px solid #868686;
+	background: #fff;
+	box-shadow: inset 1px 1px 0 #f8f8f8, inset -1px -1px 0 #b8b8b8;
+	font-size: 12px;
+}
+
+.vlc-source-form button {
+	min-height: 23px;
+	padding: 2px 10px;
+	font-size: 11px;
+}
+
+.vlc-ui-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+	font-size: 11px;
+	color: #1a1a1a;
+}
+
+.vlc-ui-toggle input[type='checkbox'] {
+	width: 13px;
+	height: 13px;
+	margin: 0;
+}
+
+.vlc-content {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	background: #000;
+}
+
+.vlc-frame {
+	flex: 1;
+	min-height: 0;
+	width: 100%;
+	border: 0;
+	background: #000;
+}
+
+.vlc-bottom {
+	border-top: 1px solid #f4f4f4;
+	background: linear-gradient(180deg, #ececec 0%, #d8d8d8 46%, #c7c7c7 100%);
+}
+
+.vlc-seek-row {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 3px 8px 2px;
+	border-bottom: 1px solid #b1b1b1;
+}
+
+.vlc-time {
+	font-size: 10px;
+	color: #444;
+	min-width: 36px;
+	text-align: center;
+}
+
+.vlc-timeline {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	height: 14px;
+}
+
+.vlc-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 4px 6px;
+}
+
+.vlc-controls-left,
+.vlc-controls-right {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.vlc-controls-right {
+	margin-left: auto;
+}
+
+.vlc-control-button {
+	min-width: 24px;
+	min-height: 24px;
+	padding: 2px 6px;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+	border: 1px solid #8b8b8b;
+	background: linear-gradient(180deg, #fafafa 0%, #ececec 52%, #d8d8d8 100%);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.vlc-control-button:active {
+	background: linear-gradient(180deg, #d4d4d4 0%, #e5e5e5 100%);
+	box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.vlc-mute-button {
+	min-width: 48px;
+}
+
+.vlc-volume-wrap {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.vlc-volume-wrap input[type='range'] {
+	width: 104px;
+	height: 14px;
+	margin: 0;
+}
+
+.vlc-volume-value {
+	min-width: 34px;
+	font-size: 10px;
+	text-align: right;
+	color: #4a4a4a;
+}
+
+.vlc-error {
+	margin: 6px 0 0;
+	font-size: 11px;
+	color: #8d0f0f;
 }
 
 .recycle-shortcuts-grid {
