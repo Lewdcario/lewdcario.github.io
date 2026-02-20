@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import projects, { type PortfolioProject } from '../data/projects';
+import { blinkieBadges, blinkieStamps } from '../data/blinkies';
 
 type TabId = 'about' | 'projects' | 'contact';
 
@@ -10,6 +11,7 @@ interface DesktopIcon {
 	icon: string;
 	href?: string;
 	tab?: TabId;
+	tor?: boolean;
 	x: number;
 	y: number;
 	recycle?: boolean;
@@ -74,11 +76,16 @@ interface BrowserRenderPayload {
 
 interface BrowserRequestOptions {
 	pushHistory?: boolean;
+	backend?: BrowserBackend;
+	skin?: BrowserSkin;
 }
 
 type BrowserRenderMode = 'direct' | 'snapshot';
+type BrowserBackend = 'standard' | 'tor';
+type BrowserSkin = 'netscape' | 'tor';
 
 const browserHomeUrl = 'https://library.okami.codes/';
+const torBrowserHomeUrl = 'https://check.torproject.org/';
 const loginPasswordSeed = 'cobalt_2002';
 
 const tabs: Array<{ id: TabId; label: string }> = [
@@ -130,6 +137,15 @@ const desktopIcons: DesktopIcon[] = [
 		href: 'https://library.okami.codes',
 		x: 126,
 		y: 130
+	},
+	{
+		id: 'tor-browser',
+		label: 'Tor Browser',
+		icon: '/tor-browser-icon.svg',
+		href: torBrowserHomeUrl,
+		tor: true,
+		x: 126,
+		y: 370
 	},
 	{
 		id: 'library',
@@ -218,7 +234,7 @@ function createDefaultWindowSizes() {
 		links: { width: 220, height: 230 },
 		clock: { width: 220, height: 150 },
 		main: { width: 860, height: 620 },
-		browser: { width: 760, height: 560 },
+		browser: { width: 640, height: 600 },
 		recycle: { width: 360, height: 280 }
 	};
 }
@@ -262,7 +278,10 @@ const browserCurrentUrl = ref(browserHomeUrl);
 const browserDocument = ref(navigatorPlaceholderDocument('Type a URL and press Go.', browserHomeUrl));
 const browserFrameSrc = ref(browserHomeUrl);
 const browserRenderMode = ref<BrowserRenderMode>('snapshot');
+const browserBackend = ref<BrowserBackend>('standard');
+const browserSkin = ref<BrowserSkin>('netscape');
 const browserFrameRef = ref<HTMLIFrameElement | null>(null);
+const browserAddressInputRef = ref<HTMLInputElement | null>(null);
 const browserLoading = ref(false);
 const browserError = ref('');
 const browserTitle = ref('Netscape Navigator');
@@ -290,14 +309,39 @@ const resizeDirections: ResizeDirection[] = ['n', 'e', 's', 'w', 'ne', 'nw', 'se
 const taskbarWindows = computed(() =>
 	windowsMeta
 		.filter((windowMeta) => windowState.value[windowMeta.id].isOpen)
-		.map((windowMeta) => ({
-			...windowMeta,
-			...windowState.value[windowMeta.id]
-		}))
+		.map((windowMeta) => {
+			if (windowMeta.id === 'browser') {
+				return {
+					...windowMeta,
+					label: browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator',
+					icon:
+						browserSkin.value === 'tor'
+							? '/tor-browser-icon.svg'
+							: 'https://win98icons.alexmeub.com/icons/png/msie1-2.png',
+					...windowState.value[windowMeta.id]
+				};
+			}
+
+			return {
+				...windowMeta,
+				...windowState.value[windowMeta.id]
+			};
+		})
 );
 const canBrowserGoBack = computed(() => browserHistoryIndex.value > 0);
 const canBrowserGoForward = computed(
 	() => browserHistoryIndex.value < browserHistory.value.length - 1
+);
+const browserShellTitle = computed(() =>
+	browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
+);
+const browserShellIcon = computed(() =>
+	browserSkin.value === 'tor'
+		? '/tor-browser-icon.svg'
+		: 'https://interface-experience.org/site/wp-content/uploads/2015/01/giphy.gif'
+);
+const browserDefaultHome = computed(() =>
+	browserBackend.value === 'tor' ? torBrowserHomeUrl : browserHomeUrl
 );
 const contextMenuTitle = computed(() => {
 	if (contextTarget.value.type === 'icon') {
@@ -306,6 +350,9 @@ const contextMenuTitle = computed(() => {
 	}
 
 	if (contextTarget.value.type === 'window' || contextTarget.value.type === 'taskbar') {
+		if (contextTarget.value.id === 'browser') {
+			return browserShellTitle.value;
+		}
 		const windowMeta = windowsMeta.find((entry) => entry.id === contextTarget.value.id);
 		return windowMeta?.label ?? 'Window';
 	}
@@ -333,7 +380,11 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 				disabled: !icon.href,
 				action: () => {
 					if (!icon.href) return;
-					openInBrowser(icon.href, icon.label);
+					if (icon.tor) {
+						openTorBrowser(icon.href, icon.label);
+						return;
+					}
+					openInBrowser(icon.href, icon.label, { backend: 'standard', skin: 'netscape' });
 				}
 			},
 			{ id: 'sep-1', label: '', separator: true, action: () => undefined },
@@ -378,7 +429,12 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 			{
 				id: 'open-browser',
 				label: 'Open Navigator',
-				action: () => openWindowFromMenu('browser')
+				action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
+			},
+			{
+				id: 'open-tor-browser',
+				label: 'Open Tor Browser',
+				action: () => openTorBrowser(browserCurrentUrl.value || torBrowserHomeUrl, 'Tor Browser')
 			},
 			{
 				id: 'logoff',
@@ -399,7 +455,7 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 		{
 			id: 'open-navigator',
 			label: 'Open Navigator',
-			action: () => openWindowFromMenu('browser')
+			action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
 		},
 		{
 			id: 'show-desktop',
@@ -781,6 +837,10 @@ function canResizeWindow(windowId: WindowId) {
 }
 
 function windowLabel(windowId: WindowId) {
+	if (windowId === 'browser') {
+		return browserShellTitle.value;
+	}
+
 	const windowMeta = windowsMeta.find((entry) => entry.id === windowId);
 	return windowMeta?.label ?? windowId;
 }
@@ -801,10 +861,11 @@ function escapeHtml(value: string) {
 		.replaceAll("'", '&#39;');
 }
 
-function navigatorPlaceholderDocument(message: string, url: string) {
+function navigatorPlaceholderDocument(message: string, url: string, title = 'Netscape Navigator') {
 	const safeMessage = escapeHtml(message);
 	const safeUrl = escapeHtml(url);
-	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>Netscape Navigator</h1><p>${safeMessage}</p><p class="hint">${safeUrl}</p></body></html>`;
+	const safeTitle = escapeHtml(title);
+	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>${safeTitle}</h1><p>${safeMessage}</p><p class="hint">${safeUrl}</p></body></html>`;
 }
 
 function replaceCurrentBrowserHistory(url: string) {
@@ -830,9 +891,9 @@ function clearLoginTypingTimer() {
 function browserWindowTitleFromUrl(url: string) {
 	try {
 		const hostname = new URL(url).hostname;
-		return hostname || 'Netscape Navigator';
+		return hostname || browserShellTitle.value;
 	} catch {
-		return 'Netscape Navigator';
+		return browserShellTitle.value;
 	}
 }
 
@@ -845,13 +906,18 @@ function pushBrowserHistory(url: string) {
 	browserHistoryIndex.value = nextHistory.length - 1;
 }
 
+function snapshotEndpointForBackend(backend: BrowserBackend) {
+	return backend === 'tor' ? '/api/tor/render' : '/api/browser/render';
+}
+
 async function loadBrowserSnapshot(
 	requestSerial: number,
 	url: string,
+	backend: BrowserBackend,
 	options: BrowserRequestOptions = {}
 ) {
 	try {
-		const payload = await $fetch<BrowserRenderPayload>('/api/browser/render', {
+		const payload = await $fetch<BrowserRenderPayload>(snapshotEndpointForBackend(backend), {
 			query: { url }
 		});
 		if (disposed || requestSerial !== browserRequestSerial) return;
@@ -877,22 +943,34 @@ async function loadBrowserSnapshot(
 		browserError.value = message;
 		browserRenderMode.value = 'snapshot';
 		browserDocument.value = navigatorPlaceholderDocument(
-			'Navigator could not render this page.',
-			url
+			backend === 'tor'
+				? 'Tor Browser could not render this page.'
+				: 'Navigator could not render this page.',
+			url,
+			backend === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
 		);
 		browserLoading.value = false;
-		pushStatus('Navigator failed to load the requested page.');
+		pushStatus(
+			backend === 'tor'
+				? 'Tor Browser failed to load the requested page.'
+				: 'Navigator failed to load the requested page.'
+		);
 	}
 }
 
 function openInBrowser(url: string, label?: string, options: BrowserRequestOptions = {}) {
 	const normalized = normalizeBrowserUrl(url);
+	const backend = options.backend ?? browserBackend.value;
+	const skin = options.skin ?? (backend === 'tor' ? 'tor' : 'netscape');
 	const pushHistory = options.pushHistory ?? true;
 	if (pushHistory) {
 		pushBrowserHistory(normalized);
 	} else if (browserHistory.value[browserHistoryIndex.value] !== normalized) {
 		replaceCurrentBrowserHistory(normalized);
 	}
+
+	browserBackend.value = backend;
+	browserSkin.value = skin;
 
 	const requestSerial = ++browserRequestSerial;
 	clearBrowserFallbackTimer();
@@ -906,18 +984,26 @@ function openInBrowser(url: string, label?: string, options: BrowserRequestOptio
 	browserFrameSrc.value = normalized;
 	browserDocument.value = navigatorPlaceholderDocument(
 		'Rendering in compatibility mode...',
-		normalized
+		normalized,
+		backend === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
 	);
 
 	restoreWindow('browser', false);
 	startMenuOpen.value = false;
 	focusWindow('browser');
-	pushStatus(`${label ?? normalized} opened in navigator.`);
+	pushStatus(`${label ?? normalized} opened in ${browserShellTitle.value}.`);
+
+	if (backend === 'tor') {
+		browserRenderMode.value = 'snapshot';
+		browserFrameSrc.value = 'about:blank';
+		void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
+		return;
+	}
 
 	browserFallbackTimer = window.setTimeout(() => {
 		if (disposed || requestSerial !== browserRequestSerial) return;
 		if (browserRenderMode.value !== 'direct') return;
-		void loadBrowserSnapshot(requestSerial, normalized, { pushHistory: false });
+		void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
 	}, 2600);
 }
 
@@ -944,7 +1030,9 @@ function handleDirectBrowserFrameLoad() {
 	}
 
 	if (locationHref && isIframeBlockedLocation(locationHref)) {
-		void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
+		void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
+			pushHistory: false
+		});
 		return;
 	}
 
@@ -960,7 +1048,9 @@ function handleDirectBrowserFrameLoad() {
 function handleDirectBrowserFrameError() {
 	if (browserRenderMode.value !== 'direct') return;
 	const requestSerial = browserRequestSerial;
-	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
+	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
+		pushHistory: false
+	});
 }
 
 function forceBrowserCompatibilityMode() {
@@ -968,11 +1058,40 @@ function forceBrowserCompatibilityMode() {
 	clearBrowserFallbackTimer();
 	browserLoading.value = true;
 	browserError.value = '';
-	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, { pushHistory: false });
+	void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
+		pushHistory: false
+	});
+}
+
+function stopBrowserLoading() {
+	browserRequestSerial += 1;
+	clearBrowserFallbackTimer();
+	browserLoading.value = false;
+	browserError.value = '';
+	pushStatus(`${browserShellTitle.value} load stopped.`);
+}
+
+function focusBrowserAddress() {
+	const input = browserAddressInputRef.value;
+	if (!input) return;
+	input.focus();
+	input.select();
+	pushStatus(`${browserShellTitle.value} location bar focused.`);
 }
 
 function navigateBrowserAddress() {
-	openInBrowser(browserAddress.value, 'Netscape Navigator');
+	openInBrowser(browserAddress.value, browserShellTitle.value, {
+		backend: browserBackend.value,
+		skin: browserSkin.value
+	});
+}
+
+function openTorBrowser(url = torBrowserHomeUrl, label = 'Tor Browser') {
+	openInBrowser(url, label, { backend: 'tor', skin: 'tor' });
+}
+
+function openNetscapeBrowser(url = browserHomeUrl, label = 'Netscape Navigator') {
+	openInBrowser(url, label, { backend: 'standard', skin: 'netscape' });
 }
 
 function goBrowserBack() {
@@ -990,11 +1109,18 @@ function goBrowserForward() {
 }
 
 function reloadBrowserPage() {
-	openInBrowser(browserCurrentUrl.value, 'Reload', { pushHistory: false });
+	openInBrowser(browserCurrentUrl.value, 'Reload', {
+		pushHistory: false,
+		backend: browserBackend.value,
+		skin: browserSkin.value
+	});
 }
 
 function goBrowserHome() {
-	openInBrowser(browserHomeUrl, 'Home');
+	openInBrowser(browserDefaultHome.value, 'Home', {
+		backend: browserBackend.value,
+		skin: browserSkin.value
+	});
 }
 
 function openBrowserExternally() {
@@ -1136,13 +1262,19 @@ function handleDesktopIconClick(icon: DesktopIcon, event: MouseEvent) {
 		return;
 	}
 
+	if (icon.tor) {
+		event.preventDefault();
+		openTorBrowser(icon.href ?? torBrowserHomeUrl, icon.label);
+		return;
+	}
+
 	if (!icon.href) {
 		event.preventDefault();
 		return;
 	}
 
 	event.preventDefault();
-	openInBrowser(icon.href, icon.label);
+	openNetscapeBrowser(icon.href, icon.label);
 }
 
 function handleDesktopIconContextAction(icon: DesktopIcon) {
@@ -1157,8 +1289,13 @@ function handleDesktopIconContextAction(icon: DesktopIcon) {
 		return;
 	}
 
+	if (icon.tor) {
+		openTorBrowser(icon.href ?? torBrowserHomeUrl, icon.label);
+		return;
+	}
+
 	if (icon.href) {
-		openInBrowser(icon.href, icon.label);
+		openNetscapeBrowser(icon.href, icon.label);
 	}
 }
 
@@ -1361,6 +1498,8 @@ function resetSessionState() {
 	browserRequestSerial += 1;
 	browserLoading.value = false;
 	browserError.value = '';
+	browserBackend.value = 'standard';
+	browserSkin.value = 'netscape';
 	browserTitle.value = 'Netscape Navigator';
 	browserCurrentUrl.value = browserHomeUrl;
 	browserAddress.value = browserHomeUrl;
@@ -1760,14 +1899,14 @@ onBeforeUnmount(() => {
 							class="title-bar drag-handle"
 							@pointerdown.stop="startWindowDrag('browser', $event)"
 						>
-							<div class="title-bar-text">
-								<img
-									src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
-									width="12"
-									height="12"
-									alt="navigator icon"
-								/>
-								Netscape Navigator - {{ browserTitle }}
+						<div class="title-bar-text">
+							<img
+								:src="browserShellIcon"
+								width="14"
+								height="14"
+								alt="navigator icon"
+							/>
+							{{ browserShellTitle }} - {{ browserTitle }}
 							</div>
 							<div class="title-bar-controls">
 								<button aria-label="Minimize" @click.stop="minimizeWindow('browser')"></button>
@@ -1778,31 +1917,148 @@ onBeforeUnmount(() => {
 							<button aria-label="Close" @click.stop="closeWindow('browser')"></button>
 						</div>
 						</div>
-						<div class="window-body browser-window-body">
-							<div class="browser-nav-row">
-								<button :disabled="!canBrowserGoBack" @click="goBrowserBack">Back</button>
-								<button :disabled="!canBrowserGoForward" @click="goBrowserForward">
-									Forward
-								</button>
-								<button @click="reloadBrowserPage">Reload</button>
-								<button @click="goBrowserHome">Home</button>
-								<button @click="forceBrowserCompatibilityMode">Compat</button>
-								<button @click="openBrowserExternally">Open External</button>
-							</div>
-							<div class="field-row browser-toolbar">
-								<label for="browser-address">Location</label>
-								<input
-									id="browser-address"
-									v-model="browserAddress"
-									type="text"
-									@keydown.enter.prevent="navigateBrowserAddress"
-								/>
-								<button class="default" @click="navigateBrowserAddress">Go</button>
-							</div>
+					<div
+						class="window-body browser-window-body netscape-shell"
+						:class="{ 'tor-browser-skin': browserSkin === 'tor' }"
+					>
+						<div class="netscape-menu-row" role="menubar" aria-label="Netscape menu">
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">F</span>ile</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">E</span>dit</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">V</span>iew</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">G</span>o</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">B</span>ookmarks</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">O</span>ptions</button>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">D</span>irectory</button>
+							<span class="netscape-menu-spacer"></span>
+							<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">H</span>elp</button>
+						</div>
+
+						<div class="netscape-toolbar-row">
+							<button
+								type="button"
+								class="netscape-tool-button"
+								:disabled="!canBrowserGoBack"
+								@click="goBrowserBack"
+							>
+								<span class="netscape-tool-icon icon-back" aria-hidden="true"></span>
+								<span>Back</span>
+							</button>
+							<button
+								type="button"
+								class="netscape-tool-button"
+								:disabled="!canBrowserGoForward"
+								@click="goBrowserForward"
+							>
+								<span class="netscape-tool-icon icon-forward" aria-hidden="true"></span>
+								<span>Forward</span>
+							</button>
+							<button type="button" class="netscape-tool-button" @click="goBrowserHome">
+								<span class="netscape-tool-icon icon-home" aria-hidden="true"></span>
+								<span>Home</span>
+							</button>
+							<div class="netscape-toolbar-separator" aria-hidden="true"></div>
+							<button type="button" class="netscape-tool-button" @click="reloadBrowserPage">
+								<span class="netscape-tool-icon icon-reload" aria-hidden="true"></span>
+								<span>Reload</span>
+							</button>
+							<button type="button" class="netscape-tool-button" disabled>
+								<span class="netscape-tool-icon icon-images" aria-hidden="true"></span>
+								<span>Images</span>
+							</button>
+							<div class="netscape-toolbar-separator" aria-hidden="true"></div>
+							<button type="button" class="netscape-tool-button" @click="focusBrowserAddress">
+								<span class="netscape-tool-icon icon-open" aria-hidden="true"></span>
+								<span>Open</span>
+							</button>
+							<button
+								type="button"
+								class="netscape-tool-button"
+								@click="openInBrowser('https://duckduckgo.com/', 'Find', { backend: browserBackend, skin: browserSkin })"
+							>
+								<span class="netscape-tool-icon icon-find" aria-hidden="true"></span>
+								<span>Find</span>
+							</button>
+							<button
+								type="button"
+								class="netscape-tool-button"
+								:disabled="!browserLoading"
+								@click="stopBrowserLoading"
+							>
+								<span class="netscape-tool-icon icon-stop" aria-hidden="true"></span>
+								<span>Stop</span>
+							</button>
+						</div>
+
+						<div class="netscape-location-row">
+							<label for="browser-address">Location:</label>
+							<input
+								id="browser-address"
+								ref="browserAddressInputRef"
+								v-model="browserAddress"
+								type="text"
+								@keydown.enter.prevent="navigateBrowserAddress"
+							/>
+							<button
+								type="button"
+								class="netscape-throbber"
+								aria-label="Compatibility mode"
+								title="Compatibility mode"
+								@click="forceBrowserCompatibilityMode"
+							>
+								<img :src="browserSkin === 'tor' ? '/tor-browser-icon.svg' : '/netscape-logo.svg'" alt="" aria-hidden="true" />
+							</button>
+						</div>
+
+						<div class="netscape-shortcuts-row">
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://library.okami.codes/library', 'Guided Tour', { backend: browserBackend, skin: browserSkin })"
+							>
+								Guided Tour
+							</button>
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://library.okami.codes/', `What's New`, { backend: browserBackend, skin: browserSkin })"
+							>
+								What's New
+							</button>
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://stackoverflow.com/questions', 'Questions', { backend: browserBackend, skin: browserSkin })"
+							>
+								Questions
+							</button>
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://duckduckgo.com/', 'Net Search', { backend: browserBackend, skin: browserSkin })"
+							>
+								Net Search
+							</button>
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://wiby.me/', 'Net Directory', { backend: browserBackend, skin: browserSkin })"
+							>
+								Net Directory
+							</button>
+							<button
+								type="button"
+								class="netscape-shortcut"
+								@click="openInBrowser('https://groups.google.com/', 'Newsgroups', { backend: browserBackend, skin: browserSkin })"
+							>
+								Newsgroups
+							</button>
+						</div>
+
+						<div class="netscape-content-wrap">
 							<iframe
 								v-if="browserRenderMode === 'direct'"
 								ref="browserFrameRef"
-								class="browser-frame"
+								class="browser-frame netscape-browser-frame"
 								:src="browserFrameSrc"
 								title="Netscape Navigator content"
 								loading="lazy"
@@ -1813,30 +2069,29 @@ onBeforeUnmount(() => {
 							<iframe
 								v-else
 								ref="browserFrameRef"
-								class="browser-frame"
+								class="browser-frame netscape-browser-frame"
 								:srcdoc="browserDocument"
 								title="Netscape Navigator compatibility content"
 								loading="lazy"
 								sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
 								referrerpolicy="no-referrer"
 							></iframe>
-							<div v-if="browserLoading" class="browser-overlay browser-loading">
+							<div v-if="browserLoading" class="browser-overlay browser-loading netscape-browser-overlay">
 								{{
-									browserRenderMode === 'direct'
+									browserBackend === 'tor'
+										? 'Routing through Tor relay render service...'
+										: browserRenderMode === 'direct'
 										? 'Opening in iframe. Compatibility mode will auto-load if blocked...'
 										: 'Rendering compatibility snapshot through headless browser...'
 								}}
 							</div>
-							<div v-else-if="browserError" class="browser-overlay browser-blocked">
+							<div v-else-if="browserError" class="browser-overlay browser-blocked netscape-browser-overlay">
 								<div>{{ browserError }}</div>
 								<button @click="forceBrowserCompatibilityMode">Retry compatibility mode</button>
 								<button @click="openBrowserExternally">Open externally</button>
 							</div>
-							<p class="browser-note">
-								Navigator uses direct iframe mode first, then falls back to headless-rendered
-								compatibility mode for blocked pages.
-							</p>
 						</div>
+					</div>
 					<div
 						v-for="direction in resizeDirections"
 						v-if="canResizeWindow('browser')"
@@ -1969,6 +2224,40 @@ onBeforeUnmount(() => {
 								<li>Maintaining community and platform projects.</li>
 								<li>Shipping interfaces with personality, not template UI.</li>
 							</ul>
+						</fieldset>
+
+						<fieldset class="blinkie-gallery">
+							<legend>Blinkies</legend>
+							<div class="blinkie-badge-strip">
+								<img
+									v-for="(badgeSrc, index) in blinkieBadges"
+									:key="badgeSrc"
+									:src="badgeSrc"
+									:alt="`Badge ${index + 1}`"
+									class="blinkie-badge"
+									loading="lazy"
+									decoding="async"
+									width="88"
+									height="31"
+								/>
+							</div>
+						</fieldset>
+
+						<fieldset class="blinkie-gallery">
+							<legend>Stamps</legend>
+							<div class="blinkie-stamp-grid">
+								<img
+									v-for="(stampSrc, index) in blinkieStamps"
+									:key="stampSrc"
+									:src="stampSrc"
+									:alt="`Stamp ${index + 1}`"
+									class="blinkie-stamp"
+									loading="lazy"
+									decoding="async"
+									width="99"
+									height="56"
+								/>
+							</div>
 						</fieldset>
 					</article>
 
@@ -2131,7 +2420,10 @@ onBeforeUnmount(() => {
 							/>
 							<span>Projects</span>
 						</button>
-						<button class="start-menu-item" @click="openWindowFromMenu('browser')">
+						<button
+							class="start-menu-item"
+							@click="openNetscapeBrowser(browserCurrentUrl || browserHomeUrl, 'Open Navigator')"
+						>
 							<img
 								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
 								width="16"
@@ -2139,6 +2431,18 @@ onBeforeUnmount(() => {
 								alt="browser icon"
 							/>
 							<span>Open Navigator</span>
+						</button>
+						<button
+							class="start-menu-item"
+							@click="openTorBrowser(browserCurrentUrl || torBrowserHomeUrl, 'Tor Browser')"
+						>
+							<img
+								src="/tor-browser-icon.svg"
+								width="16"
+								height="16"
+								alt="tor browser icon"
+							/>
+							<span>Open Tor Browser</span>
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('links')">
 							<img
@@ -2161,7 +2465,7 @@ onBeforeUnmount(() => {
 						<div class="start-menu-divider"></div>
 						<button
 							class="start-menu-item"
-							@click="openInBrowser(browserHomeUrl, 'Home Page')"
+							@click="openNetscapeBrowser(browserHomeUrl, 'Home Page')"
 						>
 							<img
 								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
