@@ -4,24 +4,646 @@
 	--xp-blue-top: #2f6edb;
 	--xp-blue-mid: #1d5ec6;
 	--xp-blue-dark: #0f3d93;
+	--xp-blue-highlight: #4b8af3;
 	--xp-window-bg: #ece9d8;
 	--xp-border-dark: #3b3b3b;
 	--xp-border-mid: #7f9db9;
 	--xp-border-light: #ffffff;
+	--xp-title-border-bottom: #7aa8f9;
+	--xp-title-text: #ffffff;
+	--xp-title-button-border: #0f3c88;
+	--xp-title-button-top: #a7c8ff;
+	--xp-title-button-mid: #6ca3f5;
+	--xp-title-button-bottom: #3f7de0;
+	--xp-title-button-active-top: #2f6dd6;
+	--xp-title-button-active-mid: #4b86e8;
+	--xp-title-button-active-bottom: #7ba7f2;
+	--xp-title-icon: #0f2f66;
+	--xp-close-border: #8f1a13;
+	--xp-close-top: #ffb5a8;
+	--xp-close-mid: #ef7564;
+	--xp-close-bottom: #cb3026;
+	--xp-close-active-top: #bf2c23;
+	--xp-close-active-mid: #df5a4b;
+	--xp-close-active-bottom: #ff9f93;
 	--xp-start-green-top: #51b848;
+	--xp-start-green-mid: #43a63d;
 	--xp-start-green-bottom: #2f8d2a;
+	--xp-start-button-border: #1f6f1a;
+	--xp-start-pressed-top: #3f9839;
+	--xp-start-pressed-bottom: #57b44d;
 	--xp-context-hover: #316ac5;
+	--xp-scroll-track-top: #edf4ff;
 	--xp-scroll-track: #dce8fb;
 	--xp-scroll-track-edge: #8aa7d1;
 	--xp-scroll-thumb-top: #9fc2f4;
 	--xp-scroll-thumb-mid: #5f97ea;
 	--xp-scroll-thumb-bottom: #3d75d8;
 	--xp-scroll-thumb-edge: #265aa8;
+	--xp-scroll-thumb-hover-top: #b2d0fb;
+	--xp-scroll-thumb-hover-mid: #6ea4f0;
+	--xp-scroll-thumb-hover-bottom: #4b81df;
+	--xp-scroll-thumb-active-top: #4d82db;
+	--xp-scroll-thumb-active-bottom: #5f95e7;
+	--xp-taskbar-top: #2f6ddb;
+	--xp-taskbar-mid: #245ac7;
+	--xp-taskbar-bottom: #1c48ac;
+	--xp-taskbar-border-top: #80b2ff;
+	--xp-taskbar-divider-top: rgba(255, 255, 255, 0.5);
+	--xp-taskbar-divider-bottom: rgba(0, 0, 0, 0.25);
+	--xp-start-menu-surface: #f4f8ff;
+	--xp-start-menu-border: #1d3a7d;
+	--xp-start-menu-items-top: #f7fbff;
+	--xp-start-menu-items-bottom: #edf3ff;
+	--xp-start-menu-item-color: #12356f;
+	--xp-start-menu-hover-border: #316ac5;
+	--xp-start-menu-hover-top: #dcebff;
+	--xp-start-menu-hover-bottom: #c7defc;
+	--xp-start-menu-hover-color: #ffffff;
+	--xp-start-menu-divider: #b7c9e6;
+	--xp-taskbar-app-border: #1e438e;
+	--xp-taskbar-app-top: #6da3ff;
+	--xp-taskbar-app-mid: #3a78de;
+	--xp-taskbar-app-bottom: #2d63c1;
+	--xp-taskbar-app-active-top: #2e6ed8;
+	--xp-taskbar-app-active-bottom: #1f57bf;
+	--xp-taskbar-app-text: #ffffff;
+	--xp-tray-border: #1e438e;
+	--xp-tray-top: #5f95f2;
+	--xp-tray-bottom: #3f74d1;
+	--xp-tray-text: #ffffff;
+	--xp-tray-divider: rgba(255, 255, 255, 0.4);
+	--xp-context-bg: #f6f8fc;
+	--xp-context-border: #1a3a7f;
+	--xp-context-title-start: #2257b5;
+	--xp-context-title-end: #3f79d8;
+	--xp-context-title-text: #ffffff;
+	--xp-context-item-color: #1a3d7f;
+	--xp-context-item-hover-border: #316ac5;
+	--xp-context-item-hover-top: #d7eaff;
+	--xp-context-item-hover-bottom: #c3dcff;
+	--xp-context-item-hover-color: #ffffff;
+	--xp-context-separator: #becde4;
+	--xp-text-color: #111111;
+	--xp-link-color: #003399;
+	--xp-button-text: #111111;
+	--xp-wallpaper-image: url('/bliss.jpg');
+	--xp-wallpaper-color: #3b82e8;
+	--xp-desktop-overlay: transparent;
+}
+
+.xp-shell[data-theme='luna-olive'] {
+	--xp-blue-top: #82a749;
+	--xp-blue-mid: #668a31;
+	--xp-blue-dark: #4f6f20;
+	--xp-blue-highlight: #a8c96a;
+	--xp-title-border-bottom: #bfd88a;
+	--xp-window-bg: #efe9d2;
+	--xp-start-green-top: #7fb34b;
+	--xp-start-green-mid: #679c3d;
+	--xp-start-green-bottom: #4a7d29;
+	--xp-start-button-border: #3f6522;
+	--xp-taskbar-top: #879a5f;
+	--xp-taskbar-mid: #6d8140;
+	--xp-taskbar-bottom: #53672a;
+	--xp-taskbar-border-top: #b1c688;
+	--xp-taskbar-app-border: #4d6029;
+	--xp-taskbar-app-top: #a8bc7d;
+	--xp-taskbar-app-mid: #7f9a4f;
+	--xp-taskbar-app-bottom: #637d34;
+	--xp-taskbar-app-active-top: #69843b;
+	--xp-taskbar-app-active-bottom: #4f6726;
+	--xp-tray-border: #4d6029;
+	--xp-tray-top: #8ea95d;
+	--xp-tray-bottom: #6d873c;
+	--xp-start-menu-items-top: #f6faed;
+	--xp-start-menu-items-bottom: #e8f0d7;
+	--xp-start-menu-item-color: #314911;
+	--xp-start-menu-hover-border: #5f8733;
+	--xp-start-menu-hover-top: #d9ebbe;
+	--xp-start-menu-hover-bottom: #bfd99a;
+	--xp-start-menu-divider: #b8cc95;
+	--xp-context-border: #4f6f20;
+	--xp-context-title-start: #668a31;
+	--xp-context-title-end: #8aad50;
+	--xp-context-item-color: #2f4811;
+	--xp-context-item-hover-border: #5f8733;
+	--xp-context-item-hover-top: #d9ebbe;
+	--xp-context-item-hover-bottom: #bfd99a;
+	--xp-scroll-track-top: #eef4df;
+	--xp-scroll-track: #dbe8bf;
+	--xp-scroll-track-edge: #8ea861;
+	--xp-scroll-thumb-top: #bfd7a1;
+	--xp-scroll-thumb-mid: #8caf66;
+	--xp-scroll-thumb-bottom: #6e8f4d;
+	--xp-scroll-thumb-edge: #567038;
+	--xp-desktop-overlay: rgba(70, 89, 34, 0.1);
+}
+
+.xp-shell[data-theme='luna-silver'] {
+	--xp-blue-top: #8da4c8;
+	--xp-blue-mid: #708bb5;
+	--xp-blue-dark: #4d6f9e;
+	--xp-blue-highlight: #adc1de;
+	--xp-title-border-bottom: #c7d7ea;
+	--xp-window-bg: #ececf2;
+	--xp-start-green-top: #77a94e;
+	--xp-start-green-mid: #649643;
+	--xp-start-green-bottom: #4e7a32;
+	--xp-start-button-border: #446b2d;
+	--xp-taskbar-top: #8ea3c7;
+	--xp-taskbar-mid: #738db7;
+	--xp-taskbar-bottom: #5b73a1;
+	--xp-taskbar-border-top: #c2d0e8;
+	--xp-taskbar-app-border: #4f6591;
+	--xp-taskbar-app-top: #c4d0e5;
+	--xp-taskbar-app-mid: #9cb0cf;
+	--xp-taskbar-app-bottom: #7e96bb;
+	--xp-taskbar-app-active-top: #7f95bc;
+	--xp-taskbar-app-active-bottom: #5e749d;
+	--xp-tray-border: #4f6591;
+	--xp-tray-top: #b7c7de;
+	--xp-tray-bottom: #94abc9;
+	--xp-tray-text: #0e1f3b;
+	--xp-start-menu-items-top: #f6f8fd;
+	--xp-start-menu-items-bottom: #e7edf8;
+	--xp-start-menu-item-color: #2f4264;
+	--xp-start-menu-hover-border: #6a86b6;
+	--xp-start-menu-hover-top: #dce5f6;
+	--xp-start-menu-hover-bottom: #c8d7ef;
+	--xp-start-menu-divider: #b9c5db;
+	--xp-context-title-start: #607ea9;
+	--xp-context-title-end: #8ea6c8;
+	--xp-context-item-color: #283e61;
+	--xp-context-item-hover-border: #6a86b6;
+	--xp-context-item-hover-top: #dce5f6;
+	--xp-context-item-hover-bottom: #c8d7ef;
+	--xp-scroll-track-top: #f0f3fb;
+	--xp-scroll-track: #dbe3f3;
+	--xp-scroll-track-edge: #94a8c7;
+	--xp-scroll-thumb-top: #c7d4eb;
+	--xp-scroll-thumb-mid: #9fb4d8;
+	--xp-scroll-thumb-bottom: #7f9bc8;
+	--xp-scroll-thumb-edge: #59749d;
+	--xp-desktop-overlay: rgba(70, 78, 111, 0.1);
+}
+
+.xp-shell[data-theme='classic'] {
+	--xp-blue-top: #0b58d3;
+	--xp-blue-mid: #084dbb;
+	--xp-blue-dark: #00378e;
+	--xp-blue-highlight: #3b7be1;
+	--xp-title-border-bottom: #88ace0;
+	--xp-title-text: #ffffff;
+	--xp-window-bg: #d4d0c8;
+	--xp-border-dark: #0a0a0a;
+	--xp-border-mid: #808080;
+	--xp-start-green-top: #d6d6d6;
+	--xp-start-green-mid: #c0c0c0;
+	--xp-start-green-bottom: #9f9f9f;
+	--xp-start-button-border: #555555;
+	--xp-start-pressed-top: #a7a7a7;
+	--xp-start-pressed-bottom: #c3c3c3;
+	--xp-taskbar-top: #c3c3c3;
+	--xp-taskbar-mid: #b2b2b2;
+	--xp-taskbar-bottom: #9c9c9c;
+	--xp-taskbar-border-top: #ebebeb;
+	--xp-taskbar-divider-top: rgba(255, 255, 255, 0.8);
+	--xp-taskbar-divider-bottom: rgba(0, 0, 0, 0.4);
+	--xp-taskbar-app-border: #656565;
+	--xp-taskbar-app-top: #e8e8e8;
+	--xp-taskbar-app-mid: #cbcbcb;
+	--xp-taskbar-app-bottom: #a7a7a7;
+	--xp-taskbar-app-active-top: #a7a7a7;
+	--xp-taskbar-app-active-bottom: #8d8d8d;
+	--xp-taskbar-app-text: #101010;
+	--xp-tray-border: #6a6a6a;
+	--xp-tray-top: #dddddd;
+	--xp-tray-bottom: #b9b9b9;
+	--xp-tray-text: #101010;
+	--xp-start-menu-surface: #d4d0c8;
+	--xp-start-menu-border: #6d6d6d;
+	--xp-start-menu-items-top: #dfdfdf;
+	--xp-start-menu-items-bottom: #cbcbcb;
+	--xp-start-menu-item-color: #111111;
+	--xp-start-menu-hover-border: #11499b;
+	--xp-start-menu-hover-top: #316ac5;
+	--xp-start-menu-hover-bottom: #2257a5;
+	--xp-start-menu-hover-color: #ffffff;
+	--xp-start-menu-divider: #a3a3a3;
+	--xp-context-bg: #ece9d8;
+	--xp-context-border: #6a6a6a;
+	--xp-context-title-start: #0b58d3;
+	--xp-context-title-end: #3574d4;
+	--xp-context-item-color: #0d0d0d;
+	--xp-context-item-hover-border: #11499b;
+	--xp-context-item-hover-top: #316ac5;
+	--xp-context-item-hover-bottom: #2257a5;
+	--xp-context-item-hover-color: #ffffff;
+	--xp-scroll-track-top: #efefef;
+	--xp-scroll-track: #d9d9d9;
+	--xp-scroll-track-edge: #8b8b8b;
+	--xp-scroll-thumb-top: #e0e0e0;
+	--xp-scroll-thumb-mid: #bbbbbb;
+	--xp-scroll-thumb-bottom: #999999;
+	--xp-scroll-thumb-edge: #676767;
+	--xp-wallpaper-image: linear-gradient(180deg, #0f4fa7 0%, #082a61 100%);
+	--xp-wallpaper-color: #0f4fa7;
+	--xp-desktop-overlay: transparent;
+}
+
+.xp-shell[data-theme='royale-noir'] {
+	--xp-blue-top: #4d6ea1;
+	--xp-blue-mid: #344f7a;
+	--xp-blue-dark: #1a2b45;
+	--xp-blue-highlight: #6f8fbf;
+	--xp-title-border-bottom: #8da6c9;
+	--xp-window-bg: #d7dde8;
+	--xp-title-text: #f4f8ff;
+	--xp-taskbar-top: #212834;
+	--xp-taskbar-mid: #151a23;
+	--xp-taskbar-bottom: #0f131a;
+	--xp-taskbar-border-top: #5e6f8e;
+	--xp-taskbar-app-border: #4e6185;
+	--xp-taskbar-app-top: #647ea8;
+	--xp-taskbar-app-mid: #445f89;
+	--xp-taskbar-app-bottom: #33486a;
+	--xp-taskbar-app-active-top: #38557f;
+	--xp-taskbar-app-active-bottom: #243b5f;
+	--xp-tray-border: #4e6185;
+	--xp-tray-top: #516b97;
+	--xp-tray-bottom: #364f75;
+	--xp-start-green-top: #4f6a94;
+	--xp-start-green-mid: #3c557b;
+	--xp-start-green-bottom: #2a3e60;
+	--xp-start-button-border: #1d2f4d;
+	--xp-start-pressed-top: #2a3f61;
+	--xp-start-pressed-bottom: #415f8d;
+	--xp-start-menu-surface: #dde5f3;
+	--xp-start-menu-border: #22395e;
+	--xp-start-menu-items-top: #edf3fd;
+	--xp-start-menu-items-bottom: #dbe6f8;
+	--xp-start-menu-item-color: #1f3658;
+	--xp-start-menu-hover-border: #4f73ab;
+	--xp-start-menu-hover-top: #6687bd;
+	--xp-start-menu-hover-bottom: #4f73ab;
+	--xp-context-bg: #ecf2fb;
+	--xp-context-border: #253f68;
+	--xp-context-title-start: #1f3351;
+	--xp-context-title-end: #4c6fa1;
+	--xp-context-item-color: #1f3659;
+	--xp-context-item-hover-border: #4f73ab;
+	--xp-context-item-hover-top: #d5e2f7;
+	--xp-context-item-hover-bottom: #c0d4f1;
+	--xp-scroll-track-top: #ebf1fb;
+	--xp-scroll-track: #d5e1f3;
+	--xp-scroll-track-edge: #5f769d;
+	--xp-scroll-thumb-top: #9fb8db;
+	--xp-scroll-thumb-mid: #6e8fbf;
+	--xp-scroll-thumb-bottom: #52719f;
+	--xp-scroll-thumb-edge: #365077;
+	--xp-desktop-overlay: rgba(9, 13, 22, 0.25);
+}
+
+.xp-shell[data-theme='zune'] {
+	--xp-blue-top: #b66a2d;
+	--xp-blue-mid: #955322;
+	--xp-blue-dark: #6e3513;
+	--xp-blue-highlight: #cf8a45;
+	--xp-title-border-bottom: #e2b17a;
+	--xp-title-text: #fff6ea;
+	--xp-window-bg: #e7ded1;
+	--xp-taskbar-top: #5f3f2d;
+	--xp-taskbar-mid: #3f291d;
+	--xp-taskbar-bottom: #291910;
+	--xp-taskbar-border-top: #b88253;
+	--xp-taskbar-app-border: #6b4428;
+	--xp-taskbar-app-top: #c0844a;
+	--xp-taskbar-app-mid: #9b6230;
+	--xp-taskbar-app-bottom: #76431d;
+	--xp-taskbar-app-active-top: #824b21;
+	--xp-taskbar-app-active-bottom: #5f3416;
+	--xp-tray-border: #6b4428;
+	--xp-tray-top: #aa6e39;
+	--xp-tray-bottom: #7f4a22;
+	--xp-start-green-top: #f1a04f;
+	--xp-start-green-mid: #de7e32;
+	--xp-start-green-bottom: #b95e1f;
+	--xp-start-button-border: #753b14;
+	--xp-start-pressed-top: #98511e;
+	--xp-start-pressed-bottom: #cc742e;
+	--xp-start-menu-surface: #f4e8db;
+	--xp-start-menu-border: #784623;
+	--xp-start-menu-items-top: #f8efe7;
+	--xp-start-menu-items-bottom: #eddccb;
+	--xp-start-menu-item-color: #5b3418;
+	--xp-start-menu-hover-border: #b46b35;
+	--xp-start-menu-hover-top: #f0c39b;
+	--xp-start-menu-hover-bottom: #e2a36f;
+	--xp-start-menu-hover-color: #3d220d;
+	--xp-start-menu-divider: #c69774;
+	--xp-context-bg: #f2e8dd;
+	--xp-context-border: #7a4a23;
+	--xp-context-title-start: #8a4b1e;
+	--xp-context-title-end: #bb7439;
+	--xp-context-item-color: #5a3518;
+	--xp-context-item-hover-border: #b46b35;
+	--xp-context-item-hover-top: #f0c39b;
+	--xp-context-item-hover-bottom: #e2a36f;
+	--xp-context-item-hover-color: #3d220d;
+	--xp-scroll-track-top: #f4e8dd;
+	--xp-scroll-track: #e8d0b8;
+	--xp-scroll-track-edge: #a8774a;
+	--xp-scroll-thumb-top: #e3b083;
+	--xp-scroll-thumb-mid: #cb8852;
+	--xp-scroll-thumb-bottom: #a8642f;
+	--xp-scroll-thumb-edge: #784623;
+	--xp-desktop-overlay: rgba(73, 42, 20, 0.2);
+}
+
+.xp-shell[data-theme='embedded'] {
+	--xp-blue-top: #3f98a6;
+	--xp-blue-mid: #2d7f8c;
+	--xp-blue-dark: #1c5c68;
+	--xp-blue-highlight: #57b4c2;
+	--xp-title-border-bottom: #8dd2db;
+	--xp-window-bg: #e0ece9;
+	--xp-taskbar-top: #2f7d89;
+	--xp-taskbar-mid: #276672;
+	--xp-taskbar-bottom: #1f505b;
+	--xp-taskbar-border-top: #6ec2cb;
+	--xp-taskbar-app-border: #1d5762;
+	--xp-taskbar-app-top: #63aeb8;
+	--xp-taskbar-app-mid: #448894;
+	--xp-taskbar-app-bottom: #2f6f7a;
+	--xp-taskbar-app-active-top: #2f727e;
+	--xp-taskbar-app-active-bottom: #255862;
+	--xp-tray-border: #1d5762;
+	--xp-tray-top: #4a98a4;
+	--xp-tray-bottom: #31727d;
+	--xp-start-green-top: #57b196;
+	--xp-start-green-mid: #409c82;
+	--xp-start-green-bottom: #2f775f;
+	--xp-start-button-border: #255847;
+	--xp-start-pressed-top: #2b7e66;
+	--xp-start-pressed-bottom: #48a388;
+	--xp-start-menu-surface: #e5f3f1;
+	--xp-start-menu-border: #1f5b65;
+	--xp-start-menu-items-top: #eff9f7;
+	--xp-start-menu-items-bottom: #dff0ee;
+	--xp-start-menu-item-color: #1d4d57;
+	--xp-start-menu-hover-border: #3b8b95;
+	--xp-start-menu-hover-top: #c9e9ec;
+	--xp-start-menu-hover-bottom: #b4dfe3;
+	--xp-start-menu-hover-color: #164049;
+	--xp-context-bg: #ebf7f6;
+	--xp-context-border: #1f5b65;
+	--xp-context-title-start: #2a7682;
+	--xp-context-title-end: #4e9eaa;
+	--xp-context-item-color: #1c4a53;
+	--xp-context-item-hover-border: #3b8b95;
+	--xp-context-item-hover-top: #c9e9ec;
+	--xp-context-item-hover-bottom: #b4dfe3;
+	--xp-context-item-hover-color: #164049;
+	--xp-scroll-track-top: #ecf7f6;
+	--xp-scroll-track: #d5ecea;
+	--xp-scroll-track-edge: #77aeb5;
+	--xp-scroll-thumb-top: #a8d3d7;
+	--xp-scroll-thumb-mid: #76afb7;
+	--xp-scroll-thumb-bottom: #4c8f98;
+	--xp-scroll-thumb-edge: #2e6d75;
+	--xp-desktop-overlay: rgba(17, 63, 67, 0.16);
+}
+
+.xp-shell[data-theme='high-contrast-black'] {
+	--xp-blue-top: #ffff00;
+	--xp-blue-mid: #d9d900;
+	--xp-blue-dark: #9e9e00;
+	--xp-blue-highlight: #ffff66;
+	--xp-title-border-bottom: #ffff99;
+	--xp-title-text: #000000;
+	--xp-window-bg: #000000;
+	--xp-border-dark: #ffff00;
+	--xp-border-mid: #ffff00;
+	--xp-title-button-border: #ffff00;
+	--xp-title-button-top: #1a1a1a;
+	--xp-title-button-mid: #0f0f0f;
+	--xp-title-button-bottom: #000000;
+	--xp-title-button-active-top: #3a3a3a;
+	--xp-title-button-active-mid: #282828;
+	--xp-title-button-active-bottom: #1a1a1a;
+	--xp-title-icon: #ffff00;
+	--xp-close-border: #ffff00;
+	--xp-close-top: #1a1a1a;
+	--xp-close-mid: #0f0f0f;
+	--xp-close-bottom: #000000;
+	--xp-close-active-top: #3a3a3a;
+	--xp-close-active-mid: #282828;
+	--xp-close-active-bottom: #1a1a1a;
+	--xp-start-green-top: #ffff00;
+	--xp-start-green-mid: #d4d400;
+	--xp-start-green-bottom: #a8a800;
+	--xp-start-button-border: #ffff00;
+	--xp-start-pressed-top: #c2c200;
+	--xp-start-pressed-bottom: #ffff00;
+	--xp-taskbar-top: #000000;
+	--xp-taskbar-mid: #000000;
+	--xp-taskbar-bottom: #000000;
+	--xp-taskbar-border-top: #ffff00;
+	--xp-taskbar-divider-top: rgba(255, 255, 0, 0.8);
+	--xp-taskbar-divider-bottom: rgba(255, 255, 0, 0.45);
+	--xp-taskbar-app-border: #ffff00;
+	--xp-taskbar-app-top: #000000;
+	--xp-taskbar-app-mid: #000000;
+	--xp-taskbar-app-bottom: #000000;
+	--xp-taskbar-app-active-top: #1b1b1b;
+	--xp-taskbar-app-active-bottom: #111111;
+	--xp-taskbar-app-text: #ffff00;
+	--xp-tray-border: #ffff00;
+	--xp-tray-top: #000000;
+	--xp-tray-bottom: #000000;
+	--xp-tray-text: #ffff00;
+	--xp-tray-divider: rgba(255, 255, 0, 0.6);
+	--xp-start-menu-surface: #000000;
+	--xp-start-menu-border: #ffff00;
+	--xp-start-menu-items-top: #000000;
+	--xp-start-menu-items-bottom: #000000;
+	--xp-start-menu-item-color: #ffff00;
+	--xp-start-menu-hover-border: #ffff00;
+	--xp-start-menu-hover-top: #1f1f1f;
+	--xp-start-menu-hover-bottom: #111111;
+	--xp-start-menu-hover-color: #ffff00;
+	--xp-start-menu-divider: #5f5f00;
+	--xp-context-bg: #000000;
+	--xp-context-border: #ffff00;
+	--xp-context-title-start: #ffff00;
+	--xp-context-title-end: #d5d500;
+	--xp-context-title-text: #000000;
+	--xp-context-item-color: #ffff00;
+	--xp-context-item-hover-border: #ffff00;
+	--xp-context-item-hover-top: #1f1f1f;
+	--xp-context-item-hover-bottom: #111111;
+	--xp-context-item-hover-color: #ffff00;
+	--xp-context-separator: #5f5f00;
+	--xp-text-color: #ffff00;
+	--xp-link-color: #ffff00;
+	--xp-button-text: #ffff00;
+	--xp-scroll-track-top: #000000;
+	--xp-scroll-track: #000000;
+	--xp-scroll-track-edge: #ffff00;
+	--xp-scroll-thumb-top: #333333;
+	--xp-scroll-thumb-mid: #222222;
+	--xp-scroll-thumb-bottom: #111111;
+	--xp-scroll-thumb-edge: #ffff00;
+	--xp-wallpaper-image: none;
+	--xp-wallpaper-color: #000000;
+	--xp-desktop-overlay: transparent;
+}
+
+.xp-shell[data-theme='high-contrast-white'] {
+	--xp-blue-top: #000000;
+	--xp-blue-mid: #1a1a1a;
+	--xp-blue-dark: #2d2d2d;
+	--xp-blue-highlight: #4a4a4a;
+	--xp-title-border-bottom: #555555;
+	--xp-title-text: #ffffff;
+	--xp-window-bg: #ffffff;
+	--xp-border-dark: #000000;
+	--xp-border-mid: #000000;
+	--xp-title-button-border: #000000;
+	--xp-title-button-top: #ffffff;
+	--xp-title-button-mid: #f0f0f0;
+	--xp-title-button-bottom: #dddddd;
+	--xp-title-button-active-top: #d5d5d5;
+	--xp-title-button-active-mid: #ececec;
+	--xp-title-button-active-bottom: #f8f8f8;
+	--xp-title-icon: #000000;
+	--xp-close-border: #000000;
+	--xp-close-top: #ffffff;
+	--xp-close-mid: #ececec;
+	--xp-close-bottom: #d6d6d6;
+	--xp-close-active-top: #d4d4d4;
+	--xp-close-active-mid: #ececec;
+	--xp-close-active-bottom: #f8f8f8;
+	--xp-start-green-top: #ffffff;
+	--xp-start-green-mid: #e8e8e8;
+	--xp-start-green-bottom: #d4d4d4;
+	--xp-start-button-border: #000000;
+	--xp-start-pressed-top: #c9c9c9;
+	--xp-start-pressed-bottom: #f0f0f0;
+	--xp-taskbar-top: #ffffff;
+	--xp-taskbar-mid: #efefef;
+	--xp-taskbar-bottom: #dddddd;
+	--xp-taskbar-border-top: #000000;
+	--xp-taskbar-divider-top: rgba(0, 0, 0, 0.35);
+	--xp-taskbar-divider-bottom: rgba(0, 0, 0, 0.55);
+	--xp-taskbar-app-border: #000000;
+	--xp-taskbar-app-top: #ffffff;
+	--xp-taskbar-app-mid: #efefef;
+	--xp-taskbar-app-bottom: #dddddd;
+	--xp-taskbar-app-active-top: #dadada;
+	--xp-taskbar-app-active-bottom: #c8c8c8;
+	--xp-taskbar-app-text: #000000;
+	--xp-tray-border: #000000;
+	--xp-tray-top: #ffffff;
+	--xp-tray-bottom: #e5e5e5;
+	--xp-tray-text: #000000;
+	--xp-tray-divider: rgba(0, 0, 0, 0.35);
+	--xp-start-menu-surface: #ffffff;
+	--xp-start-menu-border: #000000;
+	--xp-start-menu-items-top: #ffffff;
+	--xp-start-menu-items-bottom: #f1f1f1;
+	--xp-start-menu-item-color: #000000;
+	--xp-start-menu-hover-border: #000000;
+	--xp-start-menu-hover-top: #dadada;
+	--xp-start-menu-hover-bottom: #c8c8c8;
+	--xp-start-menu-hover-color: #000000;
+	--xp-start-menu-divider: #9a9a9a;
+	--xp-context-bg: #ffffff;
+	--xp-context-border: #000000;
+	--xp-context-title-start: #000000;
+	--xp-context-title-end: #2d2d2d;
+	--xp-context-title-text: #ffffff;
+	--xp-context-item-color: #000000;
+	--xp-context-item-hover-border: #000000;
+	--xp-context-item-hover-top: #dadada;
+	--xp-context-item-hover-bottom: #c8c8c8;
+	--xp-context-item-hover-color: #000000;
+	--xp-context-separator: #7f7f7f;
+	--xp-text-color: #000000;
+	--xp-link-color: #0000aa;
+	--xp-button-text: #000000;
+	--xp-scroll-track-top: #ffffff;
+	--xp-scroll-track: #f0f0f0;
+	--xp-scroll-track-edge: #000000;
+	--xp-scroll-thumb-top: #d9d9d9;
+	--xp-scroll-thumb-mid: #c4c4c4;
+	--xp-scroll-thumb-bottom: #b0b0b0;
+	--xp-scroll-thumb-edge: #000000;
+	--xp-wallpaper-image: none;
+	--xp-wallpaper-color: #ffffff;
+	--xp-desktop-overlay: transparent;
+}
+
+.xp-shell[data-theme='candy'] {
+	--xp-blue-top: #d56bc8;
+	--xp-blue-mid: #bc4fae;
+	--xp-blue-dark: #913782;
+	--xp-blue-highlight: #ea8ddd;
+	--xp-title-border-bottom: #f0b4e7;
+	--xp-title-text: #fff8ff;
+	--xp-window-bg: #f4e5f4;
+	--xp-start-green-top: #ff91c4;
+	--xp-start-green-mid: #f36cab;
+	--xp-start-green-bottom: #d54889;
+	--xp-start-button-border: #8a2f5f;
+	--xp-start-pressed-top: #cd4f8d;
+	--xp-start-pressed-bottom: #ef7fb3;
+	--xp-taskbar-top: #c45cb9;
+	--xp-taskbar-mid: #a946a0;
+	--xp-taskbar-bottom: #813279;
+	--xp-taskbar-border-top: #f3a9ec;
+	--xp-taskbar-app-border: #7b3175;
+	--xp-taskbar-app-top: #e487d9;
+	--xp-taskbar-app-mid: #cb62bd;
+	--xp-taskbar-app-bottom: #a03f95;
+	--xp-taskbar-app-active-top: #9a3a8e;
+	--xp-taskbar-app-active-bottom: #7d2b71;
+	--xp-tray-border: #7b3175;
+	--xp-tray-top: #d672c7;
+	--xp-tray-bottom: #af4f9f;
+	--xp-start-menu-surface: #fdf1fc;
+	--xp-start-menu-border: #8c3c83;
+	--xp-start-menu-items-top: #fef7fd;
+	--xp-start-menu-items-bottom: #f9e6f6;
+	--xp-start-menu-item-color: #6f2c66;
+	--xp-start-menu-hover-border: #be5bb1;
+	--xp-start-menu-hover-top: #f3c2ec;
+	--xp-start-menu-hover-bottom: #e79adb;
+	--xp-start-menu-hover-color: #5a1851;
+	--xp-start-menu-divider: #d0a6cb;
+	--xp-context-bg: #fff5fe;
+	--xp-context-border: #8c3c83;
+	--xp-context-title-start: #a946a0;
+	--xp-context-title-end: #d56bc8;
+	--xp-context-item-color: #6f2c66;
+	--xp-context-item-hover-border: #be5bb1;
+	--xp-context-item-hover-top: #f3c2ec;
+	--xp-context-item-hover-bottom: #e79adb;
+	--xp-context-item-hover-color: #5a1851;
+	--xp-scroll-track-top: #fcf0fb;
+	--xp-scroll-track: #f1d7ef;
+	--xp-scroll-track-edge: #cc8ac3;
+	--xp-scroll-thumb-top: #f0b5e9;
+	--xp-scroll-thumb-mid: #d97ad0;
+	--xp-scroll-thumb-bottom: #bb56af;
+	--xp-scroll-thumb-edge: #8d3e84;
+	--xp-desktop-overlay: rgba(77, 22, 70, 0.12);
 }
 
 body {
 	font-family: Tahoma, 'Trebuchet MS', Arial, sans-serif;
-	color: #111;
+	color: var(--xp-text-color);
 }
 
 .xp-shell,
@@ -31,7 +653,7 @@ body {
 
 a {
 	text-decoration: none;
-	color: #003399;
+	color: var(--xp-link-color);
 }
 
 * {
@@ -45,7 +667,7 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-	background: linear-gradient(180deg, #edf4ff 0%, var(--xp-scroll-track) 100%);
+	background: linear-gradient(180deg, var(--xp-scroll-track-top) 0%, var(--xp-scroll-track) 100%);
 	border: 1px solid var(--xp-scroll-track-edge);
 }
 
@@ -61,11 +683,20 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(180deg, #b2d0fb 0%, #6ea4f0 58%, #4b81df 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-scroll-thumb-hover-top) 0%,
+		var(--xp-scroll-thumb-hover-mid) 58%,
+		var(--xp-scroll-thumb-hover-bottom) 100%
+	);
 }
 
 ::-webkit-scrollbar-thumb:active {
-	background: linear-gradient(180deg, #4d82db 0%, #5f95e7 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-scroll-thumb-active-top) 0%,
+		var(--xp-scroll-thumb-active-bottom) 100%
+	);
 }
 
 ::-webkit-scrollbar-corner {
@@ -96,16 +727,16 @@ a {
 		var(--xp-blue-dark) 0%,
 		var(--xp-blue-mid) 32%,
 		var(--xp-blue-top) 70%,
-		#4b8af3 100%
+		var(--xp-blue-highlight) 100%
 	);
-	border-bottom: 1px solid #7aa8f9;
+	border-bottom: 1px solid var(--xp-title-border-bottom);
 }
 
 .title-bar-text {
 	display: flex;
 	align-items: center;
 	gap: 5px;
-	color: #fff;
+	color: var(--xp-title-text);
 	font-weight: 700;
 	font-size: 11px;
 	margin-right: 10px;
@@ -123,9 +754,14 @@ a {
 	height: 20px;
 	min-width: 22px;
 	min-height: 20px;
-	border: 1px solid #0f3c88;
+	border: 1px solid var(--xp-title-button-border);
 	border-radius: 3px;
-	background: linear-gradient(180deg, #a7c8ff 0%, #6ca3f5 52%, #3f7de0 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-title-button-top) 0%,
+		var(--xp-title-button-mid) 52%,
+		var(--xp-title-button-bottom) 100%
+	);
 	box-shadow:
 		inset 1px 1px 0 rgba(255, 255, 255, 0.7),
 		inset -1px -1px 0 rgba(0, 0, 0, 0.2);
@@ -142,32 +778,47 @@ a {
 }
 
 .title-bar-controls button:active {
-	background: linear-gradient(180deg, #2f6dd6 0%, #4b86e8 70%, #7ba7f2 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-title-button-active-top) 0%,
+		var(--xp-title-button-active-mid) 70%,
+		var(--xp-title-button-active-bottom) 100%
+	);
 	box-shadow:
 		inset 1px 1px 0 rgba(0, 0, 0, 0.25),
 		inset -1px -1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .title-bar-controls button[aria-label='Close'] {
-	border-color: #8f1a13;
-	background: linear-gradient(180deg, #ffb5a8 0%, #ef7564 52%, #cb3026 100%);
+	border-color: var(--xp-close-border);
+	background: linear-gradient(
+		180deg,
+		var(--xp-close-top) 0%,
+		var(--xp-close-mid) 52%,
+		var(--xp-close-bottom) 100%
+	);
 }
 
 .title-bar-controls button[aria-label='Close']:active {
-	background: linear-gradient(180deg, #bf2c23 0%, #df5a4b 70%, #ff9f93 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-close-active-top) 0%,
+		var(--xp-close-active-mid) 70%,
+		var(--xp-close-active-bottom) 100%
+	);
 }
 
 .title-bar-controls button[aria-label='Minimize']::before {
 	width: 10px;
 	height: 2px;
 	top: 64%;
-	background: #0f2f66;
+	background: var(--xp-title-icon);
 }
 
 .title-bar-controls button[aria-label='Maximize']::before {
 	width: 10px;
 	height: 8px;
-	border: 2px solid #0f2f66;
+	border: 2px solid var(--xp-title-icon);
 	border-top-width: 2px;
 	box-sizing: border-box;
 	background: transparent;
@@ -176,7 +827,7 @@ a {
 .title-bar-controls button[aria-label='Restore']::before {
 	width: 10px;
 	height: 8px;
-	border: 2px solid #0f2f66;
+	border: 2px solid var(--xp-title-icon);
 	box-sizing: border-box;
 	background: transparent;
 	transform: translate(-42%, -32%);
@@ -189,7 +840,7 @@ a {
 	top: 50%;
 	width: 10px;
 	height: 8px;
-	border: 2px solid #0f2f66;
+	border: 2px solid var(--xp-title-icon);
 	box-sizing: border-box;
 	background: transparent;
 	transform: translate(-58%, -70%);
@@ -215,9 +866,9 @@ input[type='reset'] {
 	min-height: 22px;
 	min-width: 75px;
 	padding: 0 12px;
-	border: 1px solid #7f9db9;
+	border: 1px solid var(--xp-border-mid);
 	border-radius: 3px;
-	color: #111;
+	color: var(--xp-button-text);
 	background: linear-gradient(180deg, #ffffff 0%, #f1f3f7 48%, #d6dbe6 100%);
 	box-shadow: inset 0 1px 0 #fff;
 }
@@ -250,11 +901,11 @@ input[type='password'],
 input[type='number'],
 textarea,
 select {
-	border: 1px solid #7f9db9;
+	border: 1px solid var(--xp-border-mid);
 	border-radius: 2px;
 	background: #fff;
 	padding: 3px 4px;
-	color: #111;
+	color: var(--xp-text-color);
 }
 
 .field-row {
@@ -270,7 +921,7 @@ select {
 }
 
 fieldset {
-	border: 1px solid #7f9db9;
+	border: 1px solid var(--xp-border-mid);
 	padding: 8px;
 }
 
@@ -285,12 +936,27 @@ legend {
 	min-height: 100vh;
 	padding: 0 0 48px;
 	overflow: hidden;
+	background-color: var(--xp-wallpaper-color);
+	background-image: var(--xp-wallpaper-image);
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-attachment: fixed;
 }
 
 .xp-shell::before {
 	content: '';
-	display: none;
+	position: absolute;
+	inset: 0;
+	display: block;
+	background: var(--xp-desktop-overlay);
 	pointer-events: none;
+	z-index: 0;
+}
+
+.xp-shell > * {
+	position: relative;
+	z-index: 1;
 }
 
 .splash-screen {
@@ -1847,6 +2513,16 @@ fieldset {
 	overflow: visible;
 }
 
+.blinkie-status {
+	margin: 0 0 6px;
+	font-size: 11px;
+	color: #3e4e6a;
+}
+
+.blinkie-status-error {
+	color: #8e2232;
+}
+
 .blinkie-badge-strip {
 	display: flex;
 	flex-wrap: wrap;
@@ -1948,8 +2624,13 @@ fieldset {
 	display: flex;
 	align-items: center;
 	padding: 0 4px;
-	background: linear-gradient(180deg, #2f6ddb 0%, #245ac7 55%, #1c48ac 100%);
-	border-top: 1px solid #80b2ff;
+	background: linear-gradient(
+		180deg,
+		var(--xp-taskbar-top) 0%,
+		var(--xp-taskbar-mid) 55%,
+		var(--xp-taskbar-bottom) 100%
+	);
+	border-top: 1px solid var(--xp-taskbar-border-top);
 	box-shadow: inset 0 1px rgba(255, 255, 255, 0.35);
 	z-index: 999;
 }
@@ -1968,12 +2649,12 @@ fieldset {
 	height: 27px;
 	min-width: 96px;
 	padding: 0 12px 0 10px;
-	border: 1px solid #1f6f1a;
+	border: 1px solid var(--xp-start-button-border);
 	border-radius: 15px 8px 8px 15px;
 	background: linear-gradient(
 		180deg,
 		var(--xp-start-green-top) 0%,
-		#43a63d 46%,
+		var(--xp-start-green-mid) 46%,
 		var(--xp-start-green-bottom) 100%
 	);
 	box-shadow:
@@ -1990,16 +2671,20 @@ fieldset {
 }
 
 .start-button-inner:active {
-	background: linear-gradient(180deg, #3f9839 0%, #57b44d 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-start-pressed-top) 0%,
+		var(--xp-start-pressed-bottom) 100%
+	);
 }
 
 .start-menu {
 	position: absolute;
 	left: 0;
 	bottom: calc(100% + 6px);
-	width: 260px;
-	background: #f4f8ff;
-	border: 1px solid #1d3a7d;
+	width: 300px;
+	background: var(--xp-start-menu-surface);
+	border: 1px solid var(--xp-start-menu-border);
 	border-radius: 6px 6px 0 0;
 	box-shadow: 0 5px 18px rgba(0, 0, 0, 0.45);
 	overflow: hidden;
@@ -2031,7 +2716,13 @@ fieldset {
 
 .start-menu-items {
 	padding: 5px;
-	background: linear-gradient(180deg, #f7fbff 0%, #edf3ff 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-start-menu-items-top) 0%,
+		var(--xp-start-menu-items-bottom) 100%
+	);
+	max-height: min(70vh, 460px);
+	overflow-y: auto;
 }
 
 .start-menu-item {
@@ -2049,14 +2740,18 @@ fieldset {
 	text-align: left;
 	font-size: 12px;
 	cursor: pointer;
-	color: #12356f;
+	color: var(--xp-start-menu-item-color);
 }
 
 .start-menu-item:hover,
 .start-menu-link:hover {
-	border-color: #316ac5;
-	background: linear-gradient(180deg, #dcebff 0%, #c7defc 100%);
-	color: #fff;
+	border-color: var(--xp-start-menu-hover-border);
+	background: linear-gradient(
+		180deg,
+		var(--xp-start-menu-hover-top) 0%,
+		var(--xp-start-menu-hover-bottom) 100%
+	);
+	color: var(--xp-start-menu-hover-color);
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -2064,9 +2759,53 @@ fieldset {
 	color: inherit;
 }
 
+.start-menu-section-label {
+	padding: 4px 7px 2px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+	text-transform: uppercase;
+	opacity: 0.85;
+	color: var(--xp-start-menu-item-color);
+}
+
+.start-theme-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 3px;
+	margin-bottom: 4px;
+}
+
+.start-menu-theme-item {
+	min-height: 30px;
+	padding: 4px 6px;
+	font-size: 10px;
+}
+
+.start-menu-theme-item img {
+	width: 14px;
+	height: 14px;
+}
+
+.start-menu-theme-item span {
+	line-height: 1.15;
+	white-space: normal;
+}
+
+.start-menu-theme-item.active {
+	border-color: var(--xp-start-menu-hover-border);
+	background: linear-gradient(
+		180deg,
+		var(--xp-start-menu-hover-top) 0%,
+		var(--xp-start-menu-hover-bottom) 100%
+	);
+	color: var(--xp-start-menu-hover-color);
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
 .start-menu-divider {
 	height: 1px;
-	background: #b7c9e6;
+	background: var(--xp-start-menu-divider);
 	margin: 5px 0;
 }
 
@@ -2074,7 +2813,11 @@ fieldset {
 	width: 2px;
 	height: 24px;
 	margin: 0 6px;
-	background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0.25));
+	background: linear-gradient(
+		180deg,
+		var(--xp-taskbar-divider-top),
+		var(--xp-taskbar-divider-bottom)
+	);
 }
 
 .open-apps {
@@ -2095,11 +2838,16 @@ fieldset {
 	align-items: center;
 	gap: 4px;
 	padding: 0 8px;
-	border: 1px solid #1e438e;
+	border: 1px solid var(--xp-taskbar-app-border);
 	border-radius: 3px;
-	background: linear-gradient(180deg, #6da3ff 0%, #3a78de 62%, #2d63c1 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-taskbar-app-top) 0%,
+		var(--xp-taskbar-app-mid) 62%,
+		var(--xp-taskbar-app-bottom) 100%
+	);
 	box-shadow: inset 0 1px rgba(255, 255, 255, 0.45);
-	color: #fff;
+	color: var(--xp-taskbar-app-text);
 	font-size: 11px;
 	overflow: hidden;
 	white-space: nowrap;
@@ -2110,7 +2858,11 @@ fieldset {
 }
 
 .taskbar-app.active {
-	background: linear-gradient(180deg, #2e6ed8 0%, #1f57bf 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-taskbar-app-active-top) 0%,
+		var(--xp-taskbar-app-active-bottom) 100%
+	);
 	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
@@ -2127,11 +2879,11 @@ fieldset {
 	align-items: center;
 	padding: 0 7px;
 	height: 26px;
-	border: 1px solid #1e438e;
+	border: 1px solid var(--xp-tray-border);
 	border-radius: 3px;
-	background: linear-gradient(180deg, #5f95f2 0%, #3f74d1 100%);
+	background: linear-gradient(180deg, var(--xp-tray-top) 0%, var(--xp-tray-bottom) 100%);
 	box-shadow: inset 0 1px rgba(255, 255, 255, 0.35);
-	color: #fff;
+	color: var(--xp-tray-text);
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -2142,7 +2894,7 @@ fieldset {
 .tray-divider {
 	width: 1px;
 	height: 15px;
-	background: rgba(255, 255, 255, 0.4);
+	background: var(--xp-tray-divider);
 	margin: 0 5px;
 }
 
@@ -2154,8 +2906,8 @@ fieldset {
 	position: fixed;
 	min-width: 194px;
 	max-width: 260px;
-	background: #f6f8fc;
-	border: 1px solid #1a3a7f;
+	background: var(--xp-context-bg);
+	border: 1px solid var(--xp-context-border);
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
 	z-index: 1202;
 	overflow: hidden;
@@ -2165,8 +2917,12 @@ fieldset {
 	padding: 5px 8px;
 	font-size: 11px;
 	font-weight: 700;
-	color: #fff;
-	background: linear-gradient(90deg, #2257b5 0%, #3f79d8 100%);
+	color: var(--xp-context-title-text);
+	background: linear-gradient(
+		90deg,
+		var(--xp-context-title-start) 0%,
+		var(--xp-context-title-end) 100%
+	);
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -2185,15 +2941,19 @@ fieldset {
 	border-radius: 2px;
 	background: transparent;
 	box-shadow: none;
-	color: #1a3d7f;
+	color: var(--xp-context-item-color);
 	font-size: 11px;
 	text-align: left;
 }
 
 .xp-context-menu-item:hover:not(:disabled) {
-	border-color: #316ac5;
-	background: linear-gradient(180deg, #d7eaff 0%, #c3dcff 100%);
-	color: #fff;
+	border-color: var(--xp-context-item-hover-border);
+	background: linear-gradient(
+		180deg,
+		var(--xp-context-item-hover-top) 0%,
+		var(--xp-context-item-hover-bottom) 100%
+	);
+	color: var(--xp-context-item-hover-color);
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
@@ -2204,7 +2964,7 @@ fieldset {
 .xp-context-menu-separator {
 	height: 1px;
 	margin: 4px 3px;
-	background: #becde4;
+	background: var(--xp-context-separator);
 }
 
 @media (max-width: 1180px) {
@@ -2296,5 +3056,10 @@ fieldset {
 
 	.start-menu {
 		left: -1px;
+		width: min(300px, calc(100vw - 10px));
+	}
+
+	.start-theme-grid {
+		grid-template-columns: 1fr;
 	}
 }

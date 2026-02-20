@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import projects, { type PortfolioProject } from '../data/projects';
-import { blinkieBadges, blinkieStamps } from '../data/blinkies';
 
 type TabId = 'about' | 'projects' | 'contact';
 type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc';
@@ -84,6 +83,12 @@ interface BrowserRequestOptions {
 	skin?: BrowserSkin;
 }
 
+interface BlinkiePayload {
+	theme: string;
+	badges: string[];
+	stamps: string[];
+}
+
 type BrowserRenderMode = 'direct' | 'snapshot';
 type BrowserBackend = 'standard' | 'tor';
 type BrowserSkin = 'netscape' | 'tor';
@@ -116,6 +121,24 @@ const tabs: Array<{ id: TabId; label: string }> = [
 	{ id: 'projects', label: 'Projects' },
 	{ id: 'contact', label: 'Contact' }
 ];
+
+const xpThemes = [
+	{ id: 'luna-blue', label: 'Luna Blue' },
+	{ id: 'luna-olive', label: 'Luna Olive' },
+	{ id: 'luna-silver', label: 'Luna Silver' },
+	{ id: 'classic', label: 'Classic Gray' },
+	{ id: 'royale-noir', label: 'Royale Noir' },
+	{ id: 'zune', label: 'Zune' },
+	{ id: 'embedded', label: 'Embedded' },
+	{ id: 'high-contrast-black', label: 'High Contrast Black' },
+	{ id: 'high-contrast-white', label: 'High Contrast White' },
+	{ id: 'candy', label: 'Candy' }
+] as const;
+
+type XpThemeId = (typeof xpThemes)[number]['id'];
+const defaultThemeId: XpThemeId = 'luna-blue';
+const defaultBlinkieThemeId: XpThemeId = 'candy';
+const themeStorageKey = 'okami_portfolio_theme';
 
 const linkGroups: LinkGroup[] = [
 	{
@@ -314,6 +337,7 @@ const powerState = ref<PowerState>('idle');
 const showContinueButton = ref(false);
 const loginPasswordDisplay = ref('');
 const loginTypingInProgress = ref(false);
+const activeThemeId = ref<XpThemeId>(defaultThemeId);
 const activeTab = ref<TabId>('about');
 const startMenuOpen = ref(false);
 const liveClock = ref('--:--:--');
@@ -372,6 +396,10 @@ const vlcEmbedOrigin = ref('');
 const vlcSourcePanelOpen = ref(false);
 const vlcCurrentSeconds = ref(0);
 const vlcDurationSeconds = ref(0);
+const blinkieBadges = ref<string[]>([]);
+const blinkieStamps = ref<string[]>([]);
+const blinkieLoading = ref(false);
+const blinkieError = ref('');
 const contextMenuRef = ref<HTMLElement | null>(null);
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
@@ -385,6 +413,7 @@ const onlineStatus = 'online';
 const visitorDisplay = computed(
 	() => `visitors: ${visitorCount.value.toString().padStart(6, '0')}`
 );
+const activeThemeLabel = computed(() => themeLabel(activeThemeId.value));
 const powerPrimaryText = computed(() =>
 	powerState.value === 'loggingOff'
 		? 'Logging off...'
@@ -602,6 +631,7 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 let statusTimer: number | null = null;
 let clockTimer: number | null = null;
 let browserRequestSerial = 0;
+let blinkieRequestSerial = 0;
 let browserFallbackTimer: number | null = null;
 let loginTypingTimer: number | null = null;
 let loginTypingRun = 0;
@@ -656,6 +686,81 @@ function pushStatus(message: string) {
 		statusMessage.value = 'desktop ready.';
 		statusTimer = null;
 	}, 2200);
+}
+
+function isThemeId(value: string): value is XpThemeId {
+	return xpThemes.some((theme) => theme.id === value);
+}
+
+function themeLabel(themeId: XpThemeId) {
+	const theme = xpThemes.find((entry) => entry.id === themeId);
+	return theme?.label ?? 'Theme';
+}
+
+function applyTheme(themeId: XpThemeId, announce = true) {
+	activeThemeId.value = themeId;
+
+	try {
+		localStorage.setItem(themeStorageKey, themeId);
+	} catch {
+		// Ignore storage failures in restricted environments.
+	}
+
+	if (announce) {
+		pushStatus(`${themeLabel(themeId)} theme applied.`);
+	}
+}
+
+function setTheme(themeId: XpThemeId) {
+	applyTheme(themeId);
+	startMenuOpen.value = false;
+}
+
+function blinkieFolderForTheme(themeId: XpThemeId): string {
+	const themeFolderMap: Partial<Record<XpThemeId, string>> = {
+		'luna-blue': 'blue',
+		'royale-noir': 'dark',
+		zune: 'dark',
+		'high-contrast-black': 'dark'
+	};
+	return themeFolderMap[themeId] ?? themeId;
+}
+
+async function loadThemeBlinkies(themeId: XpThemeId) {
+	const requestSerial = ++blinkieRequestSerial;
+	const folder = blinkieFolderForTheme(themeId);
+	const fallbackFolder = blinkieFolderForTheme(defaultBlinkieThemeId);
+	blinkieLoading.value = true;
+	blinkieError.value = '';
+	blinkieBadges.value = [];
+	blinkieStamps.value = [];
+
+	try {
+		let payload = await $fetch<BlinkiePayload>('/api/blinkies', {
+			query: { theme: folder }
+		});
+		const hasBlinkies = payload.badges.length > 0 || payload.stamps.length > 0;
+		if (!hasBlinkies && folder !== fallbackFolder) {
+			payload = await $fetch<BlinkiePayload>('/api/blinkies', {
+				query: { theme: fallbackFolder }
+			});
+		}
+
+		if (disposed || requestSerial !== blinkieRequestSerial) return;
+
+		blinkieBadges.value = payload.badges;
+		blinkieStamps.value = payload.stamps;
+	} catch (error) {
+		if (disposed || requestSerial !== blinkieRequestSerial) return;
+		blinkieBadges.value = [];
+		blinkieStamps.value = [];
+		blinkieError.value =
+			error instanceof Error ? error.message : 'Unable to load blinkies for this theme.';
+	} finally {
+		if (!disposed && requestSerial === blinkieRequestSerial) {
+			blinkieLoading.value = false;
+		}
+	}
 }
 
 function setTab(tab: TabId) {
@@ -2053,9 +2158,25 @@ function handleWindowResize() {
 	closeContextMenu();
 }
 
+watch(activeThemeId, (themeId, previousThemeId) => {
+	if (themeId === previousThemeId) return;
+	void loadThemeBlinkies(themeId);
+});
+
 onMounted(() => {
 	document.title = 'Okami Portfolio';
 	vlcEmbedOrigin.value = window.location.origin;
+	try {
+		const savedTheme = localStorage.getItem(themeStorageKey);
+		if (savedTheme && isThemeId(savedTheme)) {
+			activeThemeId.value = savedTheme;
+		} else {
+			localStorage.setItem(themeStorageKey, activeThemeId.value);
+		}
+	} catch {
+		// Ignore storage failures in restricted environments.
+	}
+	void loadThemeBlinkies(activeThemeId.value);
 	incrementVisitorCount();
 	normalizeDesktopLayout();
 	updateClocks();
@@ -2090,6 +2211,7 @@ onBeforeUnmount(() => {
 	}
 	typingAudioContext = null;
 	browserRequestSerial += 1;
+	blinkieRequestSerial += 1;
 
 	document.removeEventListener('click', closeStartMenuOnOutsideClick);
 	document.removeEventListener('keydown', closeMenusOnEscape);
@@ -2102,7 +2224,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="xp-shell" @contextmenu.prevent="openContextMenu">
+	<div class="xp-shell" :data-theme="activeThemeId" @contextmenu.prevent="openContextMenu">
 		<div
 			v-if="splashVisible"
 			id="splash-screen"
@@ -2807,6 +2929,11 @@ onBeforeUnmount(() => {
 
 						<fieldset class="blinkie-gallery">
 							<legend>Blinkies</legend>
+							<p v-if="blinkieLoading" class="blinkie-status">Loading blinkies...</p>
+							<p v-else-if="blinkieError" class="blinkie-status blinkie-status-error">{{ blinkieError }}</p>
+							<p v-else-if="blinkieBadges.length === 0" class="blinkie-status">
+								No badge set found for this theme folder.
+							</p>
 							<div class="blinkie-badge-strip">
 								<img
 									v-for="(badgeSrc, index) in blinkieBadges"
@@ -2824,6 +2951,9 @@ onBeforeUnmount(() => {
 
 						<fieldset class="blinkie-gallery">
 							<legend>Stamps</legend>
+							<p v-if="!blinkieLoading && !blinkieError && blinkieStamps.length === 0" class="blinkie-status">
+								No stamp set found for this theme folder.
+							</p>
 							<div class="blinkie-stamp-grid">
 								<img
 									v-for="(stampSrc, index) in blinkieStamps"
@@ -3050,6 +3180,25 @@ onBeforeUnmount(() => {
 							/>
 							<span>Open Clock</span>
 						</button>
+						<div class="start-menu-divider"></div>
+						<div class="start-menu-section-label">Themes: {{ activeThemeLabel }}</div>
+						<div class="start-theme-grid">
+							<button
+								v-for="theme in xpThemes"
+								:key="theme.id"
+								class="start-menu-item start-menu-theme-item"
+								:class="{ active: activeThemeId === theme.id }"
+								@click="setTheme(theme.id)"
+							>
+								<img
+									:src="shellIcons.about"
+									width="16"
+									height="16"
+									alt="theme icon"
+								/>
+								<span>{{ theme.label }}</span>
+							</button>
+						</div>
 						<div class="start-menu-divider"></div>
 						<button
 							class="start-menu-item"
