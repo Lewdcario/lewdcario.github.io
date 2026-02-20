@@ -790,42 +790,41 @@ function handlePointerMove(event: PointerEvent) {
 		const startWidth = drag.startWidth ?? windowSizes.value[windowId].width;
 		const startHeight = drag.startHeight ?? windowSizes.value[windowId].height;
 		const minSize = windowMinSize(windowId);
-		const maxRight = window.innerWidth - 12;
-		const maxBottom = window.innerHeight - 40;
-		let nextX = drag.startX;
-		let nextY = drag.startY;
-		let nextWidth = startWidth;
-		let nextHeight = startHeight;
+		const viewportLeft = 12;
+		const viewportTop = 12;
+		const viewportRight = window.innerWidth - 12;
+		const viewportBottom = window.innerHeight - 40;
+		const startLeft = drag.startX;
+		const startTop = drag.startY;
+		const startRight = startLeft + startWidth;
+		const startBottom = startTop + startHeight;
+		let nextLeft = startLeft;
+		let nextTop = startTop;
+		let nextRight = startRight;
+		let nextBottom = startBottom;
+
+		// Keep the opposite edge anchored for west/north resize handles.
+		if (direction?.includes('w')) {
+			nextLeft = clamp(startLeft + deltaX, viewportLeft, startRight - minSize.width);
+		}
 
 		if (direction?.includes('e')) {
-			nextWidth = clamp(startWidth + deltaX, minSize.width, maxRight - drag.startX);
-		}
-
-		if (direction?.includes('s')) {
-			nextHeight = clamp(startHeight + deltaY, minSize.height, maxBottom - drag.startY);
-		}
-
-		if (direction?.includes('w')) {
-			const maxDelta = startWidth - minSize.width;
-			const minDelta = 12 - drag.startX;
-			const appliedDelta = clamp(deltaX, minDelta, maxDelta);
-			nextX = drag.startX + appliedDelta;
-			nextWidth = startWidth - appliedDelta;
+			nextRight = clamp(startRight + deltaX, startLeft + minSize.width, viewportRight);
 		}
 
 		if (direction?.includes('n')) {
-			const maxDelta = startHeight - minSize.height;
-			const minDelta = 12 - drag.startY;
-			const appliedDelta = clamp(deltaY, minDelta, maxDelta);
-			nextY = drag.startY + appliedDelta;
-			nextHeight = startHeight - appliedDelta;
+			nextTop = clamp(startTop + deltaY, viewportTop, startBottom - minSize.height);
 		}
 
-		nextWidth = clamp(nextWidth, minSize.width, maxRight - nextX);
-		nextHeight = clamp(nextHeight, minSize.height, maxBottom - nextY);
+		if (direction?.includes('s')) {
+			nextBottom = clamp(startBottom + deltaY, startTop + minSize.height, viewportBottom);
+		}
 
-		windowPositions.value[windowId].x = nextX;
-		windowPositions.value[windowId].y = nextY;
+		const nextWidth = clamp(nextRight - nextLeft, minSize.width, viewportRight - nextLeft);
+		const nextHeight = clamp(nextBottom - nextTop, minSize.height, viewportBottom - nextTop);
+
+		windowPositions.value[windowId].x = nextLeft;
+		windowPositions.value[windowId].y = nextTop;
 		windowSizes.value[windowId].width = nextWidth;
 		windowSizes.value[windowId].height = nextHeight;
 		return;

@@ -283,7 +283,7 @@ legend {
 .xp-shell {
 	position: relative;
 	min-height: 100vh;
-	padding: 28px 24px 48px;
+	padding: 0 0 48px;
 	overflow: hidden;
 }
 
@@ -860,10 +860,11 @@ legend {
 .contain {
 	position: relative;
 	z-index: 4;
-	max-width: 1300px;
+	width: 100%;
+	max-width: none;
 	min-height: calc(100vh - 132px);
-	margin: 0 auto;
-	padding: 10px 0 70px;
+	margin: 0;
+	padding: 0 0 70px;
 	pointer-events: none;
 }
 
@@ -1046,18 +1047,18 @@ legend {
 }
 
 .main-window {
-	width: min(860px, calc(100vw - 430px));
-	max-width: 860px;
+	width: auto;
+	max-width: none;
 }
 
 .browser-window {
-	width: min(640px, calc(100vw - 320px));
-	max-width: 640px;
+	width: auto;
+	max-width: none;
 }
 
 .recycle-window {
-	width: min(360px, calc(100vw - 280px));
-	max-width: 420px;
+	width: auto;
+	max-width: none;
 }
 
 .main-window .window-body {
