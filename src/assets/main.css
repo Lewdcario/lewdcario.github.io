@@ -1089,6 +1089,49 @@ legend {
 
 .recycle-window-body {
 	overflow: auto;
+	padding: 6px 8px;
+}
+
+.recycle-shortcuts-grid {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+	gap: 10px 8px;
+}
+
+.recycle-shortcut {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 5px;
+	padding: 4px 3px;
+	min-height: 76px;
+	text-align: center;
+	text-decoration: none;
+	color: #143a73;
+	border: 1px solid transparent;
+	border-radius: 2px;
+}
+
+.recycle-shortcut img {
+	display: block;
+}
+
+.recycle-shortcut span {
+	font-size: 11px;
+	line-height: 1.2;
+	word-break: break-word;
+}
+
+.recycle-shortcut:hover {
+	background: linear-gradient(180deg, rgba(207, 225, 252, 0.66) 0%, rgba(177, 207, 248, 0.66) 100%);
+	border-color: rgba(71, 122, 185, 0.65);
+}
+
+.recycle-shortcut:focus-visible {
+	outline: 1px dotted #1f4f96;
+	outline-offset: 1px;
 }
 
 .browser-window .title-bar-text {

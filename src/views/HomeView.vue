@@ -5,16 +5,19 @@ import { blinkieBadges, blinkieStamps } from '../data/blinkies';
 
 type TabId = 'about' | 'projects' | 'contact';
 
-interface DesktopIcon {
+interface ShellShortcut {
 	id: string;
 	label: string;
 	icon: string;
 	href?: string;
 	tab?: TabId;
 	tor?: boolean;
+	recycle?: boolean;
+}
+
+interface DesktopIcon extends ShellShortcut {
 	x: number;
 	y: number;
-	recycle?: boolean;
 }
 
 type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle';
@@ -89,6 +92,19 @@ const browserHomeUrl = 'https://library.okami.codes/';
 const torBrowserHomeUrl = 'https://check.torproject.org/';
 const torSearchHomeUrl = 'https://ahmia.fi/';
 const loginPasswordSeed = 'cobalt_2002';
+const shellIcons = {
+	computer: '/xp-icons/pack/computer.png',
+	browser: '/xp-icons/pack/browser.png',
+	folder: '/xp-icons/pack/folder-closed.png',
+	folderOpen: '/xp-icons/pack/folder-open.png',
+	contact: '/xp-icons/pack/mail.png',
+	recycle: '/xp-icons/pack/recycle-empty.png',
+	globe: '/xp-icons/pack/media.png',
+	start: '/xp-icons/pack/start.png',
+	about: '/xp-icons/pack/documents.png',
+	power: '/xp-icons/pack/power.png',
+	shell: '/xp-icons/pack/computer.png'
+} as const;
 
 const tabs: Array<{ id: TabId; label: string }> = [
 	{ id: 'about', label: 'About' },
@@ -114,20 +130,50 @@ const linkGroups: LinkGroup[] = [
 	}
 ];
 
-const recycleBinLinks: Array<{ label: string; href: string }> = [
-	{ label: 'TheOldNet', href: 'https://theoldnet.com/' },
-	{ label: 'Oldweb.Today', href: 'https://oldweb.today/' },
-	{ label: 'Neocities', href: 'https://neocities.org/browse' },
-	{ label: 'SpaceHey', href: 'https://spacehey.com/' },
-	{ label: 'Wiby', href: 'https://wiby.me/' },
-	{ label: 'Camerons World', href: 'https://www.cameronsworld.net/' }
+const recycleBinShortcuts: ShellShortcut[] = [
+	{
+		id: 'oldnet',
+		label: 'TheOldNet',
+		icon: shellIcons.browser,
+		href: 'https://theoldnet.com/'
+	},
+	{
+		id: 'oldweb-today',
+		label: 'Oldweb.Today',
+		icon: shellIcons.browser,
+		href: 'https://oldweb.today/'
+	},
+	{
+		id: 'neocities',
+		label: 'Neocities',
+		icon: shellIcons.browser,
+		href: 'https://neocities.org/browse'
+	},
+	{
+		id: 'spacehey',
+		label: 'SpaceHey',
+		icon: shellIcons.browser,
+		href: 'https://spacehey.com/'
+	},
+	{
+		id: 'wiby',
+		label: 'Wiby',
+		icon: shellIcons.browser,
+		href: 'https://wiby.me/'
+	},
+	{
+		id: 'camerons-world',
+		label: 'Camerons World',
+		icon: shellIcons.browser,
+		href: 'https://www.cameronsworld.net/'
+	}
 ];
 
 const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'github',
 		label: 'GitHub',
-		icon: 'https://win98icons.alexmeub.com/icons/png/computer_explorer_cool-3.png',
+		icon: shellIcons.computer,
 		href: 'https://github.com/Lewdcario',
 		x: 34,
 		y: 130
@@ -135,7 +181,7 @@ const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'about-me',
 		label: 'About Me',
-		icon: 'https://win98icons.alexmeub.com/icons/png/msie1-2.png',
+		icon: shellIcons.browser,
 		href: 'https://library.okami.codes',
 		x: 126,
 		y: 130
@@ -152,7 +198,7 @@ const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'library',
 		label: 'Library',
-		icon: 'https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png',
+		icon: shellIcons.folder,
 		href: 'https://library.okami.codes/library',
 		x: 126,
 		y: 250
@@ -160,7 +206,7 @@ const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'projects',
 		label: 'Projects',
-		icon: 'https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png',
+		icon: shellIcons.folder,
 		tab: 'projects',
 		x: 34,
 		y: 250
@@ -168,7 +214,7 @@ const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'contact',
 		label: 'Contact',
-		icon: 'https://win98icons.alexmeub.com/icons/png/address_book_user.png',
+		icon: shellIcons.contact,
 		tab: 'contact',
 		x: 34,
 		y: 370
@@ -176,7 +222,7 @@ const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'recycle-bin',
 		label: 'Recycle Bin',
-		icon: 'https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png',
+		icon: shellIcons.recycle,
 		recycle: true,
 		x: 0,
 		y: 0
@@ -187,27 +233,27 @@ const windowsMeta: WindowMeta[] = [
 	{
 		id: 'links',
 		label: 'Links',
-		icon: 'https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png'
+		icon: shellIcons.folderOpen
 	},
 	{
 		id: 'clock',
 		label: 'timedatectl.d',
-		icon: 'https://win98icons.alexmeub.com/icons/png/world-0.png'
+		icon: shellIcons.globe
 	},
 	{
 		id: 'main',
 		label: 'okami@desktop:~/portfolio',
-		icon: 'https://win98icons.alexmeub.com/icons/png/msie1-4.png'
+		icon: shellIcons.shell
 	},
 	{
 		id: 'browser',
 		label: 'Netscape Navigator',
-		icon: 'https://win98icons.alexmeub.com/icons/png/msie1-2.png'
+		icon: shellIcons.browser
 	},
 	{
 		id: 'recycle',
 		label: 'Recycle Bin',
-		icon: 'https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png'
+		icon: shellIcons.recycle
 	}
 ];
 
@@ -319,14 +365,14 @@ const taskbarWindows = computed(() =>
 			if (windowMeta.id === 'browser') {
 				return {
 					...windowMeta,
-					label: browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator',
-					icon:
-						browserSkin.value === 'tor'
-							? '/tor-browser-icon.svg'
-							: 'https://win98icons.alexmeub.com/icons/png/msie1-2.png',
-					...windowState.value[windowMeta.id]
-				};
-			}
+						label: browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator',
+						icon:
+							browserSkin.value === 'tor'
+								? '/tor-browser-icon.svg'
+								: shellIcons.browser,
+						...windowState.value[windowMeta.id]
+					};
+				}
 
 			return {
 				...windowMeta,
@@ -1327,6 +1373,28 @@ function isTaskbarWindowActive(windowId: WindowId) {
 	return windowPositions.value[windowId].z >= highestZ;
 }
 
+function openShellShortcut(shortcut: ShellShortcut) {
+	if (shortcut.recycle) {
+		restoreWindow('recycle', false);
+		pushStatus('Recycle Bin opened.');
+		return;
+	}
+
+	if (shortcut.tab) {
+		setTab(shortcut.tab);
+		return;
+	}
+
+	if (shortcut.tor) {
+		openTorBrowser(shortcut.href ?? torBrowserHomeUrl, shortcut.label);
+		return;
+	}
+
+	if (shortcut.href) {
+		openNetscapeBrowser(shortcut.href, shortcut.label);
+	}
+}
+
 function handleDesktopIconClick(icon: DesktopIcon, event: MouseEvent) {
 	if (draggedIconIds.has(icon.id)) {
 		event.preventDefault();
@@ -1334,54 +1402,17 @@ function handleDesktopIconClick(icon: DesktopIcon, event: MouseEvent) {
 		return;
 	}
 
-	if (icon.recycle) {
-		event.preventDefault();
-		restoreWindow('recycle', false);
-		pushStatus('Recycle Bin opened.');
-		return;
-	}
-
-	if (icon.tab) {
-		event.preventDefault();
-		setTab(icon.tab);
-		return;
-	}
-
-	if (icon.tor) {
-		event.preventDefault();
-		openTorBrowser(icon.href ?? torBrowserHomeUrl, icon.label);
-		return;
-	}
-
-	if (!icon.href) {
-		event.preventDefault();
-		return;
-	}
-
 	event.preventDefault();
-	openNetscapeBrowser(icon.href, icon.label);
+	openShellShortcut(icon);
 }
 
 function handleDesktopIconContextAction(icon: DesktopIcon) {
-	if (icon.recycle) {
-		restoreWindow('recycle', false);
-		pushStatus('Recycle Bin opened.');
-		return;
-	}
+	openShellShortcut(icon);
+}
 
-	if (icon.tab) {
-		setTab(icon.tab);
-		return;
-	}
-
-	if (icon.tor) {
-		openTorBrowser(icon.href ?? torBrowserHomeUrl, icon.label);
-		return;
-	}
-
-	if (icon.href) {
-		openNetscapeBrowser(icon.href, icon.label);
-	}
+function handleRecycleShortcutClick(shortcut: ShellShortcut, event: MouseEvent) {
+	event.preventDefault();
+	openShellShortcut(shortcut);
 }
 
 function minimizeAllWindows() {
@@ -1953,7 +1984,7 @@ onBeforeUnmount(() => {
 							<div class="window-body small-window-body">
 							<p>
 								<img
-									src="https://win98icons.alexmeub.com/icons/png/world-0.png"
+									:src="shellIcons.globe"
 									width="12"
 									height="12"
 									alt="clock icon"
@@ -2195,7 +2226,7 @@ onBeforeUnmount(() => {
 					>
 						<div class="title-bar-text">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/recycle_bin_empty-0.png"
+								:src="shellIcons.recycle"
 								width="12"
 								height="12"
 								alt="recycle bin icon"
@@ -2213,14 +2244,18 @@ onBeforeUnmount(() => {
 					</div>
 					<div class="window-body links-window-body recycle-window-body">
 						<span class="group-title">-- saved links --</span>
-						<br />
-						<template v-for="link in recycleBinLinks" :key="link.href">
-							<span class="link-prefix">[-]</span>
-							<a :href="link.href" @click.prevent="openInBrowser(link.href, link.label)">
-								{{ link.label }}
+						<div class="recycle-shortcuts-grid">
+							<a
+								v-for="shortcut in recycleBinShortcuts"
+								:key="shortcut.id"
+								:href="shortcut.href ?? '#'"
+								class="recycle-shortcut"
+								@click="handleRecycleShortcutClick(shortcut, $event)"
+							>
+								<img :src="shortcut.icon" :alt="shortcut.label" width="32" height="32" />
+								<span>{{ shortcut.label }}</span>
 							</a>
-							<br />
-						</template>
+						</div>
 					</div>
 					<div
 						v-for="direction in resizeDirections"
@@ -2249,7 +2284,7 @@ onBeforeUnmount(() => {
 					>
 						<div class="title-bar-text">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/msie1-4.png"
+								:src="shellIcons.shell"
 								width="12"
 								height="12"
 								alt="window icon"
@@ -2466,7 +2501,7 @@ onBeforeUnmount(() => {
 			<div class="start-button">
 				<button class="start-button-inner" @click.stop="toggleStartMenu">
 					<img
-						src="https://win98icons.alexmeub.com/icons/png/windows-0.png"
+						:src="shellIcons.start"
 						width="16"
 						height="16"
 						alt="start button"
@@ -2480,7 +2515,7 @@ onBeforeUnmount(() => {
 					<div class="start-menu-items">
 						<button class="start-menu-item" @click="setTab('about')">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/font_tt-0.png"
+								:src="shellIcons.about"
 								width="16"
 								height="16"
 								alt="about icon"
@@ -2489,7 +2524,7 @@ onBeforeUnmount(() => {
 						</button>
 						<button class="start-menu-item" @click="setTab('projects')">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png"
+								:src="shellIcons.folder"
 								width="16"
 								height="16"
 								alt="projects icon"
@@ -2501,7 +2536,7 @@ onBeforeUnmount(() => {
 							@click="openNetscapeBrowser(browserCurrentUrl || browserHomeUrl, 'Open Navigator')"
 						>
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
+								:src="shellIcons.browser"
 								width="16"
 								height="16"
 								alt="browser icon"
@@ -2522,7 +2557,7 @@ onBeforeUnmount(() => {
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('links')">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/directory_open_file_mydocs-4.png"
+								:src="shellIcons.folder"
 								width="16"
 								height="16"
 								alt="links window icon"
@@ -2531,7 +2566,7 @@ onBeforeUnmount(() => {
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('clock')">
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/world-0.png"
+								:src="shellIcons.globe"
 								width="16"
 								height="16"
 								alt="clock window icon"
@@ -2544,7 +2579,7 @@ onBeforeUnmount(() => {
 							@click="openNetscapeBrowser(browserHomeUrl, 'Home Page')"
 						>
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/msie1-2.png"
+								:src="shellIcons.browser"
 								width="16"
 								height="16"
 								alt="home icon"
@@ -2556,7 +2591,7 @@ onBeforeUnmount(() => {
 							@click="performLogoff"
 						>
 							<img
-								src="https://win98icons.alexmeub.com/icons/png/standby_monitor_moon-0.png"
+								:src="shellIcons.power"
 								width="16"
 								height="16"
 								alt="log off icon"
