@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import projects, { type PortfolioProject } from '../data/projects';
 
 type TabId = 'about' | 'projects' | 'contact';
-type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc';
+type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc' | 'otaclock';
 
 interface ShellShortcut {
 	id: string;
@@ -105,6 +105,7 @@ const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	browser: '/xp-icons/pack/browser.png',
 	vlc: '/xp-icons/pack/media.png',
+	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
 	folderOpen: '/xp-icons/pack/folder-open.png',
 	contact: '/xp-icons/pack/mail.png',
@@ -232,6 +233,14 @@ const desktopIcons: DesktopIcon[] = [
 		y: 370
 	},
 	{
+		id: 'otaclock',
+		label: 'OtaClock',
+		icon: shellIcons.otaclock,
+		windowId: 'otaclock',
+		x: 222,
+		y: 250
+	},
+	{
 		id: 'library',
 		label: 'Library',
 		icon: shellIcons.folder,
@@ -295,6 +304,11 @@ const windowsMeta: WindowMeta[] = [
 		id: 'vlc',
 		label: 'VLC media player',
 		icon: shellIcons.vlc
+	},
+	{
+		id: 'otaclock',
+		label: 'OtaClock',
+		icon: shellIcons.otaclock
 	}
 ];
 
@@ -305,7 +319,8 @@ function createDefaultWindowPositions(): Record<WindowId, WindowPosition> {
 		main: { x: 380, y: 58, z: 8 },
 		browser: { x: 300, y: 96, z: 9 },
 		recycle: { x: 540, y: 132, z: 10 },
-		vlc: { x: 460, y: 120, z: 11 }
+		vlc: { x: 460, y: 120, z: 11 },
+		otaclock: { x: 880, y: 120, z: 12 }
 	};
 }
 
@@ -316,7 +331,8 @@ function createDefaultWindowState() {
 		main: { isOpen: true, isMinimized: false, isMaximized: false },
 		browser: { isOpen: false, isMinimized: false, isMaximized: false },
 		recycle: { isOpen: false, isMinimized: false, isMaximized: false },
-		vlc: { isOpen: false, isMinimized: false, isMaximized: false }
+		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
+		otaclock: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
 }
 
@@ -327,7 +343,8 @@ function createDefaultWindowSizes() {
 		main: { width: 860, height: 620 },
 		browser: { width: 640, height: 600 },
 		recycle: { width: 360, height: 280 },
-		vlc: { width: 640, height: 430 }
+		vlc: { width: 640, height: 430 },
+		otaclock: { width: 440, height: 520 }
 	};
 }
 
@@ -342,6 +359,7 @@ const activeTab = ref<TabId>('about');
 const startMenuOpen = ref(false);
 const liveClock = ref('--:--:--');
 const taskbarClock = ref('--:-- PM');
+const otaClockNow = ref(new Date());
 const visitorCount = ref(0);
 const statusMessage = ref('desktop ready.');
 const isCompactLayout = ref(false);
@@ -366,6 +384,7 @@ const mainWindowRef = ref<HTMLElement | null>(null);
 const browserWindowRef = ref<HTMLElement | null>(null);
 const recycleWindowRef = ref<HTMLElement | null>(null);
 const vlcWindowRef = ref<HTMLElement | null>(null);
+const otaClockWindowRef = ref<HTMLElement | null>(null);
 const activeDrag = ref<DragState | null>(null);
 const browserAddress = ref(browserHomeUrl);
 const browserCurrentUrl = ref(browserHomeUrl);
@@ -396,6 +415,18 @@ const vlcEmbedOrigin = ref('');
 const vlcSourcePanelOpen = ref(false);
 const vlcCurrentSeconds = ref(0);
 const vlcDurationSeconds = ref(0);
+const otaClockAudioLaughRef = ref<HTMLAudioElement | null>(null);
+const otaClockAudioOkRef = ref<HTMLAudioElement | null>(null);
+const otaClockUse24Hour = ref(true);
+const otaClockAlarmEnabled = ref(false);
+const otaClockAlarmSound = ref<'LAUGH' | 'OK'>('LAUGH');
+const otaClockAlarmDuration = ref(10);
+const otaClockAlarmTimesInput = ref('12:00:00\n18:00:00');
+const otaClockAlwaysOnTop = ref(false);
+const otaClockLockPosition = ref(false);
+const otaClockScale = ref(1);
+const otaClockRinging = ref(false);
+const otaClockConfigOpen = ref(false);
 const blinkieBadges = ref<string[]>([]);
 const blinkieStamps = ref<string[]>([]);
 const blinkieLoading = ref(false);
@@ -414,6 +445,37 @@ const visitorDisplay = computed(
 	() => `visitors: ${visitorCount.value.toString().padStart(6, '0')}`
 );
 const activeThemeLabel = computed(() => themeLabel(activeThemeId.value));
+const otaClockDisplayTime = computed(() => {
+	const now = otaClockNow.value;
+	const hours24 = now.getHours();
+	const minutes = now.getMinutes().toString().padStart(2, '0');
+	const seconds = now.getSeconds().toString().padStart(2, '0');
+
+	if (otaClockUse24Hour.value) {
+		return `${hours24.toString().padStart(2, '0')}:${minutes}:${seconds}`;
+	}
+
+	const meridiem = hours24 >= 12 ? 'PM' : 'AM';
+	const hours12Raw = hours24 % 12;
+	const hours12 = hours12Raw === 0 ? 12 : hours12Raw;
+	return `${hours12.toString().padStart(2, '0')}:${minutes}:${seconds} ${meridiem}`;
+});
+const otaClockDisplayDate = computed(() =>
+	otaClockNow.value.toLocaleDateString('en-US', {
+		weekday: 'short',
+		month: 'short',
+		day: 'numeric'
+	})
+);
+const otaClockSpriteSrc = computed(() =>
+	otaClockRinging.value
+		? '/otaclock/otacon_alarm_sprite.png'
+		: '/otaclock/otacon_sprite.png'
+);
+const otaClockPanelStyle = computed(() => ({
+	transform: `scale(${otaClockScale.value})`,
+	transformOrigin: 'top left'
+}));
 const powerPrimaryText = computed(() =>
 	powerState.value === 'loggingOff'
 		? 'Logging off...'
@@ -576,26 +638,32 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 		];
 	}
 
-		if (contextTarget.value.type === 'start') {
-			return [
-				{
-					id: 'open-browser',
-					label: 'Open Navigator',
-					action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
-				},
-				{
-					id: 'open-tor-browser',
-					label: 'Open Tor Browser',
-					action: () => openTorBrowser(browserCurrentUrl.value || torBrowserHomeUrl, 'Tor Browser')
-				},
-				{
-					id: 'open-vlc',
-					label: 'Open VLC',
-					action: () => openVlcWindow()
-				},
-				{
-					id: 'logoff',
-					label: 'Log Off...',
+	if (contextTarget.value.type === 'start') {
+		return [
+			{
+				id: 'open-browser',
+				label: 'Open Navigator',
+				action: () =>
+					openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
+			},
+			{
+				id: 'open-tor-browser',
+				label: 'Open Tor Browser',
+				action: () => openTorBrowser(browserCurrentUrl.value || torBrowserHomeUrl, 'Tor Browser')
+			},
+			{
+				id: 'open-vlc',
+				label: 'Open VLC',
+				action: () => openVlcWindow()
+			},
+			{
+				id: 'open-otaclock',
+				label: 'Open OtaClock',
+				action: () => openOtaClockWindow()
+			},
+			{
+				id: 'logoff',
+				label: 'Log Off...',
 				action: () => {
 					void performLogoff();
 				}
@@ -634,10 +702,11 @@ let browserRequestSerial = 0;
 let blinkieRequestSerial = 0;
 let browserFallbackTimer: number | null = null;
 let loginTypingTimer: number | null = null;
+let otaClockAlarmStopTimer: number | null = null;
 let loginTypingRun = 0;
 let typingAudioContext: AudioContext | null = null;
 let disposed = false;
-let zCounter = 11;
+let zCounter = 12;
 const draggedIconIds = new Set<string>();
 
 function randomBetween(min: number, max: number) {
@@ -652,6 +721,7 @@ function pause(milliseconds: number) {
 
 function updateClocks() {
 	const now = new Date();
+	otaClockNow.value = now;
 	const hour24 = now.getHours().toString().padStart(2, '0');
 	const minutes = now.getMinutes().toString().padStart(2, '0');
 	const seconds = now.getSeconds().toString().padStart(2, '0');
@@ -661,6 +731,81 @@ function updateClocks() {
 	const hour12 = hour12raw === 0 ? 12 : hour12raw;
 	const meridiem = now.getHours() >= 12 ? 'PM' : 'AM';
 	taskbarClock.value = `${hour12}:${minutes} ${meridiem}`;
+	checkOtaClockAlarm(now);
+}
+
+function parseOtaClockAlarmTimes(rawValue: string) {
+	const parsed = new Set<string>();
+	for (const line of rawValue.split(/\r?\n/g)) {
+		const token = line.trim();
+		if (!token) continue;
+		if (/^\d{2}:\d{2}:\d{2}$/.test(token)) {
+			parsed.add(token);
+		}
+	}
+	return parsed;
+}
+
+function stopOtaClockAlarm(announce = true) {
+	if (otaClockAlarmStopTimer !== null) {
+		window.clearTimeout(otaClockAlarmStopTimer);
+		otaClockAlarmStopTimer = null;
+	}
+
+	otaClockRinging.value = false;
+	const audioElements = [otaClockAudioLaughRef.value, otaClockAudioOkRef.value];
+	for (const audio of audioElements) {
+		if (!audio) continue;
+		audio.pause();
+		audio.currentTime = 0;
+	}
+
+	if (announce) {
+		pushStatus('OtaClock alarm stopped.');
+	}
+}
+
+function startOtaClockAlarm() {
+	stopOtaClockAlarm(false);
+	otaClockRinging.value = true;
+	restoreWindow('otaclock', false);
+	focusWindow('otaclock');
+
+	const targetAudio =
+		otaClockAlarmSound.value === 'LAUGH'
+			? otaClockAudioLaughRef.value
+			: otaClockAudioOkRef.value;
+
+	if (targetAudio) {
+		targetAudio.loop = true;
+		void targetAudio.play().catch(() => {
+			pushStatus('OtaClock alarm triggered. Click Stop Alarm to silence it.');
+		});
+	}
+
+	otaClockAlarmStopTimer = window.setTimeout(() => {
+		stopOtaClockAlarm(false);
+		pushStatus('OtaClock alarm finished.');
+	}, otaClockAlarmDuration.value * 1000);
+}
+
+function checkOtaClockAlarm(now: Date) {
+	if (!otaClockAlarmEnabled.value) return;
+	if (otaClockRinging.value) return;
+
+	const activeAlarms = parseOtaClockAlarmTimes(otaClockAlarmTimesInput.value);
+	if (activeAlarms.size === 0) return;
+
+	const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
+		.getMinutes()
+		.toString()
+		.padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+	if (!activeAlarms.has(currentTime)) {
+		return;
+	}
+
+	startOtaClockAlarm();
 }
 
 function incrementVisitorCount() {
@@ -787,6 +932,7 @@ function windowMinSize(windowId: WindowId) {
 	if (windowId === 'browser') return { width: 460, height: 320 };
 	if (windowId === 'vlc') return { width: 420, height: 280 };
 	if (windowId === 'recycle') return { width: 260, height: 180 };
+	if (windowId === 'otaclock') return { width: 390, height: 360 };
 	return { width: 180, height: 120 };
 }
 
@@ -863,11 +1009,21 @@ function focusWindow(windowId: WindowId) {
 	if (!windowState.value[windowId].isOpen || windowState.value[windowId].isMinimized) return;
 	zCounter += 1;
 	windowPositions.value[windowId].z = zCounter;
+
+	if (
+		otaClockAlwaysOnTop.value &&
+		windowId !== 'otaclock' &&
+		isWindowVisible('otaclock')
+	) {
+		zCounter += 1;
+		windowPositions.value.otaclock.z = zCounter;
+	}
 }
 
 function startWindowDrag(windowId: WindowId, event: PointerEvent) {
 	if (isCompactLayout.value || event.button !== 0) return;
 	if ((event.target as HTMLElement | null)?.closest('.title-bar-controls')) return;
+	if (windowId === 'otaclock' && otaClockLockPosition.value) return;
 	if (windowState.value[windowId].isMaximized) return;
 	if (!isWindowVisible(windowId)) return;
 
@@ -1636,6 +1792,13 @@ function openVlcWindow() {
 	pushStatus('VLC media player opened.');
 }
 
+function openOtaClockWindow() {
+	startMenuOpen.value = false;
+	restoreWindow('otaclock', false);
+	focusWindow('otaclock');
+	pushStatus('OtaClock opened.');
+}
+
 function goBrowserBack() {
 	if (!canBrowserGoBack.value) return;
 	browserHistoryIndex.value -= 1;
@@ -1722,6 +1885,11 @@ function closeWindow(windowId: WindowId) {
 	const state = windowState.value[windowId];
 	if (!state.isOpen) return;
 
+	if (windowId === 'otaclock') {
+		stopOtaClockAlarm(false);
+		otaClockConfigOpen.value = false;
+	}
+
 	state.isOpen = false;
 	state.isMinimized = false;
 	state.isMaximized = false;
@@ -1793,6 +1961,11 @@ function isTaskbarWindowActive(windowId: WindowId) {
 function openShellShortcut(shortcut: ShellShortcut) {
 	if (shortcut.windowId === 'vlc') {
 		openVlcWindow();
+		return;
+	}
+
+	if (shortcut.windowId === 'otaclock') {
+		openOtaClockWindow();
 		return;
 	}
 
@@ -2034,6 +2207,7 @@ function resetSessionState() {
 	closeContextMenu();
 	clearBrowserFallbackTimer();
 	clearLoginTypingTimer();
+	stopOtaClockAlarm(false);
 	loginTypingRun += 1;
 	loginTypingInProgress.value = false;
 	loginPasswordDisplay.value = '';
@@ -2063,10 +2237,20 @@ function resetSessionState() {
 	vlcSourcePanelOpen.value = false;
 	vlcCurrentSeconds.value = 0;
 	vlcDurationSeconds.value = 0;
+	otaClockUse24Hour.value = true;
+	otaClockAlarmEnabled.value = false;
+	otaClockAlarmSound.value = 'LAUGH';
+	otaClockAlarmDuration.value = 10;
+	otaClockAlarmTimesInput.value = '12:00:00\n18:00:00';
+	otaClockAlwaysOnTop.value = false;
+	otaClockLockPosition.value = false;
+	otaClockScale.value = 1;
+	otaClockConfigOpen.value = false;
+	stopOtaClockAlarm(false);
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
 	windowSizes.value = createDefaultWindowSizes();
-	zCounter = 11;
+	zCounter = 12;
 	normalizeDesktopLayout();
 }
 
@@ -2161,6 +2345,11 @@ function handleWindowResize() {
 watch(activeThemeId, (themeId, previousThemeId) => {
 	if (themeId === previousThemeId) return;
 	void loadThemeBlinkies(themeId);
+});
+
+watch(otaClockAlwaysOnTop, (enabled) => {
+	if (!enabled || !isWindowVisible('otaclock')) return;
+	focusWindow('otaclock');
 });
 
 onMounted(() => {
@@ -2860,6 +3049,155 @@ onBeforeUnmount(() => {
 
 			<Transition name="xp-window">
 				<div
+					v-if="isWindowVisible('otaclock')"
+					ref="otaClockWindowRef"
+					class="window otaclock-window draggable-window"
+					data-window-id="otaclock"
+					:class="{ 'window-maximized': isWindowMaximized('otaclock') }"
+					:style="windowStyle('otaclock')"
+					@pointerdown="focusWindow('otaclock')"
+				>
+					<div
+						class="title-bar drag-handle"
+						@pointerdown.stop="startWindowDrag('otaclock', $event)"
+					>
+						<div class="title-bar-text">
+							<img
+								:src="shellIcons.otaclock"
+								width="12"
+								height="12"
+								alt="otaclock icon"
+							/>
+							OtaClock
+						</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize" @click.stop="minimizeWindow('otaclock')"></button>
+							<button
+								:aria-label="isWindowMaximized('otaclock') ? 'Restore' : 'Maximize'"
+								@click.stop="toggleMaximizeWindow('otaclock')"
+							></button>
+							<button aria-label="Close" @click.stop="closeWindow('otaclock')"></button>
+						</div>
+					</div>
+					<div class="window-body otaclock-window-body">
+						<div class="otaclock-stage-wrap">
+							<div class="otaclock-stage" :style="otaClockPanelStyle">
+								<div class="otaclock-art-panel">
+									<div class="otaclock-art-left">
+										<div class="otaclock-hero-wrap">
+											<img
+												:src="otaClockSpriteSrc"
+												alt="Otacon sprite"
+												class="otaclock-hero otaclock-hero-main"
+												:class="{ ringing: otaClockRinging }"
+												draggable="false"
+											/>
+											<div v-if="!otaClockRinging" class="otaclock-bubble-copy">
+												<div class="otaclock-bubble-time">{{ otaClockDisplayTime }}</div>
+												<div class="otaclock-bubble-date">{{ otaClockDisplayDate }}</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<button
+							type="button"
+							class="otaclock-config-toggle"
+							:aria-expanded="otaClockConfigOpen"
+							aria-controls="otaclock-config-panel"
+							title="Open OtaClock configuration"
+							@pointerdown.stop
+							@click.stop="otaClockConfigOpen = !otaClockConfigOpen"
+						>
+							<img
+								src="/otaclock/gear_pixel.png"
+								alt=""
+								class="otaclock-gear-icon"
+								draggable="false"
+							/>
+						</button>
+						<div
+							v-if="otaClockConfigOpen"
+							id="otaclock-config-panel"
+							class="otaclock-config-panel"
+							@pointerdown.stop
+						>
+							<div class="otaclock-config-header">
+								<span>OtaClock Configuration</span>
+								<button
+									type="button"
+									class="otaclock-config-close"
+									aria-label="Close configuration"
+									@click="otaClockConfigOpen = false"
+								>
+									x
+								</button>
+							</div>
+							<div class="otaclock-controls">
+								<div class="otaclock-control-grid">
+									<label><input v-model="otaClockUse24Hour" type="checkbox" /> 24-hour display</label>
+									<label><input v-model="otaClockAlarmEnabled" type="checkbox" /> Alarm mode</label>
+									<label><input v-model="otaClockAlwaysOnTop" type="checkbox" /> Always on top</label>
+									<label><input v-model="otaClockLockPosition" type="checkbox" /> Lock position</label>
+								</div>
+								<div class="otaclock-control-row">
+									<label for="otaclock-sound">Alarm sound</label>
+									<select id="otaclock-sound" v-model="otaClockAlarmSound">
+										<option value="LAUGH">LAUGH</option>
+										<option value="OK">OK</option>
+									</select>
+									<label for="otaclock-duration">Ring time</label>
+									<select id="otaclock-duration" v-model.number="otaClockAlarmDuration">
+										<option :value="5">5s</option>
+										<option :value="10">10s</option>
+										<option :value="30">30s</option>
+										<option :value="60">60s</option>
+									</select>
+									<label for="otaclock-scale">Scale</label>
+									<input
+										id="otaclock-scale"
+										v-model.number="otaClockScale"
+										type="range"
+										min="1"
+										max="1.8"
+										step="0.1"
+									/>
+									<button
+										type="button"
+										:disabled="!otaClockRinging"
+										@click="stopOtaClockAlarm()"
+									>
+										Stop Alarm
+									</button>
+								</div>
+								<label class="otaclock-alarm-input-label" for="otaclock-alarm-times">
+									Alarm times (HH:MM:SS, one per line)
+								</label>
+								<textarea
+									id="otaclock-alarm-times"
+									v-model="otaClockAlarmTimesInput"
+									rows="2"
+									spellcheck="false"
+								></textarea>
+							</div>
+						</div>
+					</div>
+					<audio ref="otaClockAudioLaughRef" src="/otaclock/alarm_laugh.wav" preload="auto"></audio>
+					<audio ref="otaClockAudioOkRef" src="/otaclock/alarm_ok.wav" preload="auto"></audio>
+					<div
+						v-for="direction in resizeDirections"
+						v-if="canResizeWindow('otaclock')"
+						:key="`otaclock-${direction}`"
+						class="window-resize-handle"
+						:class="`handle-${direction}`"
+						@pointerdown="startWindowResize('otaclock', direction, $event)"
+					></div>
+				</div>
+			</Transition>
+
+			<Transition name="xp-window">
+				<div
 					v-if="isWindowVisible('main')"
 					ref="mainWindowRef"
 					class="window main-window draggable-window"
@@ -3161,6 +3499,15 @@ onBeforeUnmount(() => {
 								alt="vlc icon"
 							/>
 							<span>Open VLC</span>
+						</button>
+						<button class="start-menu-item" @click="openOtaClockWindow">
+							<img
+								:src="shellIcons.otaclock"
+								width="16"
+								height="16"
+								alt="otaclock icon"
+							/>
+							<span>Open OtaClock</span>
 						</button>
 						<button class="start-menu-item" @click="openWindowFromMenu('links')">
 							<img

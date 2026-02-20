@@ -1732,6 +1732,15 @@ legend {
 	max-width: none;
 }
 
+.otaclock-window {
+	width: auto;
+	max-width: none;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	padding: 0;
+}
+
 .main-window .window-body {
 	padding: 10px 10px 8px;
 	height: calc(100% - 22px);
@@ -1777,6 +1786,250 @@ legend {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
+}
+
+.otaclock-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: transparent;
+}
+
+.otaclock-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	background: transparent;
+	position: relative;
+	overflow: visible;
+}
+
+.otaclock-stage-wrap {
+	padding: 0;
+	background: transparent;
+	border: 0;
+	overflow: visible;
+	flex: none;
+	min-height: 0;
+}
+
+.otaclock-stage {
+	display: inline-block;
+	width: auto;
+	min-width: 0;
+}
+
+.otaclock-art-panel {
+	border: 0;
+	background: transparent;
+	color: #ffffff;
+	width: auto;
+	padding: 0;
+}
+
+.otaclock-art-left {
+	min-height: 0;
+}
+
+.otaclock-title {
+	font-family: 'Courier New', monospace;
+	font-size: 27px;
+	font-weight: 700;
+	letter-spacing: 1px;
+	line-height: 1.1;
+	text-transform: uppercase;
+	margin-bottom: 8px;
+	color: #ffffff;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.otaclock-hero-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 300px;
+	margin-bottom: 0;
+}
+
+.otaclock-hero {
+	image-rendering: pixelated;
+	filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.55));
+	user-select: none;
+}
+
+.otaclock-hero-main {
+	width: 168px;
+	height: 292px;
+	max-width: none;
+}
+
+.otaclock-bubble-copy {
+	position: absolute;
+	top: 16px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 114px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	pointer-events: none;
+}
+
+.otaclock-bubble-time {
+	font-family: 'Courier New', monospace;
+	font-size: 22px;
+	font-weight: 700;
+	letter-spacing: 0.8px;
+	line-height: 1;
+	color: #0a0a0a;
+	text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.otaclock-bubble-date {
+	font-family: 'Courier New', monospace;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.6px;
+	color: #0a0a0a;
+	text-transform: uppercase;
+}
+
+.otaclock-hero.ringing {
+	animation: otaclock-hero-ring 220ms steps(2, end) infinite;
+}
+
+@keyframes otaclock-hero-ring {
+	0% {
+		transform: translate(-2px, 0);
+	}
+	50% {
+		transform: translate(2px, 0);
+	}
+	100% {
+		transform: translate(-2px, 0);
+	}
+}
+
+.otaclock-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	border-top: 1px solid #fefefe;
+	background: #ece9d8;
+	color: #111111;
+	text-shadow: none;
+}
+
+.otaclock-config-toggle {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	background: rgba(8, 12, 22, 0.5);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+		0 0 0 1px rgba(0, 0, 0, 0.22);
+	cursor: pointer;
+	z-index: 4;
+}
+
+.otaclock-config-toggle:hover {
+	background: rgba(20, 35, 60, 0.66);
+}
+
+.otaclock-config-toggle:active {
+	transform: translateY(1px);
+}
+
+.otaclock-gear-icon {
+	width: 16px;
+	height: 16px;
+	image-rendering: pixelated;
+	user-select: none;
+}
+
+.otaclock-config-panel {
+	position: absolute;
+	right: 8px;
+	bottom: 40px;
+	width: min(364px, calc(100% - 16px));
+	border: 1px solid #0a246a;
+	background: #ece9d8;
+	box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.42);
+	z-index: 5;
+}
+
+.otaclock-config-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 3px 5px;
+	background: linear-gradient(90deg, #0a246a, #3a6ea5 62%, #7ba2d8);
+	color: #ffffff;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.otaclock-config-close {
+	min-width: 19px;
+	height: 18px;
+	border: 1px solid #8b1f1f;
+	background: linear-gradient(#f36f63, #cc3028);
+	color: #ffffff;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+	padding: 0;
+	text-transform: uppercase;
+}
+
+.otaclock-control-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 16px;
+	font-size: 11px;
+}
+
+.otaclock-control-grid label {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.otaclock-control-row {
+	display: grid;
+	grid-template-columns: auto minmax(70px, auto) auto minmax(64px, auto) auto 1fr auto;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+}
+
+.otaclock-control-row button {
+	min-width: 84px;
+}
+
+.otaclock-alarm-input-label {
+	font-size: 11px;
+}
+
+.otaclock-controls textarea {
+	resize: vertical;
+	min-height: 48px;
+	font-family: 'Courier New', monospace;
+	font-size: 11px;
+	line-height: 1.25;
 }
 
 .vlc-menubar {
@@ -3022,6 +3275,26 @@ fieldset {
 	.netscape-content-wrap {
 		min-height: 432px;
 	}
+
+	.otaclock-stage {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.otaclock-art-panel {
+		width: 100%;
+		max-width: 380px;
+		padding: 8px;
+	}
+
+	.otaclock-hero-main {
+		width: 152px;
+		height: 264px;
+	}
+
+	.otaclock-control-row {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3061,5 +3334,17 @@ fieldset {
 
 	.start-theme-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.otaclock-title {
+		font-size: 20px;
+	}
+
+	.otaclock-bubble-time {
+		font-size: 18px;
+	}
+
+	.otaclock-bubble-date {
+		font-size: 11px;
 	}
 }
