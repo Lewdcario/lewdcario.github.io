@@ -21,6 +21,48 @@ interface HeadlessRenderResult {
 	title: string;
 }
 
+function isDuckDuckGoHost(hostname: string) {
+	const lowered = hostname.toLowerCase();
+	return (
+		lowered === 'duckduckgo.com' ||
+		lowered === 'www.duckduckgo.com' ||
+		lowered === 'html.duckduckgo.com' ||
+		lowered === 'lite.duckduckgo.com'
+	);
+}
+
+function duckDuckGoQuery(target: URL) {
+	if (!isDuckDuckGoHost(target.hostname)) return '';
+	return target.searchParams.get('q')?.trim() ?? '';
+}
+
+function isDuckDuckGoProtectionPage(target: URL, result: HeadlessRenderResult) {
+	if (!isDuckDuckGoHost(target.hostname)) return false;
+
+	let final: URL | null = null;
+	try {
+		final = new URL(result.finalUrl);
+	} catch {
+		final = null;
+	}
+
+	if (final && isDuckDuckGoHost(final.hostname)) {
+		const blockedPath = final.pathname.toLowerCase().startsWith('/static-pages/418');
+		if (blockedPath) return true;
+	}
+
+	const loweredHtml = result.html.toLowerCase();
+	return (
+		loweredHtml.includes('error-lite+') ||
+		loweredHtml.includes('anomaly-modal') ||
+		loweredHtml.includes('anomaly.js?sv=')
+	);
+}
+
+function startpageSearchUrl(query: string) {
+	return `https://www.startpage.com/sp/search?query=${encodeURIComponent(query)}`;
+}
+
 function escapeHtml(value: string) {
 	return value
 		.replaceAll('&', '&amp;')
@@ -215,7 +257,14 @@ export default defineEventHandler(async (event) => {
 	const target = parseTargetUrl(getQuery(event).url);
 
 	try {
-		const headlessResult = await renderWithHeadlessBrowser(target);
+		let headlessResult = await renderWithHeadlessBrowser(target);
+		if (isDuckDuckGoProtectionPage(target, headlessResult)) {
+			const query = duckDuckGoQuery(target);
+			if (query) {
+				const startpageTarget = new URL(startpageSearchUrl(query));
+				headlessResult = await renderWithHeadlessBrowser(startpageTarget);
+			}
+		}
 		if (
 			headlessResult.contentType &&
 			!headlessResult.contentType.includes('text/html')

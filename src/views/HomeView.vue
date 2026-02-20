@@ -1162,7 +1162,7 @@ function browserSearchUrl(engineId: BrowserSearchEngineId, query: string) {
 		case 'ahmia':
 			return `https://ahmia.fi/search/?q=${encoded}`;
 		case 'duckduckgo':
-			return `https://duckduckgo.com/?q=${encoded}`;
+			return `https://duckduckgo.com/?q=${encoded}&t=h_&ia=web`;
 		case 'wiby':
 			return `https://wiby.me/?q=${encoded}`;
 		case 'searx':
