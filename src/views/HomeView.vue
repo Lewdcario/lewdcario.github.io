@@ -86,7 +86,7 @@ interface BrowserRequestOptions {
 type BrowserRenderMode = 'direct' | 'snapshot';
 type BrowserBackend = 'standard' | 'tor';
 type BrowserSkin = 'netscape' | 'tor';
-type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'searx';
+type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'startpage';
 
 const browserHomeUrl = 'https://library.okami.codes/';
 const torBrowserHomeUrl = 'https://check.torproject.org/';
@@ -401,7 +401,7 @@ const browserSearchEngines = computed<Array<{ id: BrowserSearchEngineId; label: 
 		: [
 				{ id: 'duckduckgo', label: 'DuckDuckGo' },
 				{ id: 'wiby', label: 'Wiby' },
-				{ id: 'searx', label: 'SearXNG' }
+				{ id: 'startpage', label: 'Startpage' }
 			]
 );
 const browserNetSearchLabel = computed(() =>
@@ -1165,8 +1165,8 @@ function browserSearchUrl(engineId: BrowserSearchEngineId, query: string) {
 			return `https://duckduckgo.com/?q=${encoded}&t=h_&ia=web`;
 		case 'wiby':
 			return `https://wiby.me/?q=${encoded}`;
-		case 'searx':
-			return `https://searx.be/search?q=${encoded}`;
+		case 'startpage':
+			return `https://www.startpage.com/sp/search?query=${encoded}`;
 		default:
 			return `https://duckduckgo.com/?q=${encoded}`;
 	}
