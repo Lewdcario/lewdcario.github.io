@@ -17,6 +17,63 @@ interface HeadlessRenderResult {
 	title: string;
 }
 
+function isAhmiaHost(hostname: string) {
+	const lowered = hostname.toLowerCase();
+	return lowered === 'ahmia.fi' || lowered.endsWith('.ahmia.fi');
+}
+
+function shouldRetryAhmiaSearch(target: URL, finalUrl: string) {
+	if (!isAhmiaHost(target.hostname)) return false;
+	if (!target.pathname.toLowerCase().startsWith('/search')) return false;
+	const requestedQuery = target.searchParams.get('q')?.trim();
+	if (!requestedQuery) return false;
+	if (target.searchParams.has('c9166e')) return false;
+
+	try {
+		const final = new URL(finalUrl);
+		if (!isAhmiaHost(final.hostname)) return false;
+		const finalQuery = final.searchParams.get('q')?.trim() ?? '';
+		const landedOnHome = final.pathname === '/' || final.pathname === '';
+		return landedOnHome || !finalQuery;
+	} catch {
+		return true;
+	}
+}
+
+async function retryAhmiaSearch(page: import('playwright').Page, query: string) {
+	const input = page
+		.locator('form#searchForm input[name="q"], form[action*="/search"] input[name="q"]')
+		.first();
+	const count = await input.count();
+	if (count === 0) {
+		return false;
+	}
+
+	await input.fill(query);
+	await Promise.all([
+		page
+			.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: requestTimeoutMs })
+			.catch(() => undefined),
+		input.press('Enter').catch(async () => {
+			const submit = page
+				.locator(
+					'form#searchForm input[type="submit"], form[action*="/search"] input[type="submit"]'
+				)
+				.first();
+			if ((await submit.count()) === 0) {
+				return;
+			}
+			await submit.click({ timeout: 1500 }).catch(() => undefined);
+		})
+	]);
+
+	await page
+		.waitForLoadState('networkidle', { timeout: headlessNetworkIdleTimeoutMs })
+		.catch(() => undefined);
+	await page.waitForTimeout(headlessExtraWaitMs);
+	return true;
+}
+
 function escapeHtml(value: string) {
 	return value
 		.replaceAll('&', '&amp;')
@@ -138,7 +195,14 @@ async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<H
 				.catch(() => undefined);
 			await page.waitForTimeout(headlessExtraWaitMs);
 
-			const finalUrl = page.url() || target.toString();
+			let finalUrl = page.url() || target.toString();
+			if (shouldRetryAhmiaSearch(target, finalUrl)) {
+				const searchText = target.searchParams.get('q')?.trim() ?? '';
+				if (searchText) {
+					await retryAhmiaSearch(page, searchText);
+					finalUrl = page.url() || target.toString();
+				}
+			}
 			const contentType = response?.headers()['content-type']?.toLowerCase() ?? '';
 			const html = await page.content();
 			if (Buffer.byteLength(html, 'utf8') > maxHtmlBytes) {

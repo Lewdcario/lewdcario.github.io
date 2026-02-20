@@ -353,24 +353,66 @@ legend {
 	overflow: hidden;
 }
 
-.xp-startup-loader-strip {
-	display: block;
-	width: 40%;
+.xp-startup-loader-track {
+	position: relative;
+	width: 100%;
 	height: 100%;
-	background: repeating-linear-gradient(
-		90deg,
-		#2c84ef 0,
-		#4c9fff 12px,
-		#7bbdff 24px,
-		#2c84ef 36px
-	);
-	transform: translateX(-130%);
-	animation: xp-startup-slide 1.12s linear infinite;
+	border: 1px solid #101010;
+	background: #030303;
+	overflow: hidden;
 }
 
-@keyframes xp-startup-slide {
-	to {
-		transform: translateX(340%);
+.xp-startup-loader-box {
+	position: absolute;
+	top: 2px;
+	left: -22px;
+	width: 14px;
+	height: 12px;
+	border: 1px solid rgba(12, 49, 105, 0.95);
+	background: linear-gradient(
+		180deg,
+		#b9dcff 0%,
+		#6eaef6 24%,
+		#2e84e8 56%,
+		#0c4ba8 100%
+	);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.62),
+		0 0 1px rgba(16, 62, 128, 0.6);
+	opacity: 0;
+	animation: xp-startup-box-scan 2.1s linear infinite;
+}
+
+.xp-startup-loader-box-1 {
+	animation-delay: 0s;
+}
+
+.xp-startup-loader-box-2 {
+	animation-delay: 0.18s;
+}
+
+.xp-startup-loader-box-3 {
+	animation-delay: 0.36s;
+}
+
+@keyframes xp-startup-box-scan {
+	0% {
+		transform: translateX(0);
+		opacity: 0;
+	}
+
+	4% {
+		opacity: 1;
+	}
+
+	90% {
+		opacity: 1;
+		transform: translateX(calc(100% + 4px));
+	}
+
+	100% {
+		transform: translateX(calc(100% + 8px));
+		opacity: 0;
 	}
 }
 
@@ -1284,10 +1326,85 @@ legend {
 	box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.15);
 }
 
+.netscape-shortcut.active {
+	border-color: #000;
+	background: linear-gradient(180deg, #cfcfcf 0%, #e4e4e4 100%);
+	box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.netscape-search-menu {
+	padding: 6px 8px 8px;
+	border-bottom: 1px solid #87837d;
+	background: #c6c3be;
+}
+
+.netscape-search-form {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.netscape-search-form label {
+	font-size: 11px;
+	font-weight: 700;
+	color: #000;
+}
+
+.netscape-search-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.netscape-search-row input,
+.netscape-search-row select {
+	height: 24px;
+	border: 1px solid #6c6a65;
+	border-radius: 0;
+	background: #fff;
+	box-shadow: inset 1px 1px 0 #f8f8f8, inset -1px -1px 0 #b1afa9;
+	font-size: 12px;
+}
+
+.netscape-search-row input {
+	flex: 1;
+	min-width: 0;
+	padding: 2px 5px;
+}
+
+.netscape-search-row select {
+	width: 128px;
+	padding: 2px 4px;
+}
+
+.netscape-search-go,
+.netscape-search-engine {
+	height: 24px;
+	padding: 2px 8px;
+	border: 1px solid #000;
+	background: linear-gradient(180deg, #f5f5f5 0%, #e6e6e6 42%, #c9c9c9 100%);
+	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.7);
+	color: #000;
+	font-size: 11px;
+}
+
+.netscape-search-go:active,
+.netscape-search-engine:active {
+	background: linear-gradient(180deg, #c9c9c9 0%, #e5e5e5 100%);
+	box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.netscape-search-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+}
+
 .tor-browser-skin .netscape-menu-row,
 .tor-browser-skin .netscape-toolbar-row,
 .tor-browser-skin .netscape-location-row,
-.tor-browser-skin .netscape-shortcuts-row {
+.tor-browser-skin .netscape-shortcuts-row,
+.tor-browser-skin .netscape-search-menu {
 	background: #d9d0ec;
 	border-bottom-color: #6f5a96;
 }
@@ -1317,6 +1434,11 @@ legend {
 	border-color: #2f1f4f;
 }
 
+.tor-browser-skin .netscape-shortcut.active {
+	background: linear-gradient(180deg, #d3c2ee 0%, #e8ddf8 100%);
+	border-color: #2f1f4f;
+}
+
 .tor-browser-skin .netscape-tool-icon::before {
 	color: #4f2e84;
 }
@@ -1326,8 +1448,26 @@ legend {
 	box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b8a8d9;
 }
 
+.tor-browser-skin .netscape-search-row input,
+.tor-browser-skin .netscape-search-row select {
+	border-color: #5f4a89;
+	box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b8a8d9;
+}
+
 .tor-browser-skin .netscape-throbber {
 	background: linear-gradient(180deg, #f4ecff 0%, #d4bdf4 54%, #ac8fe0 100%);
+	border-color: #2f1f4f;
+}
+
+.tor-browser-skin .netscape-search-go,
+.tor-browser-skin .netscape-search-engine {
+	background: linear-gradient(180deg, #faf7ff 0%, #e8ddf9 42%, #ccb8ec 100%);
+	border-color: #2f1f4f;
+}
+
+.tor-browser-skin .netscape-search-go:active,
+.tor-browser-skin .netscape-search-engine:active {
+	background: linear-gradient(180deg, #cdb9ec 0%, #e4d6f8 100%);
 	border-color: #2f1f4f;
 }
 

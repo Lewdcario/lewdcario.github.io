@@ -83,9 +83,11 @@ interface BrowserRequestOptions {
 type BrowserRenderMode = 'direct' | 'snapshot';
 type BrowserBackend = 'standard' | 'tor';
 type BrowserSkin = 'netscape' | 'tor';
+type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'searx';
 
 const browserHomeUrl = 'https://library.okami.codes/';
 const torBrowserHomeUrl = 'https://check.torproject.org/';
+const torSearchHomeUrl = 'https://ahmia.fi/';
 const loginPasswordSeed = 'cobalt_2002';
 
 const tabs: Array<{ id: TabId; label: string }> = [
@@ -282,11 +284,15 @@ const browserBackend = ref<BrowserBackend>('standard');
 const browserSkin = ref<BrowserSkin>('netscape');
 const browserFrameRef = ref<HTMLIFrameElement | null>(null);
 const browserAddressInputRef = ref<HTMLInputElement | null>(null);
+const browserSearchInputRef = ref<HTMLInputElement | null>(null);
 const browserLoading = ref(false);
 const browserError = ref('');
 const browserTitle = ref('Netscape Navigator');
 const browserHistory = ref<string[]>([browserHomeUrl]);
 const browserHistoryIndex = ref(0);
+const browserSearchMenuOpen = ref(false);
+const browserSearchQuery = ref('');
+const browserSearchEngine = ref<BrowserSearchEngineId>('duckduckgo');
 const contextMenuRef = ref<HTMLElement | null>(null);
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
@@ -342,6 +348,18 @@ const browserShellIcon = computed(() =>
 );
 const browserDefaultHome = computed(() =>
 	browserBackend.value === 'tor' ? torBrowserHomeUrl : browserHomeUrl
+);
+const browserSearchEngines = computed<Array<{ id: BrowserSearchEngineId; label: string }>>(() =>
+	browserBackend.value === 'tor'
+		? [{ id: 'ahmia', label: 'Ahmia (Tor)' }]
+		: [
+				{ id: 'duckduckgo', label: 'DuckDuckGo' },
+				{ id: 'wiby', label: 'Wiby' },
+				{ id: 'searx', label: 'SearXNG' }
+			]
+);
+const browserNetSearchLabel = computed(() =>
+	browserBackend.value === 'tor' ? 'Tor Search' : 'Net Search'
 );
 const contextMenuTitle = computed(() => {
 	if (contextTarget.value.type === 'icon') {
@@ -971,6 +989,7 @@ function openInBrowser(url: string, label?: string, options: BrowserRequestOptio
 
 	browserBackend.value = backend;
 	browserSkin.value = skin;
+	syncBrowserSearchEngine(backend);
 
 	const requestSerial = ++browserRequestSerial;
 	clearBrowserFallbackTimer();
@@ -1084,6 +1103,72 @@ function navigateBrowserAddress() {
 		backend: browserBackend.value,
 		skin: browserSkin.value
 	});
+}
+
+function browserSearchUrl(engineId: BrowserSearchEngineId, query: string) {
+	const normalizedQuery = query.trim();
+	if (!normalizedQuery) {
+		return engineId === 'ahmia' ? torSearchHomeUrl : browserHomeUrl;
+	}
+
+	const encoded = encodeURIComponent(normalizedQuery);
+	switch (engineId) {
+		case 'ahmia':
+			return `https://ahmia.fi/search/?q=${encoded}`;
+		case 'duckduckgo':
+			return `https://duckduckgo.com/?q=${encoded}`;
+		case 'wiby':
+			return `https://wiby.me/?q=${encoded}`;
+		case 'searx':
+			return `https://searx.be/search?q=${encoded}`;
+		default:
+			return `https://duckduckgo.com/?q=${encoded}`;
+	}
+}
+
+function syncBrowserSearchEngine(backend: BrowserBackend) {
+	if (backend === 'tor') {
+		browserSearchEngine.value = 'ahmia';
+		return;
+	}
+
+	if (browserSearchEngine.value === 'ahmia') {
+		browserSearchEngine.value = 'duckduckgo';
+	}
+}
+
+function toggleBrowserSearchMenu() {
+	browserSearchMenuOpen.value = !browserSearchMenuOpen.value;
+	if (!browserSearchMenuOpen.value) {
+		return;
+	}
+
+	syncBrowserSearchEngine(browserBackend.value);
+	void nextTick(() => {
+		const input = browserSearchInputRef.value;
+		if (!input) return;
+		input.focus();
+		input.select();
+	});
+}
+
+function submitBrowserSearch() {
+	const backend = browserBackend.value;
+	syncBrowserSearchEngine(backend);
+	const targetUrl = browserSearchUrl(browserSearchEngine.value, browserSearchQuery.value);
+	const selectedEngine = browserSearchEngines.value.find(
+		(engine) => engine.id === browserSearchEngine.value
+	);
+
+	openInBrowser(targetUrl, selectedEngine?.label ?? browserNetSearchLabel.value, {
+		backend,
+		skin: browserSkin.value
+	});
+}
+
+function searchWithEngine(engineId: BrowserSearchEngineId) {
+	browserSearchEngine.value = engineId;
+	submitBrowserSearch();
 }
 
 function openTorBrowser(url = torBrowserHomeUrl, label = 'Tor Browser') {
@@ -1508,6 +1593,9 @@ function resetSessionState() {
 	browserDocument.value = navigatorPlaceholderDocument('Type a URL and press Go.', browserHomeUrl);
 	browserHistory.value = [browserHomeUrl];
 	browserHistoryIndex.value = 0;
+	browserSearchMenuOpen.value = false;
+	browserSearchQuery.value = '';
+	browserSearchEngine.value = 'duckduckgo';
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
 	windowSizes.value = createDefaultWindowSizes();
@@ -1674,7 +1762,11 @@ onBeforeUnmount(() => {
 					</div>
 					<p class="xp-startup-caption">Microsoft Windows XP</p>
 					<div class="xp-startup-loader" aria-hidden="true">
-						<span class="xp-startup-loader-strip"></span>
+						<div class="xp-startup-loader-track">
+							<span class="xp-startup-loader-box xp-startup-loader-box-1"></span>
+							<span class="xp-startup-loader-box xp-startup-loader-box-2"></span>
+							<span class="xp-startup-loader-box xp-startup-loader-box-3"></span>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1961,23 +2053,6 @@ onBeforeUnmount(() => {
 								<span class="netscape-tool-icon icon-reload" aria-hidden="true"></span>
 								<span>Reload</span>
 							</button>
-							<button type="button" class="netscape-tool-button" disabled>
-								<span class="netscape-tool-icon icon-images" aria-hidden="true"></span>
-								<span>Images</span>
-							</button>
-							<div class="netscape-toolbar-separator" aria-hidden="true"></div>
-							<button type="button" class="netscape-tool-button" @click="focusBrowserAddress">
-								<span class="netscape-tool-icon icon-open" aria-hidden="true"></span>
-								<span>Open</span>
-							</button>
-							<button
-								type="button"
-								class="netscape-tool-button"
-								@click="openInBrowser('https://duckduckgo.com/', 'Find', { backend: browserBackend, skin: browserSkin })"
-							>
-								<span class="netscape-tool-icon icon-find" aria-hidden="true"></span>
-								<span>Find</span>
-							</button>
 							<button
 								type="button"
 								class="netscape-tool-button"
@@ -2013,45 +2088,52 @@ onBeforeUnmount(() => {
 							<button
 								type="button"
 								class="netscape-shortcut"
-								@click="openInBrowser('https://library.okami.codes/library', 'Guided Tour', { backend: browserBackend, skin: browserSkin })"
+								:class="{ active: browserSearchMenuOpen }"
+								@click="toggleBrowserSearchMenu"
 							>
-								Guided Tour
+								{{ browserNetSearchLabel }}
 							</button>
 							<button
+								v-if="browserBackend !== 'tor'"
 								type="button"
 								class="netscape-shortcut"
-								@click="openInBrowser('https://library.okami.codes/', `What's New`, { backend: browserBackend, skin: browserSkin })"
+								@click="openInBrowser('https://duckduckgo.com/?q=retro+web+design', 'Web Picks', { backend: browserBackend, skin: browserSkin })"
 							>
-								What's New
+								Web Picks
 							</button>
-							<button
-								type="button"
-								class="netscape-shortcut"
-								@click="openInBrowser('https://stackoverflow.com/questions', 'Questions', { backend: browserBackend, skin: browserSkin })"
-							>
-								Questions
-							</button>
-							<button
-								type="button"
-								class="netscape-shortcut"
-								@click="openInBrowser('https://duckduckgo.com/', 'Net Search', { backend: browserBackend, skin: browserSkin })"
-							>
-								Net Search
-							</button>
-							<button
-								type="button"
-								class="netscape-shortcut"
-								@click="openInBrowser('https://wiby.me/', 'Net Directory', { backend: browserBackend, skin: browserSkin })"
-							>
-								Net Directory
-							</button>
-							<button
-								type="button"
-								class="netscape-shortcut"
-								@click="openInBrowser('https://groups.google.com/', 'Newsgroups', { backend: browserBackend, skin: browserSkin })"
-							>
-								Newsgroups
-							</button>
+						</div>
+
+						<div v-if="browserSearchMenuOpen" class="netscape-search-menu">
+							<form class="netscape-search-form" @submit.prevent="submitBrowserSearch">
+								<label for="browser-search-query">Search the web</label>
+								<div class="netscape-search-row">
+									<input
+										id="browser-search-query"
+										ref="browserSearchInputRef"
+										v-model="browserSearchQuery"
+										type="text"
+										placeholder="type query..."
+										autocomplete="off"
+									/>
+									<select v-model="browserSearchEngine" aria-label="Search engine">
+										<option v-for="engine in browserSearchEngines" :key="engine.id" :value="engine.id">
+											{{ engine.label }}
+										</option>
+									</select>
+									<button type="submit" class="netscape-search-go">Go</button>
+								</div>
+								<div class="netscape-search-actions">
+									<button
+										v-for="engine in browserSearchEngines"
+										:key="`quick-${engine.id}`"
+										type="button"
+										class="netscape-search-engine"
+										@click="searchWithEngine(engine.id)"
+									>
+										{{ engine.label }}
+									</button>
+								</div>
+							</form>
 						</div>
 
 						<div class="netscape-content-wrap">
@@ -2077,13 +2159,7 @@ onBeforeUnmount(() => {
 								referrerpolicy="no-referrer"
 							></iframe>
 							<div v-if="browserLoading" class="browser-overlay browser-loading netscape-browser-overlay">
-								{{
-									browserBackend === 'tor'
-										? 'Routing through Tor relay render service...'
-										: browserRenderMode === 'direct'
-										? 'Opening in iframe. Compatibility mode will auto-load if blocked...'
-										: 'Rendering compatibility snapshot through headless browser...'
-								}}
+								Loading...
 							</div>
 							<div v-else-if="browserError" class="browser-overlay browser-blocked netscape-browser-overlay">
 								<div>{{ browserError }}</div>

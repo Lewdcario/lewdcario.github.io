@@ -1,0 +1,7 @@
+services:
+  tor:
+    image: dperson/torproxy:latest
+    container_name: portfolio-tor-proxy
+    restart: unless-stopped
+    ports:
+      - "9050:9050"

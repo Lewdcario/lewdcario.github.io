@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
+    "dev:tor": "./scripts/dev-tor.sh",
     "build": "nuxt build",
     "preview": "nuxt preview",
+    "tor:up": "docker compose up -d tor",
+    "tor:down": "docker compose down",
+    "tor:logs": "docker compose logs -f tor",
     "test:unit": "vitest",
     "test:e2e": "start-server-and-test 'nuxt preview --port 4173' http://localhost:4173 'cypress run --e2e'",
     "test:e2e:dev": "start-server-and-test 'nuxt dev --port 4173' http://localhost:4173 'cypress open --e2e'",

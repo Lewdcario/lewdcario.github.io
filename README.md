@@ -15,6 +15,17 @@ Windows XP-style portfolio rewrite with:
 5. Run `yarn test:unit` for Vitest unit tests
 6. Run `yarn test:e2e:dev` for Cypress against Nuxt dev server
 
+## Tor Mode
+
+- One command to start Tor proxy + Nuxt:
+  - `yarn dev:tor`
+- Manual Tor controls:
+  - `yarn tor:up`
+  - `yarn tor:logs`
+  - `yarn tor:down`
+
+This uses Docker Compose service `tor` from `docker-compose.yml` and routes Tor Browser mode through `socks5://127.0.0.1:9050`.
+
 ## Notes
 
 - Nuxt entrypoint is `pages/index.vue`, which renders `src/views/HomeView.vue`.
