@@ -1265,12 +1265,71 @@ legend {
 	width: min(360px, 92vw);
 }
 
-.xp-login-card {
+.xp-login-user-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 	width: 100%;
-	max-width: 450px;
-	padding: 10px 14px 11px 10px;
-	border: 0;
-	border-radius: 0;
+}
+
+.xp-login-user-entry {
+	width: 100%;
+}
+
+.xp-login-user-choice {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 6px;
+	background: linear-gradient(
+		90deg,
+		rgba(10, 70, 180, 0.68) 0%,
+		rgba(31, 96, 203, 0.42) 48%,
+		rgba(118, 171, 241, 0) 100%
+	);
+	text-align: left;
+}
+
+.xp-login-user-entry.active .xp-login-user-choice {
+	border-color: rgba(255, 255, 255, 0.62);
+	background: linear-gradient(
+		90deg,
+		rgba(7, 74, 191, 0.82) 0%,
+		rgba(45, 116, 225, 0.62) 45%,
+		rgba(132, 180, 245, 0.08) 100%
+	);
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.xp-login-user-choice-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.xp-login-user-choice-name {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 700;
+	color: #fff;
+}
+
+.xp-login-user-choice-meta {
+	margin: 0;
+	font-size: 11px;
+	color: rgba(229, 239, 255, 0.94);
+}
+
+.xp-login-password-panel {
+	width: 100%;
+	padding: 6px 8px 8px;
+	border: 1px solid rgba(255, 255, 255, 0.62);
+	border-top: 0;
+	border-radius: 0 0 6px 6px;
 	background: linear-gradient(
 		90deg,
 		rgba(10, 70, 180, 0.82) 0%,
@@ -1279,7 +1338,13 @@ legend {
 		rgba(118, 171, 241, 0.18) 82%,
 		rgba(118, 171, 241, 0) 100%
 	);
-	box-shadow: none;
+}
+
+.xp-login-password-label {
+	margin: 0 0 5px;
+	font-family: Tahoma, sans-serif;
+	font-size: 11px;
+	color: rgba(236, 244, 255, 0.95);
 }
 
 .xp-login-card-header {
@@ -1299,11 +1364,18 @@ legend {
 	width: 50px;
 	height: 50px;
 	border-radius: 6px;
-	background: linear-gradient(180deg, #bd765a 0%, #8d3f2e 100%);
 	border: 1px solid rgba(255, 255, 255, 0.68);
 	box-shadow:
 		inset 0 1px rgba(255, 255, 255, 0.3),
 		0 2px 7px rgba(0, 0, 0, 0.35);
+}
+
+.xp-login-avatar-guest {
+	background: linear-gradient(180deg, #8db0e7 0%, #507bc5 100%);
+}
+
+.xp-login-avatar-admin {
+	background: linear-gradient(180deg, #bd765a 0%, #8d3f2e 100%);
 }
 
 .xp-login-user-name {
@@ -1345,6 +1417,13 @@ legend {
 
 .xp-login-password-row input:focus {
 	outline: none;
+}
+
+.xp-login-guest-field {
+	font-family: Tahoma, sans-serif;
+	font-size: 12px;
+	color: #355485;
+	letter-spacing: 0;
 }
 
 .xp-login-language {
@@ -1412,9 +1491,11 @@ legend {
 	font-weight: 700;
 }
 
-.xp-login-password-row.typing input,
-.xp-login-user.typing .xp-login-password-row input {
-	border-color: #3f65a0;
+.xp-login-error {
+	margin: 7px 0 0;
+	font-size: 11px;
+	color: #ffd7d7;
+	text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 .xp-login-bottom {
@@ -2835,6 +2916,222 @@ fieldset {
 	color: #5b5b5b;
 }
 
+.blog-toolbar {
+	background: rgba(255, 255, 255, 0.82);
+}
+
+.blog-toolbar-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.blog-session-note {
+	font-size: 12px;
+}
+
+.blog-composer {
+	background: rgba(255, 255, 255, 0.82);
+}
+
+.blog-composer-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 6px;
+}
+
+.blog-composer-grid label {
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.blog-composer-grid input[type='text'],
+.blog-composer-grid textarea {
+	width: 100%;
+	border: 1px solid #9aa9bd;
+	background: #fff;
+	padding: 5px 6px;
+	font-size: 12px;
+	font-family: Tahoma, sans-serif;
+}
+
+.blog-composer-grid textarea {
+	resize: vertical;
+	min-height: 112px;
+	font-family: 'Courier New', monospace;
+	line-height: 1.35;
+}
+
+.blog-checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-top: 4px;
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.blog-composer-actions {
+	margin-top: 8px;
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.blog-browser {
+	display: grid;
+	grid-template-columns: 230px minmax(0, 1fr);
+	gap: 8px;
+	margin-top: 8px;
+	min-height: 0;
+}
+
+.blog-post-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: 430px;
+	overflow-y: auto;
+	border: 1px solid #a7b7cf;
+	background: rgba(255, 255, 255, 0.86);
+	padding: 4px;
+}
+
+.blog-post-list-item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	width: 100%;
+	border: 1px solid #b5c4d9;
+	background: #f4f7fc;
+	padding: 6px;
+	font-family: Tahoma, sans-serif;
+	text-align: left;
+}
+
+.blog-post-list-item.active {
+	border-color: #4f79b8;
+	background: #dce8fa;
+}
+
+.blog-post-list-title {
+	font-size: 12px;
+	font-weight: 700;
+	color: #1c2e52;
+}
+
+.blog-post-list-meta {
+	font-size: 10px;
+	color: #54617a;
+}
+
+.blog-post-view {
+	padding: 8px;
+	border: 1px solid #a7b7cf;
+	background: rgba(255, 255, 255, 0.86);
+	overflow-y: auto;
+	max-height: 430px;
+	min-height: 0;
+}
+
+.blog-post-header h3 {
+	margin: 0;
+	font-size: 14px;
+}
+
+.blog-post-meta {
+	margin-top: 2px;
+	font-size: 11px;
+	color: #54617a;
+}
+
+.blog-post-admin-actions {
+	margin-top: 6px;
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.blog-post-admin-actions .danger {
+	color: #741414;
+}
+
+.blog-post-excerpt {
+	margin-top: 7px;
+	font-size: 12px;
+	color: #2f3f5f;
+}
+
+.blog-post-content {
+	margin: 8px 0 0;
+	padding: 6px;
+	border: 1px solid #c2cddd;
+	background: #ffffff;
+	font-size: 12px;
+	word-break: break-word;
+}
+
+.markdown-content {
+	line-height: 1.45;
+}
+
+.markdown-content :first-child {
+	margin-top: 0;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+	margin: 10px 0 6px;
+	font-size: 14px;
+	color: #173560;
+}
+
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol,
+.markdown-content blockquote {
+	margin: 6px 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+	padding-left: 18px;
+}
+
+.markdown-content code {
+	font-family: 'Courier New', monospace;
+	font-size: 11px;
+	background: #eff4fb;
+	padding: 0 3px;
+}
+
+.markdown-content pre {
+	margin: 8px 0;
+	padding: 8px;
+	background: #f6f8fc;
+	border: 1px solid #c2cddd;
+	overflow-x: auto;
+}
+
+.markdown-content pre code {
+	background: transparent;
+	padding: 0;
+}
+
+.markdown-content a {
+	color: #0f4fa8;
+}
+
+.markdown-content blockquote {
+	border-left: 3px solid #b0bfd7;
+	padding-left: 8px;
+	color: #3d4f70;
+}
+
 .project-meta {
 	margin-top: 3px;
 	font-size: 11px;
@@ -3294,6 +3591,15 @@ fieldset {
 
 	.otaclock-control-row {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.blog-browser {
+		grid-template-columns: 1fr;
+	}
+
+	.blog-post-list,
+	.blog-post-view {
+		max-height: none;
 	}
 }
 

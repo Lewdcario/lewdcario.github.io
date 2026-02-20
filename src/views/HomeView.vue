@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import MarkdownIt from 'markdown-it';
 import projects, { type PortfolioProject } from '../data/projects';
+import { createBlogPostInputSchema, type BlogPost } from '~/shared/blog';
+import type { AuthSessionRole } from '~/shared/auth';
 
-type TabId = 'about' | 'projects' | 'contact';
+type TabId = 'about' | 'projects' | 'blog' | 'contact';
 type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc' | 'otaclock';
 
 interface ShellShortcut {
@@ -100,7 +103,7 @@ const torSearchHomeUrl = 'https://ahmia.fi/';
 const vlcDefaultPlaylistUrl =
 	'https://www.youtube.com/watch?v=_laE9-4N3bA&list=PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
 const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
-const loginPasswordSeed = 'cobalt_2002';
+const guestLoginPasswordSeed = 'cobalt_2002';
 const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	browser: '/xp-icons/pack/browser.png',
@@ -120,6 +123,7 @@ const shellIcons = {
 const tabs: Array<{ id: TabId; label: string }> = [
 	{ id: 'about', label: 'About' },
 	{ id: 'projects', label: 'Projects' },
+	{ id: 'blog', label: 'Blog' },
 	{ id: 'contact', label: 'Contact' }
 ];
 
@@ -351,9 +355,11 @@ function createDefaultWindowSizes() {
 const splashVisible = ref(true);
 const splashMode = ref<SplashMode>('startup');
 const powerState = ref<PowerState>('idle');
-const showContinueButton = ref(false);
-const loginPasswordDisplay = ref('');
-const loginTypingInProgress = ref(false);
+const selectedLoginUser = ref<AuthSessionRole>('guest');
+const sessionRole = ref<AuthSessionRole>('guest');
+const adminLoginPassword = ref('');
+const loginSubmitting = ref(false);
+const loginError = ref('');
 const activeThemeId = ref<XpThemeId>(defaultThemeId);
 const activeTab = ref<TabId>('about');
 const startMenuOpen = ref(false);
@@ -427,6 +433,18 @@ const otaClockLockPosition = ref(false);
 const otaClockScale = ref(1);
 const otaClockRinging = ref(false);
 const otaClockConfigOpen = ref(false);
+const blogPosts = ref<BlogPost[]>([]);
+const selectedBlogPostId = ref<number | null>(null);
+const blogLoading = ref(false);
+const blogError = ref('');
+const blogComposerTitle = ref('');
+const blogComposerExcerpt = ref('');
+const blogComposerContent = ref('');
+const blogComposerPublished = ref(true);
+const blogComposerSaving = ref(false);
+const blogComposerError = ref('');
+const blogEditingPostId = ref<number | null>(null);
+const blogDeletingPostId = ref<number | null>(null);
 const blinkieBadges = ref<string[]>([]);
 const blinkieStamps = ref<string[]>([]);
 const blinkieLoading = ref(false);
@@ -445,6 +463,10 @@ const visitorDisplay = computed(
 	() => `visitors: ${visitorCount.value.toString().padStart(6, '0')}`
 );
 const activeThemeLabel = computed(() => themeLabel(activeThemeId.value));
+const signedInAsAdmin = computed(() => sessionRole.value === 'admin');
+const selectedBlogPost = computed(() =>
+	blogPosts.value.find((post) => post.id === selectedBlogPostId.value) ?? null
+);
 const otaClockDisplayTime = computed(() => {
 	const now = otaClockNow.value;
 	const hours24 = now.getHours();
@@ -504,6 +526,12 @@ const taskbarWindows = computed(() =>
 			};
 		})
 );
+
+const markdownRenderer = new MarkdownIt({
+	html: false,
+	linkify: true,
+	breaks: true
+});
 const canBrowserGoBack = computed(() => browserHistoryIndex.value > 0);
 const canBrowserGoForward = computed(
 	() => browserHistoryIndex.value < browserHistory.value.length - 1
@@ -701,10 +729,7 @@ let clockTimer: number | null = null;
 let browserRequestSerial = 0;
 let blinkieRequestSerial = 0;
 let browserFallbackTimer: number | null = null;
-let loginTypingTimer: number | null = null;
 let otaClockAlarmStopTimer: number | null = null;
-let loginTypingRun = 0;
-let typingAudioContext: AudioContext | null = null;
 let disposed = false;
 let zCounter = 12;
 const draggedIconIds = new Set<string>();
@@ -908,11 +933,196 @@ async function loadThemeBlinkies(themeId: XpThemeId) {
 	}
 }
 
+function readApiErrorMessage(error: unknown, fallback: string) {
+	if (error && typeof error === 'object') {
+		const maybe = error as { data?: { statusMessage?: unknown }; message?: unknown };
+		if (typeof maybe.data?.statusMessage === 'string' && maybe.data.statusMessage.trim()) {
+			return maybe.data.statusMessage;
+		}
+		if (typeof maybe.message === 'string' && maybe.message.trim()) {
+			return maybe.message;
+		}
+	}
+
+	return fallback;
+}
+
+async function refreshAuthSession() {
+	try {
+		const payload = await $fetch<{ role: AuthSessionRole }>('/api/auth/session');
+		sessionRole.value = payload.role;
+	} catch {
+		sessionRole.value = 'guest';
+	}
+}
+
+async function loadBlogPosts() {
+	blogLoading.value = true;
+	blogError.value = '';
+
+	try {
+		const payload = await $fetch<{ role: AuthSessionRole; posts: BlogPost[] }>('/api/blog/posts');
+		sessionRole.value = payload.role;
+		blogPosts.value = payload.posts;
+		if (payload.posts.length === 0) {
+			selectedBlogPostId.value = null;
+		} else if (!payload.posts.some((post) => post.id === selectedBlogPostId.value)) {
+			selectedBlogPostId.value = payload.posts[0]?.id ?? null;
+		}
+		if (
+			blogEditingPostId.value !== null &&
+			!payload.posts.some((post) => post.id === blogEditingPostId.value)
+		) {
+			resetBlogComposer();
+		}
+	} catch (error) {
+		blogPosts.value = [];
+		selectedBlogPostId.value = null;
+		blogError.value = readApiErrorMessage(error, 'Unable to load blog posts.');
+	} finally {
+		blogLoading.value = false;
+	}
+}
+
+function resetBlogComposer() {
+	blogComposerTitle.value = '';
+	blogComposerExcerpt.value = '';
+	blogComposerContent.value = '';
+	blogComposerPublished.value = true;
+	blogComposerError.value = '';
+	blogEditingPostId.value = null;
+}
+
+function beginEditingBlogPost(post: BlogPost | null) {
+	if (!signedInAsAdmin.value || !post || blogComposerSaving.value || blogDeletingPostId.value !== null) {
+		return;
+	}
+
+	blogEditingPostId.value = post.id;
+	blogComposerTitle.value = post.title;
+	blogComposerExcerpt.value = post.excerpt;
+	blogComposerContent.value = post.content;
+	blogComposerPublished.value = post.published;
+	blogComposerError.value = '';
+}
+
+function cancelEditingBlogPost() {
+	if (blogComposerSaving.value) return;
+	resetBlogComposer();
+}
+
+async function submitBlogPost() {
+	if (!signedInAsAdmin.value || blogComposerSaving.value) return;
+
+	blogComposerError.value = '';
+	const parseResult = createBlogPostInputSchema.safeParse({
+		title: blogComposerTitle.value,
+		excerpt: blogComposerExcerpt.value,
+		content: blogComposerContent.value,
+		published: blogComposerPublished.value
+	});
+
+	if (!parseResult.success) {
+		blogComposerError.value = parseResult.error.issues[0]?.message ?? 'Invalid post data.';
+		return;
+	}
+
+	blogComposerSaving.value = true;
+	const editingPostId = blogEditingPostId.value;
+	try {
+		if (editingPostId === null) {
+			const payload = await $fetch<{ post: BlogPost }>('/api/blog/posts', {
+				method: 'POST',
+				body: parseResult.data
+			});
+			blogPosts.value = [payload.post, ...blogPosts.value];
+			selectedBlogPostId.value = payload.post.id;
+			resetBlogComposer();
+			pushStatus(`Published "${payload.post.title}".`);
+		} else {
+			const payload = await $fetch<{ post: BlogPost }>(`/api/blog/posts/${editingPostId}`, {
+				method: 'PATCH',
+				body: parseResult.data
+			});
+			const existingPostIndex = blogPosts.value.findIndex((post) => post.id === editingPostId);
+			if (existingPostIndex >= 0) {
+				const nextPosts = [...blogPosts.value];
+				nextPosts.splice(existingPostIndex, 1, payload.post);
+				blogPosts.value = nextPosts;
+			} else {
+				blogPosts.value = [payload.post, ...blogPosts.value];
+			}
+			selectedBlogPostId.value = payload.post.id;
+			resetBlogComposer();
+			pushStatus(`Updated "${payload.post.title}".`);
+		}
+	} catch (error) {
+		blogComposerError.value = readApiErrorMessage(
+			error,
+			editingPostId === null ? 'Failed publishing blog post.' : 'Failed updating blog post.'
+		);
+	} finally {
+		blogComposerSaving.value = false;
+	}
+}
+
+async function deleteSelectedBlogPost() {
+	if (
+		!signedInAsAdmin.value ||
+		blogComposerSaving.value ||
+		blogDeletingPostId.value !== null ||
+		!selectedBlogPost.value
+	) {
+		return;
+	}
+
+	const post = selectedBlogPost.value;
+	const shouldDelete = window.confirm(`Delete "${post.title}"? This cannot be undone.`);
+	if (!shouldDelete) return;
+
+	blogComposerError.value = '';
+	blogDeletingPostId.value = post.id;
+	try {
+		const payload = await $fetch<{ deletedId: number }>(`/api/blog/posts/${post.id}`, {
+			method: 'DELETE'
+		});
+		blogPosts.value = blogPosts.value.filter((entry) => entry.id !== payload.deletedId);
+		if (selectedBlogPostId.value === payload.deletedId) {
+			selectedBlogPostId.value = blogPosts.value[0]?.id ?? null;
+		}
+		if (blogEditingPostId.value === payload.deletedId) {
+			resetBlogComposer();
+		}
+		pushStatus(`Deleted "${post.title}".`);
+	} catch (error) {
+		blogComposerError.value = readApiErrorMessage(error, 'Failed deleting blog post.');
+	} finally {
+		blogDeletingPostId.value = null;
+	}
+}
+
+function formatBlogTimestamp(value: string) {
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) return value;
+	return parsed.toLocaleString();
+}
+
+function selectBlogPost(postId: number) {
+	selectedBlogPostId.value = postId;
+}
+
+function renderBlogMarkdown(content: string) {
+	return markdownRenderer.render(content);
+}
+
 function setTab(tab: TabId) {
 	if (!isWindowVisible('main')) {
 		restoreWindow('main', false);
 	}
 	activeTab.value = tab;
+	if (tab === 'blog' && !blogLoading.value) {
+		void loadBlogPosts();
+	}
 	startMenuOpen.value = false;
 	pushStatus(`${tab} opened.`);
 }
@@ -1267,13 +1477,6 @@ function clearBrowserFallbackTimer() {
 	if (browserFallbackTimer !== null) {
 		window.clearTimeout(browserFallbackTimer);
 		browserFallbackTimer = null;
-	}
-}
-
-function clearLoginTypingTimer() {
-	if (loginTypingTimer !== null) {
-		window.clearTimeout(loginTypingTimer);
-		loginTypingTimer = null;
 	}
 }
 
@@ -2132,71 +2335,20 @@ function runSoftAction(name: string) {
 	pushStatus(name);
 }
 
-function playTypingSound() {
-	const AudioContextConstructor =
-		window.AudioContext ||
-		(window as Window & { webkitAudioContext?: typeof AudioContext })
-			.webkitAudioContext;
-	if (!AudioContextConstructor) return;
-
-	try {
-		if (!typingAudioContext || typingAudioContext.state === 'closed') {
-			typingAudioContext = new AudioContextConstructor();
-		}
-
-		const context = typingAudioContext;
-		void context.resume().catch(() => undefined);
-
-		const oscillator = context.createOscillator();
-		const gain = context.createGain();
-		oscillator.type = 'square';
-		oscillator.frequency.setValueAtTime(1600 + Math.random() * 450, context.currentTime);
-		gain.gain.setValueAtTime(0.0001, context.currentTime);
-		gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.004);
-		gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.03);
-		oscillator.connect(gain);
-		gain.connect(context.destination);
-		oscillator.start(context.currentTime);
-		oscillator.stop(context.currentTime + 0.03);
-		oscillator.onended = () => {
-			oscillator.disconnect();
-			gain.disconnect();
-		};
-	} catch {
-		// Ignore when audio is unavailable.
+function selectLoginUser(role: AuthSessionRole) {
+	selectedLoginUser.value = role;
+	loginError.value = '';
+	if (role === 'guest') {
+		adminLoginPassword.value = '';
+		return;
 	}
-}
 
-function startLoginPasswordTyping() {
-	clearLoginTypingTimer();
-	loginTypingRun += 1;
-	const run = loginTypingRun;
-	loginPasswordDisplay.value = '';
-	loginTypingInProgress.value = true;
-
-	const totalCharacters = loginPasswordSeed.length;
-	const typeNext = () => {
-		if (
-			disposed ||
-			run !== loginTypingRun ||
-			splashMode.value !== 'login' ||
-			!splashVisible.value
-		) {
-			loginTypingInProgress.value = false;
-			return;
-		}
-
-		if (loginPasswordDisplay.value.length >= totalCharacters) {
-			loginTypingInProgress.value = false;
-			return;
-		}
-
-		loginPasswordDisplay.value += '•';
-		playTypingSound();
-		loginTypingTimer = window.setTimeout(typeNext, 48 + Math.floor(Math.random() * 38));
-	};
-
-	loginTypingTimer = window.setTimeout(typeNext, 250);
+	void nextTick(() => {
+		const adminPasswordInput = document.getElementById('xp-login-password') as
+			| HTMLInputElement
+			| null;
+		adminPasswordInput?.focus();
+	});
 }
 
 function resetSessionState() {
@@ -2206,11 +2358,12 @@ function resetSessionState() {
 	startMenuOpen.value = false;
 	closeContextMenu();
 	clearBrowserFallbackTimer();
-	clearLoginTypingTimer();
 	stopOtaClockAlarm(false);
-	loginTypingRun += 1;
-	loginTypingInProgress.value = false;
-	loginPasswordDisplay.value = '';
+	selectedLoginUser.value = 'guest';
+	adminLoginPassword.value = '';
+	loginSubmitting.value = false;
+	loginError.value = '';
+	sessionRole.value = 'guest';
 	statusMessage.value = 'desktop ready.';
 	browserRequestSerial += 1;
 	browserLoading.value = false;
@@ -2246,6 +2399,18 @@ function resetSessionState() {
 	otaClockLockPosition.value = false;
 	otaClockScale.value = 1;
 	otaClockConfigOpen.value = false;
+	blogPosts.value = [];
+	selectedBlogPostId.value = null;
+	blogLoading.value = false;
+	blogError.value = '';
+	blogComposerTitle.value = '';
+	blogComposerExcerpt.value = '';
+	blogComposerContent.value = '';
+	blogComposerPublished.value = true;
+	blogComposerSaving.value = false;
+	blogComposerError.value = '';
+	blogEditingPostId.value = null;
+	blogDeletingPostId.value = null;
 	stopOtaClockAlarm(false);
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
@@ -2300,6 +2465,11 @@ async function performLogoff() {
 
 	startMenuOpen.value = false;
 	pushStatus('Logging off...');
+	try {
+		await $fetch('/api/auth/logout', { method: 'POST' });
+	} catch {
+		// Ignore logout transport failures and continue local reset.
+	}
 	powerState.value = 'loggingOff';
 	playShutdownSound();
 	await pause(1000);
@@ -2312,29 +2482,47 @@ async function performLogoff() {
 	powerState.value = 'idle';
 	splashMode.value = 'login';
 	splashVisible.value = true;
-	showContinueButton.value = true;
 	resetSessionState();
-	startLoginPasswordTyping();
 }
 
 async function runStartupSequence() {
 	splashMode.value = 'startup';
-	showContinueButton.value = false;
 
 	await pause(1800);
 	if (disposed) return;
 	splashMode.value = 'login';
-	showContinueButton.value = true;
-	startLoginPasswordTyping();
+	selectLoginUser('guest');
 }
 
-function continueToDesktop() {
-	clearLoginTypingTimer();
-	loginTypingRun += 1;
-	loginTypingInProgress.value = false;
-	loginPasswordDisplay.value = '';
-	splashVisible.value = false;
-	pushStatus('signed in.');
+async function continueToDesktop() {
+	if (loginSubmitting.value) return;
+
+	loginSubmitting.value = true;
+	loginError.value = '';
+	try {
+		const payload = await $fetch<{ role: AuthSessionRole }>('/api/auth/login', {
+			method: 'POST',
+			body: {
+				user: selectedLoginUser.value,
+				password: selectedLoginUser.value === 'admin' ? adminLoginPassword.value : ''
+			}
+		});
+
+		sessionRole.value = payload.role;
+		adminLoginPassword.value = '';
+		splashVisible.value = false;
+		await loadBlogPosts();
+		pushStatus(payload.role === 'admin' ? 'signed in as admin.' : 'signed in as guest.');
+	} catch (error) {
+		loginError.value = readApiErrorMessage(
+			error,
+			selectedLoginUser.value === 'admin'
+				? 'Admin login failed.'
+				: 'Unable to sign in as guest right now.'
+		);
+	} finally {
+		loginSubmitting.value = false;
+	}
 }
 
 function handleWindowResize() {
@@ -2366,6 +2554,7 @@ onMounted(() => {
 		// Ignore storage failures in restricted environments.
 	}
 	void loadThemeBlinkies(activeThemeId.value);
+	void refreshAuthSession();
 	incrementVisitorCount();
 	normalizeDesktopLayout();
 	updateClocks();
@@ -2392,13 +2581,6 @@ onBeforeUnmount(() => {
 	}
 
 	clearBrowserFallbackTimer();
-	clearLoginTypingTimer();
-	loginTypingRun += 1;
-	loginTypingInProgress.value = false;
-	if (typingAudioContext && typingAudioContext.state !== 'closed') {
-		void typingAudioContext.close();
-	}
-	typingAudioContext = null;
 	browserRequestSerial += 1;
 	blinkieRequestSerial += 1;
 
@@ -2453,41 +2635,90 @@ onBeforeUnmount(() => {
 							<p class="xp-login-prompt">To begin, click your user name</p>
 						</div>
 						<div class="xp-login-divider"></div>
-						<div class="xp-login-user" :class="{ typing: loginTypingInProgress }">
-							<div class="xp-login-card">
-								<div class="xp-login-card-header">
-									<div class="xp-login-avatar" aria-hidden="true"></div>
-									<div class="xp-login-card-header-copy">
-										<p class="xp-login-user-name">Okami</p>
-										<p class="xp-login-card-subtitle">Type your password</p>
+						<div class="xp-login-user">
+							<div class="xp-login-user-list">
+								<div class="xp-login-user-entry" :class="{ active: selectedLoginUser === 'guest' }">
+									<button
+										class="xp-login-user-choice"
+										@click="selectLoginUser('guest')"
+									>
+										<div class="xp-login-avatar xp-login-avatar-guest" aria-hidden="true"></div>
+										<div class="xp-login-user-choice-copy">
+											<p class="xp-login-user-choice-name">Guest</p>
+											<p class="xp-login-user-choice-meta">Quick sign in</p>
+										</div>
+									</button>
+									<div v-if="selectedLoginUser === 'guest'" class="xp-login-password-panel">
+										<p class="xp-login-password-label">Password</p>
+										<div class="xp-login-password-row">
+											<input
+												id="xp-login-password"
+												type="password"
+												:value="guestLoginPasswordSeed"
+												readonly
+												autocomplete="off"
+												class="xp-login-guest-field"
+											/>
+											<span class="xp-login-language">EN</span>
+											<button
+												id="enter-button"
+												class="xp-login-arrow"
+												:disabled="loginSubmitting"
+												@click="continueToDesktop"
+											>
+												{{ loginSubmitting ? '…' : '➜' }}
+											</button>
+											<button class="xp-login-help-btn" type="button" aria-label="Help">?</button>
+										</div>
+										<p v-if="loginError" class="xp-login-error">{{ loginError }}</p>
 									</div>
 								</div>
-								<div class="xp-login-password-row">
-									<input
-										id="xp-login-password"
-										type="password"
-										:value="loginPasswordDisplay"
-										readonly
-										autocomplete="off"
-									/>
-									<span class="xp-login-language">EN</span>
+								<div class="xp-login-user-entry" :class="{ active: selectedLoginUser === 'admin' }">
 									<button
-										v-if="showContinueButton"
-										id="enter-button"
-										class="xp-login-arrow"
-										:disabled="loginTypingInProgress"
-										@click="continueToDesktop"
+										class="xp-login-user-choice"
+										@click="selectLoginUser('admin')"
 									>
-										➜
+										<div class="xp-login-avatar xp-login-avatar-admin" aria-hidden="true"></div>
+										<div class="xp-login-user-choice-copy">
+											<p class="xp-login-user-choice-name">Admin</p>
+											<p class="xp-login-user-choice-meta">Password required</p>
+										</div>
 									</button>
-									<button class="xp-login-help-btn" type="button" aria-label="Help">?</button>
+									<div v-if="selectedLoginUser === 'admin'" class="xp-login-password-panel">
+										<p class="xp-login-password-label">Password</p>
+										<div class="xp-login-password-row">
+											<input
+												id="xp-login-password"
+												v-model="adminLoginPassword"
+												type="password"
+												autocomplete="off"
+												placeholder="Admin password"
+												@keydown.enter.prevent="continueToDesktop"
+											/>
+											<span class="xp-login-language">EN</span>
+											<button
+												id="enter-button"
+												class="xp-login-arrow"
+												:disabled="loginSubmitting || !adminLoginPassword.trim()"
+												@click="continueToDesktop"
+											>
+												{{ loginSubmitting ? '…' : '➜' }}
+											</button>
+											<button class="xp-login-help-btn" type="button" aria-label="Help">?</button>
+										</div>
+										<p v-if="loginError" class="xp-login-error">{{ loginError }}</p>
+									</div>
 								</div>
 							</div>
 							<div class="xp-login-hint">
-								<p class="xp-login-hint-title">Did you forget your password?</p>
-								<p>You can click the "?" button to see your password hint.</p>
-								<p>Please type your password again.</p>
-								<p>Be sure to use the correct uppercase and lowercase letters.</p>
+								<p class="xp-login-hint-title">
+									{{ selectedLoginUser === 'admin' ? 'Admin access' : 'Guest access' }}
+								</p>
+								<p v-if="selectedLoginUser === 'admin'">
+									Admin password is validated on the backend.
+								</p>
+								<p v-else>Guest is a non-persistent local session.</p>
+								<p>Use the arrow button to continue.</p>
 							</div>
 						</div>
 					</div>
@@ -3344,6 +3575,128 @@ onBeforeUnmount(() => {
 						</fieldset>
 					</article>
 
+					<article role="tabpanel" :hidden="activeTab !== 'blog'">
+						<fieldset class="blog-toolbar">
+							<legend>Blog</legend>
+							<div class="blog-toolbar-row">
+								<p class="blog-session-note">
+									Signed in as <strong>{{ sessionRole }}</strong>
+								</p>
+								<button type="button" @click="loadBlogPosts">Refresh</button>
+							</div>
+							<p v-if="blogLoading" class="blinkie-status">Loading blog posts...</p>
+							<p v-else-if="blogError" class="blinkie-status blinkie-status-error">{{ blogError }}</p>
+							<p v-else-if="blogPosts.length === 0" class="blinkie-status">No posts yet.</p>
+						</fieldset>
+
+						<fieldset v-if="signedInAsAdmin" class="blog-composer">
+							<legend>{{ blogEditingPostId !== null ? 'Edit Post (Admin)' : 'New Post (Admin)' }}</legend>
+							<div class="blog-composer-grid">
+								<label for="blog-title">Title</label>
+								<input id="blog-title" v-model="blogComposerTitle" type="text" maxlength="160" />
+								<label for="blog-excerpt">Excerpt</label>
+								<input
+									id="blog-excerpt"
+									v-model="blogComposerExcerpt"
+									type="text"
+									maxlength="400"
+								/>
+								<label for="blog-content">Content</label>
+								<textarea
+									id="blog-content"
+									v-model="blogComposerContent"
+									rows="5"
+									maxlength="20000"
+								></textarea>
+								<label class="blog-checkbox">
+									<input v-model="blogComposerPublished" type="checkbox" />
+									Published
+								</label>
+							</div>
+							<p v-if="blogComposerError" class="blinkie-status blinkie-status-error">
+								{{ blogComposerError }}
+							</p>
+							<div class="blog-composer-actions">
+								<button
+									type="button"
+									:disabled="blogComposerSaving || blogDeletingPostId !== null"
+									@click="submitBlogPost"
+								>
+									{{
+										blogComposerSaving
+											? blogEditingPostId !== null
+												? 'Saving...'
+												: 'Publishing...'
+											: blogEditingPostId !== null
+												? 'Save Changes'
+												: 'Publish Post'
+									}}
+								</button>
+								<button
+									v-if="blogEditingPostId !== null"
+									type="button"
+									:disabled="blogComposerSaving || blogDeletingPostId !== null"
+									@click="cancelEditingBlogPost"
+								>
+									Cancel Edit
+								</button>
+							</div>
+						</fieldset>
+
+						<section v-if="blogPosts.length > 0" class="blog-browser">
+							<aside class="blog-post-list">
+								<button
+									v-for="post in blogPosts"
+									:key="post.id"
+									type="button"
+									class="blog-post-list-item"
+									:class="{ active: selectedBlogPostId === post.id }"
+									@click="selectBlogPost(post.id)"
+								>
+									<span class="blog-post-list-title">{{ post.title }}</span>
+									<span class="blog-post-list-meta">
+										{{ formatBlogTimestamp(post.createdAt) }} • {{ post.author }}
+										<span v-if="!post.published"> • draft</span>
+									</span>
+								</button>
+							</aside>
+							<article v-if="selectedBlogPost" class="blog-post-view">
+								<header class="blog-post-header">
+									<h3>{{ selectedBlogPost.title }}</h3>
+									<p class="blog-post-meta">
+										{{ formatBlogTimestamp(selectedBlogPost.createdAt) }} • {{ selectedBlogPost.author }}
+										<span v-if="!selectedBlogPost.published"> • draft</span>
+									</p>
+									<div v-if="signedInAsAdmin" class="blog-post-admin-actions">
+										<button
+											type="button"
+											:disabled="blogComposerSaving || blogDeletingPostId !== null"
+											@click="beginEditingBlogPost(selectedBlogPost)"
+										>
+											Edit Post
+										</button>
+										<button
+											type="button"
+											class="danger"
+											:disabled="blogComposerSaving || blogDeletingPostId !== null"
+											@click="deleteSelectedBlogPost"
+										>
+											{{ blogDeletingPostId === selectedBlogPost.id ? 'Deleting...' : 'Delete Post' }}
+										</button>
+									</div>
+								</header>
+								<p v-if="selectedBlogPost.excerpt" class="blog-post-excerpt">
+									{{ selectedBlogPost.excerpt }}
+								</p>
+								<div
+									class="blog-post-content markdown-content"
+									v-html="renderBlogMarkdown(selectedBlogPost.content)"
+								></div>
+							</article>
+							<p v-else class="blinkie-status">Select a post from the list.</p>
+						</section>
+					</article>
+
 					<article role="tabpanel" :hidden="activeTab !== 'contact'">
 						<table class="contact-table">
 							<tbody>
@@ -3466,6 +3819,15 @@ onBeforeUnmount(() => {
 								alt="projects icon"
 							/>
 							<span>Projects</span>
+						</button>
+						<button class="start-menu-item" @click="setTab('blog')">
+							<img
+								:src="shellIcons.about"
+								width="16"
+								height="16"
+								alt="blog icon"
+							/>
+							<span>Blog</span>
 						</button>
 						<button
 							class="start-menu-item"
