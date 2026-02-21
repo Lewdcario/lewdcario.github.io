@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { shellIcons, tabs } from '~/src/features/shell/constants/shell';
+import { mainWindowTitle, shellIcons, tabs } from '~/src/features/shell/constants/shell';
 import { useShellControllerContext } from '~/src/features/shell/model/useShellController';
 import ShellWindowFrame from './ShellWindowFrame.vue';
 import ShellMainAboutTab from './main/ShellMainAboutTab.vue';
@@ -13,7 +13,7 @@ const shell = useShellControllerContext();
 <template>
 	<ShellWindowFrame
 		window-id="main"
-		title="okami@desktop:~/portfolio"
+		:title="mainWindowTitle"
 		:icon="shellIcons.shell"
 		icon-alt="window icon"
 		window-class="main-window"

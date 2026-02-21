@@ -15,7 +15,7 @@ const shell = useShellControllerContext();
 		window-class="recycle-window"
 		body-class="links-window-body recycle-window-body"
 	>
-		<span class="group-title">-- saved links --</span>
+		<span class="group-title">Archived Shortcuts</span>
 		<div class="recycle-shortcuts-grid">
 			<a
 				v-for="shortcut in recycleBinShortcuts"

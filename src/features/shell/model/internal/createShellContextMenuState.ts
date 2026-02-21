@@ -16,7 +16,7 @@ export function createShellContextMenuState(deps: any) {
 		toggleMaximizeWindow,
 		minimizeWindow,
 		closeWindow,
-		openNetscapeBrowser,
+		openStandardBrowser,
 		openVlcWindow,
 		openNoiseWindow,
 		openOtaClockWindow,
@@ -113,7 +113,7 @@ export function createShellContextMenuState(deps: any) {
 					id: 'open-browser',
 					label: 'Open Navigator',
 					action: () =>
-						openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
+						openStandardBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
 				},
 				{
 					id: 'open-tor-browser',
@@ -154,7 +154,7 @@ export function createShellContextMenuState(deps: any) {
 			{
 				id: 'open-navigator',
 				label: 'Open Navigator',
-				action: () => openNetscapeBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
+				action: () => openStandardBrowser(browserCurrentUrl.value || browserHomeUrl, 'Open Navigator')
 			},
 			{
 				id: 'show-desktop',

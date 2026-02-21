@@ -2,11 +2,14 @@ import { ref } from 'vue';
 import type { AuthSessionRole } from '~/shared/auth';
 import type { BlogPost } from '~/shared/blog';
 import {
+	browserPlaceholderPrompt,
 	browserHomeUrl,
 	createDefaultWindowPositions,
 	createDefaultWindowSizes,
 	createDefaultWindowState,
+	desktopReadyStatus,
 	defaultThemeId,
+	standardBrowserName,
 	type XpThemeId,
 	vlcDefaultPlaylistId,
 	vlcDefaultPlaylistUrl
@@ -22,8 +25,8 @@ import type {
 	WindowPosition
 } from '~/src/features/shell/model/types';
 
-function initialNavigatorPlaceholderDocument(url: string) {
-	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>Netscape Navigator</h1><p>Type a URL and press Go.</p><p class="hint">${url}</p></body></html>`;
+function initialBrowserPlaceholderDocument(url: string) {
+	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>${standardBrowserName}</h1><p>${browserPlaceholderPrompt}</p><p class="hint">${url}</p></body></html>`;
 }
 
 export function createShellState() {
@@ -42,7 +45,7 @@ export function createShellState() {
 	const taskbarClock = ref('--:-- PM');
 	const otaClockNow = ref(new Date());
 	const visitorCount = ref(0);
-	const statusMessage = ref('desktop ready.');
+	const statusMessage = ref(desktopReadyStatus);
 	const isCompactLayout = ref(false);
 	const iconPositions = ref<Record<string, { x: number; y: number }>>({});
 	const windowPositions = ref<Record<WindowId, WindowPosition>>(createDefaultWindowPositions());
@@ -59,7 +62,7 @@ export function createShellState() {
 	const activeDrag = ref<DragState | null>(null);
 	const browserAddress = ref(browserHomeUrl);
 	const browserCurrentUrl = ref(browserHomeUrl);
-	const browserDocument = ref(initialNavigatorPlaceholderDocument(browserHomeUrl));
+	const browserDocument = ref(initialBrowserPlaceholderDocument(browserHomeUrl));
 	const browserFrameSrc = ref(browserHomeUrl);
 	const browserRenderMode = ref<'direct' | 'snapshot'>('snapshot');
 	const browserBackend = ref<'standard' | 'tor'>('standard');
@@ -69,7 +72,7 @@ export function createShellState() {
 	const browserSearchInputRef = ref<HTMLInputElement | null>(null);
 	const browserLoading = ref(false);
 	const browserError = ref('');
-	const browserTitle = ref('Netscape Navigator');
+	const browserTitle = ref(standardBrowserName);
 	const browserHistory = ref<string[]>([browserHomeUrl]);
 	const browserHistoryIndex = ref(0);
 	const browserSearchMenuOpen = ref(false);

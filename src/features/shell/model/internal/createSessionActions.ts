@@ -2,10 +2,13 @@ import { nextTick } from 'vue';
 import { $fetch } from 'ofetch';
 import type { AuthSessionRole } from '~/shared/auth';
 import {
+	browserPlaceholderPrompt,
 	browserHomeUrl,
 	createDefaultWindowPositions,
 	createDefaultWindowSizes,
 	createDefaultWindowState,
+	desktopReadyStatus,
+	standardBrowserName,
 	vlcDefaultPlaylistId,
 	vlcDefaultPlaylistUrl
 } from '~/src/features/shell/constants/shell';
@@ -37,7 +40,7 @@ export function createSessionActions(deps: any) {
 		browserFrameSrc,
 		browserRenderMode,
 		browserDocument,
-		navigatorPlaceholderDocument,
+		browserPlaceholderDocument,
 		browserHistory,
 		browserHistoryIndex,
 		browserSearchMenuOpen,
@@ -121,18 +124,18 @@ export function createSessionActions(deps: any) {
 		loginSubmitting.value = false;
 		loginError.value = '';
 		sessionRole.value = 'guest';
-		statusMessage.value = 'desktop ready.';
+		statusMessage.value = desktopReadyStatus;
 		browserRuntime.requestSerial += 1;
 		browserLoading.value = false;
 		browserError.value = '';
 		browserBackend.value = 'standard';
 		browserSkin.value = 'netscape';
-		browserTitle.value = 'Netscape Navigator';
+		browserTitle.value = standardBrowserName;
 		browserCurrentUrl.value = browserHomeUrl;
 		browserAddress.value = browserHomeUrl;
 		browserFrameSrc.value = browserHomeUrl;
 		browserRenderMode.value = 'snapshot';
-		browserDocument.value = navigatorPlaceholderDocument('Type a URL and press Go.', browserHomeUrl);
+		browserDocument.value = browserPlaceholderDocument(browserPlaceholderPrompt, browserHomeUrl);
 		browserHistory.value = [browserHomeUrl];
 		browserHistoryIndex.value = 0;
 		browserSearchMenuOpen.value = false;

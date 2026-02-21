@@ -20,11 +20,16 @@ export const vlcDefaultPlaylistUrl =
 export const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
+export const mainWindowTitle = 'okami@workstation:~/control-room';
+export const standardBrowserName = 'Netscape Navigator';
+export const browserPlaceholderPrompt = 'Enter a website and press Go.';
+export const desktopReadyStatus = 'workspace ready.';
 
 export const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	browser: '/xp-icons/pack/browser.png',
-	vlc: '/xp-icons/pack/media.png',
+	chrome: '/xp-icons/pack/chrome.png',
+	vlc: '/xp-icons/pack/vlc.png',
 	noise: '/xp-icons/pack/media.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
@@ -133,7 +138,7 @@ export const noisePresets: NoisePreset[] = [
 
 export const linkGroups: LinkGroup[] = [
 	{
-		title: '-- projects --',
+		title: 'Project Hubs',
 		links: [
 			{ label: 'Progressive Victory', href: 'https://progress.win' },
 			{ label: 'Smashcords', href: 'https://smashcords.com' },
@@ -141,7 +146,7 @@ export const linkGroups: LinkGroup[] = [
 		]
 	},
 	{
-		title: '-- socials --',
+		title: 'Socials',
 		links: [
 			{ label: 'GitHub', href: 'https://github.com/Lewdcario' },
 			{ label: 'Twitter', href: 'https://twitter.com/okamicario' }
@@ -192,7 +197,7 @@ export const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'github',
 		label: 'GitHub',
-		icon: shellIcons.computer,
+		icon: shellIcons.browser,
 		href: 'https://github.com/Lewdcario',
 		x: 34,
 		y: 130
@@ -208,7 +213,7 @@ export const desktopIcons: DesktopIcon[] = [
 	{
 		id: 'tor-browser',
 		label: 'Tor Browser',
-		icon: '/tor-browser-icon.svg',
+		icon: '/tor-browser-icon.png',
 		href: torBrowserHomeUrl,
 		tor: true,
 		x: 126,
@@ -239,17 +244,9 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 250
 	},
 	{
-		id: 'library',
-		label: 'Library',
-		icon: shellIcons.folder,
-		href: 'https://library.okami.codes/library',
-		x: 126,
-		y: 250
-	},
-	{
 		id: 'projects',
 		label: 'Projects',
-		icon: shellIcons.folder,
+		icon: shellIcons.computer,
 		tab: 'projects',
 		x: 34,
 		y: 250
@@ -285,12 +282,12 @@ export const windowsMeta: WindowMeta[] = [
 	},
 	{
 		id: 'main',
-		label: 'okami@desktop:~/portfolio',
+		label: mainWindowTitle,
 		icon: shellIcons.shell
 	},
 	{
 		id: 'browser',
-		label: 'Netscape Navigator',
+		label: standardBrowserName,
 		icon: shellIcons.browser
 	},
 	{

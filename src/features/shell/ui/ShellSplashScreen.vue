@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
 							</p>
 							<p v-if="shell.selectedLoginUser === 'admin'">Admin password is validated on the backend.</p>
 							<p v-else>Guest is a non-persistent local session.</p>
-							<p>Use the arrow button to continue.</p>
+							<p>Use the arrow button to sign in.</p>
 						</div>
 					</div>
 				</div>

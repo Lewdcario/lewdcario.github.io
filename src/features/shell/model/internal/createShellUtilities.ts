@@ -1,5 +1,11 @@
 import { $fetch } from 'ofetch';
-import { defaultBlinkieThemeId, themeStorageKey, xpThemes, type XpThemeId } from '~/src/features/shell/constants/shell';
+import {
+	defaultBlinkieThemeId,
+	desktopReadyStatus,
+	themeStorageKey,
+	xpThemes,
+	type XpThemeId
+} from '~/src/features/shell/constants/shell';
 import type { BlinkiePayload } from '~/src/features/shell/model/types';
 
 export function createShellUtilities(deps: any) {
@@ -45,7 +51,7 @@ export function createShellUtilities(deps: any) {
 		}
 
 		statusTimer = window.setTimeout(() => {
-			statusMessage.value = 'desktop ready.';
+			statusMessage.value = desktopReadyStatus;
 			statusTimer = null;
 		}, 2200);
 	}

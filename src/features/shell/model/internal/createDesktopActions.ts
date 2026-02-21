@@ -43,7 +43,7 @@ export function createDesktopActions(deps: any) {
 		loadBlogPosts,
 		pushStatus,
 		openInBrowser,
-		openNetscapeBrowser,
+		openStandardBrowser,
 		openTorBrowser,
 		openVlcWindow,
 		openNoiseWindow,
@@ -536,7 +536,7 @@ export function createDesktopActions(deps: any) {
 		}
 	
 		if (shortcut.href) {
-			openNetscapeBrowser(shortcut.href, shortcut.label);
+			openStandardBrowser(shortcut.href, shortcut.label);
 		}
 	}
 	

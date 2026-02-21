@@ -4,6 +4,7 @@ import {
 	browserHomeUrl,
 	noisePresets,
 	noiseWindowHeightForPresetList,
+	standardBrowserName,
 	torBrowserHomeUrl,
 	torSearchHomeUrl
 } from '~/src/features/shell/constants/shell';
@@ -71,7 +72,7 @@ export function createBrowserMediaActions(deps: any) {
 	}
 
 	function browserShellTitle() {
-		return browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator';
+		return browserSkin.value === 'tor' ? 'Tor Browser' : standardBrowserName;
 	}
 
 	function browserNetSearchLabel() {
@@ -94,7 +95,7 @@ export function createBrowserMediaActions(deps: any) {
 			.replaceAll("'", '&#39;');
 	}
 
-	function navigatorPlaceholderDocument(message: string, url: string, title = 'Netscape Navigator') {
+	function browserPlaceholderDocument(message: string, url: string, title = standardBrowserName) {
 		const safeMessage = escapeHtml(message);
 		const safeUrl = escapeHtml(url);
 		const safeTitle = escapeHtml(title);
@@ -166,21 +167,21 @@ export function createBrowserMediaActions(deps: any) {
 		} catch (error) {
 			if (lifecycleRuntime.disposed || requestSerial !== runtime.requestSerial) return;
 			const message =
-				error instanceof Error ? error.message : 'Unable to load this page in navigator.';
+				error instanceof Error ? error.message : 'Unable to load this page in the browser.';
 			browserError.value = message;
 			browserRenderMode.value = 'snapshot';
-			browserDocument.value = navigatorPlaceholderDocument(
+			browserDocument.value = browserPlaceholderDocument(
 				backend === 'tor'
 					? 'Tor Browser could not render this page.'
-					: 'Navigator could not render this page.',
+					: 'Browser could not render this page.',
 				url,
-				backend === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
+				backend === 'tor' ? 'Tor Browser' : standardBrowserName
 			);
 			browserLoading.value = false;
 			pushStatus(
 				backend === 'tor'
 					? 'Tor Browser failed to load the requested page.'
-					: 'Navigator failed to load the requested page.'
+					: 'Browser failed to load the requested page.'
 			);
 		}
 	}
@@ -210,10 +211,10 @@ export function createBrowserMediaActions(deps: any) {
 		browserTitle.value = browserWindowTitleFromUrl(normalized);
 		browserRenderMode.value = 'direct';
 		browserFrameSrc.value = normalized;
-		browserDocument.value = navigatorPlaceholderDocument(
+		browserDocument.value = browserPlaceholderDocument(
 			'Loading...',
 			normalized,
-			backend === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
+			backend === 'tor' ? 'Tor Browser' : standardBrowserName
 		);
 
 		restoreWindow('browser', false);
@@ -680,7 +681,7 @@ export function createBrowserMediaActions(deps: any) {
 		openInBrowser(url, label, { backend: 'tor', skin: 'tor' });
 	}
 
-	function openNetscapeBrowser(url = browserHomeUrl, label = 'Netscape Navigator') {
+	function openStandardBrowser(url = browserHomeUrl, label = standardBrowserName) {
 		openInBrowser(url, label, { backend: 'standard', skin: 'netscape' });
 	}
 
@@ -749,7 +750,7 @@ export function createBrowserMediaActions(deps: any) {
 		const browserFrameWindow = browserFrameRef.value?.contentWindow;
 		if (browserFrameWindow && event.source === browserFrameWindow) {
 			const data = event.data as { type?: string; href?: string } | null;
-			if (!data || data.type !== 'navigator:navigate' || typeof data.href !== 'string') return;
+			if (!data || data.type !== 'browser:navigate' || typeof data.href !== 'string') return;
 
 			openInBrowser(data.href, data.href);
 			return;
@@ -769,7 +770,7 @@ export function createBrowserMediaActions(deps: any) {
 	return {
 		normalizeBrowserUrl,
 		escapeHtml,
-		navigatorPlaceholderDocument,
+		browserPlaceholderDocument,
 		replaceCurrentBrowserHistory,
 		clearBrowserFallbackTimer,
 		browserWindowTitleFromUrl,
@@ -813,7 +814,7 @@ export function createBrowserMediaActions(deps: any) {
 		submitBrowserSearch,
 		searchWithEngine,
 		openTorBrowser,
-		openNetscapeBrowser,
+		openStandardBrowser,
 		openVlcWindow,
 		openNoiseWindow,
 		openOtaClockWindow,

@@ -5,6 +5,7 @@ const requestTimeoutMs = 12_000;
 const headlessNetworkIdleTimeoutMs = 4_000;
 const headlessExtraWaitMs = 450;
 const allowedProtocols = new Set(['http:', 'https:']);
+const browserShellName = 'Netscape Navigator';
 const navigatorUserAgent =
 	'Mozilla/5.0 (Windows NT 5.1; rv:109.0) Gecko/20100101 Firefox/117.0 Netscape Navigator';
 
@@ -217,9 +218,9 @@ function stripDangerousMarkup(html: string) {
 		.replace(/\s(href|src)\s*=\s*javascript:[^\s>]+/gi, ' $1="#"');
 }
 
-function injectNavigatorBridge(html: string, sourceUrl: string) {
+function injectBrowserBridge(html: string, sourceUrl: string) {
 	const safeSourceUrl = escapeHtml(sourceUrl);
-	const injectedHead = `<base href="${safeSourceUrl}"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'navigator:navigate',href:absolute},'*');});document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){parent.postMessage({type:'navigator:navigate',href:action},'*');return;}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}parent.postMessage({type:'navigator:navigate',href:nextUrl.toString()},'*');});})();</script>`;
+	const injectedHead = `<base href="${safeSourceUrl}"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'browser:navigate',href:absolute},'*');});document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){parent.postMessage({type:'browser:navigate',href:action},'*');return;}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}parent.postMessage({type:'browser:navigate',href:nextUrl.toString()},'*');});})();</script>`;
 
 	if (/<head\b[^>]*>/i.test(html)) {
 		return html.replace(/<head\b[^>]*>/i, (match) => `${match}${injectedHead}`);
@@ -242,7 +243,7 @@ function extractTitle(html: string) {
 function buildFallbackDocument(targetUrl: string, message: string) {
 	const safeTargetUrl = escapeHtml(targetUrl);
 	const safeMessage = escapeHtml(message);
-	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>Netscape Navigator</h1><p>${safeMessage}</p><p class="hint">${safeTargetUrl}</p></body></html>`;
+	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>${browserShellName}</h1><p>${safeMessage}</p><p class="hint">${safeTargetUrl}</p></body></html>`;
 }
 
 function toBrowserPayload(url: string, title: string, html: string) {
@@ -250,7 +251,7 @@ function toBrowserPayload(url: string, title: string, html: string) {
 	return {
 		url,
 		title: title || extractTitle(sanitized) || new URL(url).hostname,
-		html: injectNavigatorBridge(sanitized, url)
+		html: injectBrowserBridge(sanitized, url)
 	};
 }
 

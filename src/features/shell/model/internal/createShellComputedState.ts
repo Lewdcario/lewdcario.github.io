@@ -4,6 +4,7 @@ import {
 	browserHomeUrl,
 	noisePresets,
 	shellIcons,
+	standardBrowserName,
 	torBrowserHomeUrl,
 	torSearchHomeUrl,
 	windowsMeta,
@@ -119,8 +120,8 @@ export function createShellComputedState(deps: any) {
 				if (windowMeta.id === 'browser') {
 					return {
 						...windowMeta,
-						label: browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator',
-						icon: browserSkin.value === 'tor' ? '/tor-browser-icon.svg' : shellIcons.browser,
+						label: browserSkin.value === 'tor' ? 'Tor Browser' : standardBrowserName,
+						icon: browserSkin.value === 'tor' ? '/tor-browser-icon.png' : shellIcons.browser,
 						...windowState.value[windowMeta.id]
 					};
 				}
@@ -143,12 +144,12 @@ export function createShellComputedState(deps: any) {
 		() => browserHistoryIndex.value < browserHistory.value.length - 1
 	);
 	const browserShellTitle = computed(() =>
-		browserSkin.value === 'tor' ? 'Tor Browser' : 'Netscape Navigator'
+		browserSkin.value === 'tor' ? 'Tor Browser' : standardBrowserName
 	);
 	const browserShellIcon = computed(() =>
 		browserSkin.value === 'tor'
-			? '/tor-browser-icon.svg'
-			: 'https://interface-experience.org/site/wp-content/uploads/2015/01/giphy.gif'
+			? '/tor-browser-icon.png'
+			: 'https://i.redd.it/wy7sdblzj0bz.gif'
 	);
 	const browserDefaultHome = computed(() =>
 		browserBackend.value === 'tor' ? torBrowserHomeUrl : browserHomeUrl

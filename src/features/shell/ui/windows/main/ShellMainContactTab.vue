@@ -34,8 +34,7 @@ const shell = useShellControllerContext();
 		<fieldset>
 			<legend>Note</legend>
 			<p>
-				This desktop is intentionally heavy on retro chrome, just like requested:
-				icons, tabs, start menu, status bars, and a forced continue gate.
+				retro inspired!
 			</p>
 		</fieldset>
 	</article>

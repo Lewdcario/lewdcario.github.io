@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { standardBrowserName } from '~/src/features/shell/constants/shell';
 import { useShellControllerContext } from '~/src/features/shell/model/useShellController';
 import ShellWindowFrame from './ShellWindowFrame.vue';
 
@@ -6,14 +7,19 @@ const shell = useShellControllerContext();
 </script>
 
 <template>
-	<ShellWindowFrame window-id="browser" title="Netscape Navigator" window-class="browser-window" body-class="browser-window-body">
+	<ShellWindowFrame
+		window-id="browser"
+		:title="standardBrowserName"
+		window-class="browser-window"
+		body-class="browser-window-body"
+	>
 		<template #title>
-			<img :src="shell.browserShellIcon" width="14" height="14" alt="navigator icon" />
+			<img :src="shell.browserShellIcon" width="14" height="14" alt="browser icon" />
 			{{ shell.browserShellTitle }} - {{ shell.browserTitle }}
 		</template>
 
 		<div class="netscape-shell" :class="{ 'tor-browser-skin': shell.browserSkin === 'tor' }">
-			<div class="netscape-menu-row" role="menubar" aria-label="Netscape menu">
+			<div class="netscape-menu-row" role="menubar" aria-label="Browser menu">
 				<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">F</span>ile</button>
 				<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">E</span>dit</button>
 				<button type="button" class="netscape-menu-item"><span class="netscape-menu-mnemonic">V</span>iew</button>
@@ -65,7 +71,7 @@ const shell = useShellControllerContext();
 					title="Compatibility mode"
 					@click="shell.forceBrowserCompatibilityMode"
 				>
-					<img :src="shell.browserSkin === 'tor' ? '/tor-browser-icon.svg' : '/netscape-logo.svg'" alt="" aria-hidden="true" />
+					<img :src="shell.browserShellIcon" alt="" aria-hidden="true" />
 				</button>
 			</div>
 
@@ -127,7 +133,7 @@ const shell = useShellControllerContext();
 					:ref="shell.browserFrameRef"
 					class="browser-frame netscape-browser-frame"
 					:src="shell.browserFrameSrc"
-					title="Netscape Navigator content"
+					title="Browser content"
 					loading="lazy"
 					referrerpolicy="no-referrer"
 					@load="shell.handleDirectBrowserFrameLoad"
@@ -138,7 +144,7 @@ const shell = useShellControllerContext();
 					:ref="shell.browserFrameRef"
 					class="browser-frame netscape-browser-frame"
 					:srcdoc="shell.browserDocument"
-					title="Netscape Navigator compatibility content"
+					title="Browser compatibility content"
 					loading="lazy"
 					sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
 					referrerpolicy="no-referrer"

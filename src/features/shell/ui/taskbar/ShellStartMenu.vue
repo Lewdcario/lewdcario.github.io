@@ -38,12 +38,12 @@ const shell = useShellControllerContext();
 					<img :src="shellIcons.about" width="16" height="16" alt="blog icon" />
 					<span>Blog</span>
 				</button>
-				<button class="start-menu-item" @click="shell.openNetscapeBrowser(shell.browserCurrentUrl || browserHomeUrl, 'Open Navigator')">
+				<button class="start-menu-item" @click="shell.openStandardBrowser(shell.browserCurrentUrl || browserHomeUrl, 'Open Navigator')">
 					<img :src="shellIcons.browser" width="16" height="16" alt="browser icon" />
 					<span>Open Navigator</span>
 				</button>
 				<button class="start-menu-item" @click="shell.openTorBrowser(shell.browserCurrentUrl || torBrowserHomeUrl, 'Tor Browser')">
-					<img src="/tor-browser-icon.svg" width="16" height="16" alt="tor browser icon" />
+					<img src="/tor-browser-icon.png" width="16" height="16" alt="tor browser icon" />
 					<span>Open Tor Browser</span>
 				</button>
 				<button class="start-menu-item" @click="shell.openVlcWindow">
@@ -81,9 +81,9 @@ const shell = useShellControllerContext();
 					</button>
 				</div>
 				<div class="start-menu-divider"></div>
-				<button class="start-menu-item" @click="shell.openNetscapeBrowser(browserHomeUrl, 'Home Page')">
+				<button class="start-menu-item" @click="shell.openStandardBrowser(browserHomeUrl, 'Home Portal')">
 					<img :src="shellIcons.browser" width="16" height="16" alt="home icon" />
-					<span>Home Page</span>
+					<span>Home Portal</span>
 				</button>
 				<button class="start-menu-item" @click="shell.performLogoff">
 					<img :src="shellIcons.power" width="16" height="16" alt="log off icon" />

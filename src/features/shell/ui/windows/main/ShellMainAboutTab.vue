@@ -14,16 +14,15 @@ function listItemNumber(index: string | number) {
 			<legend>Profile</legend>
 			<p>
 				okami / she-her / full-stack engineer.
-				<br />personal website put stuff on
+				<br />personal website
 			</p>
 		</fieldset>
 
 		<fieldset>
 			<legend>Current Focus</legend>
 			<ul class="tree-view">
-				<li>Building products and interfaces with strong identity.</li>
-				<li>Maintaining community and platform projects.</li>
-				<li>Shipping interfaces with personality, not template UI.</li>
+				<li>Developing this website!</li>
+				<li>Working on a dissociation symptoms tracker app!</li>
 			</ul>
 		</fieldset>
 
