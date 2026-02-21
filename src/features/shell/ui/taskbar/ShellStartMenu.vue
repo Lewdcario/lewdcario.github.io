@@ -122,6 +122,18 @@ const shell = useShellControllerContext();
 				</button>
 				<button
 					class="start-menu-item"
+					@click="shell.openWindowFromMenu('chat')"
+				>
+					<img
+						:src="shellIcons.chat"
+						width="16"
+						height="16"
+						alt="chat icon"
+					/>
+					<span>Open MSN Chat</span>
+				</button>
+				<button
+					class="start-menu-item"
 					@click="shell.openWindowFromMenu('remote')"
 				>
 					<img

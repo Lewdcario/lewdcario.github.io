@@ -18,3 +18,16 @@ export const blogPosts = pgTable(
 		publishedCreatedIdx: index('blog_posts_published_created_idx').on(table.published, table.createdAt)
 	})
 );
+
+export const chatMessages = pgTable(
+	'chat_messages',
+	{
+		id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+		name: varchar('name', { length: 48 }).notNull(),
+		message: text('message').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => ({
+		createdIdx: index('chat_messages_created_idx').on(table.createdAt)
+	})
+);

@@ -9,6 +9,7 @@ export type WindowId =
 	| 'vlc'
 	| 'noise'
 	| 'cmd'
+	| 'chat'
 	| 'otaclock'
 	| 'remote';
 

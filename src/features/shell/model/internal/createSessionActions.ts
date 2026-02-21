@@ -80,6 +80,12 @@ export function createSessionActions(deps: any) {
 		blogComposerError,
 		blogEditingPostId,
 		blogDeletingPostId,
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
 		windowState,
 		windowPositions,
 		windowSizes,
@@ -175,10 +181,16 @@ export function createSessionActions(deps: any) {
 		blogComposerError.value = '';
 		blogEditingPostId.value = null;
 		blogDeletingPostId.value = null;
+		chatMessages.value = [];
+		chatLoading.value = false;
+		chatError.value = '';
+		chatName.value = '';
+		chatDraft.value = '';
+		chatSending.value = false;
 		windowState.value = createDefaultWindowState();
 		windowPositions.value = createDefaultWindowPositions();
 		windowSizes.value = createDefaultWindowSizes();
-		windowRuntime.zCounter = 13;
+		windowRuntime.zCounter = 16;
 		normalizeDesktopLayout();
 	}
 

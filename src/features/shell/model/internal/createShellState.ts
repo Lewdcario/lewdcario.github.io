@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import type { AuthSessionRole } from '~/shared/auth';
 import type { BlogPost } from '~/shared/blog';
+import type { ChatMessage } from '~/shared/chat';
 import {
 	browserPlaceholderPrompt,
 	browserHomeUrl,
@@ -117,6 +118,12 @@ export function createShellState() {
 	const blogComposerError = ref('');
 	const blogEditingPostId = ref<number | null>(null);
 	const blogDeletingPostId = ref<number | null>(null);
+	const chatMessages = ref<ChatMessage[]>([]);
+	const chatLoading = ref(false);
+	const chatError = ref('');
+	const chatName = ref('');
+	const chatDraft = ref('');
+	const chatSending = ref(false);
 	const blinkieBadges = ref<string[]>([]);
 	const blinkieStamps = ref<string[]>([]);
 	const blinkieLoading = ref(false);
@@ -215,6 +222,12 @@ export function createShellState() {
 		blogComposerError,
 		blogEditingPostId,
 		blogDeletingPostId,
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,

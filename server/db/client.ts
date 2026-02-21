@@ -119,6 +119,16 @@ export async function ensureBlogStorage() {
 
 			CREATE INDEX IF NOT EXISTS blog_posts_published_created_idx
 			ON blog_posts (published, created_at DESC);
+
+			CREATE TABLE IF NOT EXISTS chat_messages (
+				id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+				name varchar(48) NOT NULL,
+				message text NOT NULL,
+				created_at timestamptz NOT NULL DEFAULT now()
+			);
+
+			CREATE INDEX IF NOT EXISTS chat_messages_created_idx
+			ON chat_messages (created_at);
 		`);
 
 		await seedBlogPosts(runtime.pool);

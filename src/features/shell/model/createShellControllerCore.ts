@@ -4,6 +4,7 @@ import { createNoiseEngine } from '~/src/features/noise/model/createNoiseEngine'
 import { themeStorageKey } from '~/src/features/shell/constants/shell';
 import { createBrowserMediaActions } from '~/src/features/shell/model/internal/createBrowserMediaActions';
 import { createBlogActions } from '~/src/features/shell/model/internal/createBlogActions';
+import { createChatActions } from '~/src/features/shell/model/internal/createChatActions';
 import { createDesktopActions } from '~/src/features/shell/model/internal/createDesktopActions';
 import { createSessionActions } from '~/src/features/shell/model/internal/createSessionActions';
 import { createShellState } from '~/src/features/shell/model/internal/createShellState';
@@ -100,6 +101,12 @@ function buildShellController() {
 		blogComposerError,
 		blogEditingPostId,
 		blogDeletingPostId,
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,
@@ -173,7 +180,7 @@ function buildShellController() {
 		fallbackTimer: null as number | null
 	};
 	const windowRuntime = {
-		zCounter: 15,
+		zCounter: 16,
 		draggedIconIds: new Set<string>()
 	};
 
@@ -319,8 +326,20 @@ function buildShellController() {
 		readApiErrorMessage
 	});
 
+	const chatActions = createChatActions({
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
+		pushStatus,
+		readApiErrorMessage
+	});
+
 	let sessionActions: any = null;
 	let browserMediaActions: any = null;
+	let chatPollTimer: number | null = null;
 
 	const desktopActions = createDesktopActions({
 		activeTab,
@@ -486,6 +505,12 @@ function buildShellController() {
 		blogComposerError,
 		blogEditingPostId,
 		blogDeletingPostId,
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
 		windowState,
 		windowPositions,
 		windowSizes,
@@ -517,6 +542,7 @@ function buildShellController() {
 		openStandardBrowser: browserMediaActions.openStandardBrowser,
 		openVlcWindow: browserMediaActions.openVlcWindow,
 		openNoiseWindow: browserMediaActions.openNoiseWindow,
+		openChatWindow: () => desktopActions.openWindowFromMenu('chat'),
 		openOtaClockWindow: browserMediaActions.openOtaClockWindow,
 		performLogoff: sessionActions.performLogoff,
 		minimizeAllWindows: desktopActions.minimizeAllWindows,
@@ -532,6 +558,27 @@ function buildShellController() {
 		if (!enabled || !desktopActions.isWindowVisible('otaclock')) return;
 		desktopActions.focusWindow('otaclock');
 	});
+
+	watch(
+		() => windowState.value.chat,
+		(state) => {
+			if (!state.isOpen || state.isMinimized) {
+				if (chatPollTimer !== null) {
+					window.clearInterval(chatPollTimer);
+					chatPollTimer = null;
+				}
+				return;
+			}
+
+			void chatActions.loadChatMessages();
+			if (chatPollTimer !== null) return;
+			chatPollTimer = window.setInterval(() => {
+				if (!desktopActions.isWindowVisible('chat')) return;
+				void chatActions.loadChatMessages({ quiet: true });
+			}, 5000);
+		},
+		{ deep: true }
+	);
 
 	onMounted(() => {
 		document.title = 'Okami Portfolio';
@@ -579,6 +626,9 @@ function buildShellController() {
 
 		if (clockTimer !== null) {
 			window.clearInterval(clockTimer);
+		}
+		if (chatPollTimer !== null) {
+			window.clearInterval(chatPollTimer);
 		}
 
 		disposeShellUtilities();
@@ -701,6 +751,12 @@ function buildShellController() {
 		blogComposerError,
 		blogEditingPostId,
 		blogDeletingPostId,
+		chatMessages,
+		chatLoading,
+		chatError,
+		chatName,
+		chatDraft,
+		chatSending,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,
@@ -768,6 +824,7 @@ function buildShellController() {
 		...shellComputedState,
 		...shellLocalActions,
 		...blogActions,
+		...chatActions,
 		...desktopActions,
 		...browserMediaActions,
 		...sessionActions

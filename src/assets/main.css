@@ -2021,6 +2021,367 @@ legend {
 	-webkit-appearance: none !important;
 }
 
+.chat-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: #d8e1f3;
+}
+
+.chat-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.msn-shell {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: #f4f6fc;
+}
+
+.msn-menu-bar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 4px;
+	border-bottom: 1px solid #7f9db9;
+	background: #f6f7fc;
+}
+
+.msn-menu-bar button {
+	all: unset;
+	padding: 1px 6px;
+	font-size: 11px;
+	line-height: 1.2;
+	color: #111111;
+	border: 1px solid transparent;
+	cursor: default;
+}
+
+.msn-menu-bar button:hover {
+	border-color: #7f9db9;
+	background: #e7eefc;
+}
+
+.msn-shell-body {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: 250px minmax(280px, 1fr);
+}
+
+.msn-buddy-pane {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px 7px;
+	background: linear-gradient(180deg, #f2f5ff 0%, #e4ecff 100%);
+	border-right: 1px solid #8ea5d0;
+}
+
+.msn-status-card {
+	display: grid;
+	grid-template-columns: 30px 1fr auto;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px;
+	border: 1px solid #95aede;
+	background: #ffffff;
+}
+
+.msn-status-orb {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: radial-gradient(circle at 30% 30%, #9bf8a2 0%, #34a240 65%, #2d7f35 100%);
+	border: 1px solid #2f7840;
+}
+
+.msn-status-text {
+	min-width: 0;
+}
+
+.msn-status-text p {
+	margin: 0;
+	font-size: 11px;
+	color: #1f3e76;
+}
+
+.msn-status-text strong {
+	font-size: 13px;
+	color: #122d60;
+	font-weight: 700;
+}
+
+.msn-status-logo {
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+	border: 0;
+	background: transparent;
+	padding: 0;
+}
+
+.msn-mail-banner {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	justify-content: flex-start;
+	padding: 3px 6px;
+	border: 1px solid #5d70b1;
+	background: linear-gradient(180deg, #3559bd 0%, #294ea8 100%);
+	color: #ffffff;
+	font-weight: 700;
+	min-height: 22px;
+	min-width: 0;
+}
+
+.msn-contact-groups {
+	flex: 1;
+	min-height: 0;
+	padding: 2px 4px;
+	border: 1px solid #9aafd4;
+	background: #ffffff;
+	overflow: auto;
+}
+
+.msn-contact-group + .msn-contact-group {
+	margin-top: 8px;
+}
+
+.msn-contact-group h3 {
+	margin: 0 0 4px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #173a78;
+}
+
+.msn-contact-row {
+	width: 100%;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	justify-content: flex-start;
+	padding: 2px 3px;
+	border: 1px solid transparent;
+	background: transparent;
+	box-shadow: none;
+	color: #111111;
+	font-size: 12px;
+}
+
+.msn-contact-row:hover {
+	border-color: #94afda;
+	background: #e7efff;
+}
+
+.msn-contact-row.online .msn-presence-dot {
+	background: #39b24f;
+	border-color: #2c8a3d;
+}
+
+.msn-contact-row.offline .msn-presence-dot {
+	background: #b6b8c1;
+	border-color: #8d909b;
+}
+
+.msn-presence-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	border: 1px solid;
+	flex: none;
+}
+
+.msn-quick-actions {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	border: 1px solid #95abd4;
+	background: #f0f4ff;
+}
+
+.msn-quick-actions-title {
+	min-width: 0;
+	min-height: 0;
+	padding: 3px 6px;
+	border: 0;
+	border-bottom: 1px solid #88a0cd;
+	background: linear-gradient(180deg, #8fb0e7 0%, #6f92d4 100%);
+	color: #ffffff;
+	box-shadow: none;
+	font-weight: 700;
+	text-align: left;
+}
+
+.msn-quick-actions button {
+	min-width: 0;
+	min-height: 0;
+	padding: 3px 6px;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	text-align: left;
+	color: #173d7b;
+	font-size: 12px;
+}
+
+.msn-quick-actions button:hover {
+	background: #dbe7ff;
+}
+
+.msn-room-pane {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	padding: 8px;
+	background: linear-gradient(180deg, #f6f9ff 0%, #e9effb 100%);
+}
+
+.msn-room-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 4px 6px;
+	border: 1px solid #98acd1;
+	background: #ffffff;
+	color: #153568;
+}
+
+.msn-chat-error {
+	margin: 8px 0 0;
+	padding: 6px 8px;
+	border: 1px solid #c66f6f;
+	background: #fde9e9;
+	color: #8a2323;
+}
+
+.msn-room-feed {
+	margin-top: 8px;
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 8px;
+	background: #ffffff;
+	border: 1px solid #8ea3c8;
+	box-shadow: inset 0 1px 0 #ffffff;
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+}
+
+.msn-chat-empty {
+	margin: auto 0;
+	text-align: center;
+	color: #3f4f70;
+}
+
+.msn-room-entry {
+	padding: 6px 8px;
+	border: 1px solid #9cb0d4;
+	background: #eef3ff;
+}
+
+.msn-room-entry.mine {
+	border-color: #7b9fdd;
+	background: #dbe9ff;
+}
+
+.msn-room-entry-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px;
+	color: #17386c;
+}
+
+.msn-room-entry-header strong {
+	font-size: 12px;
+}
+
+.msn-room-entry-header span {
+	font-size: 11px;
+	color: #4a628e;
+}
+
+.msn-room-entry p {
+	margin: 0;
+	color: #111111;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.msn-compose {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: auto 120px auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 6px;
+}
+
+.msn-compose label {
+	font-size: 12px;
+	color: #17386c;
+	font-weight: 700;
+}
+
+.msn-compose input {
+	min-width: 0;
+}
+
+.msn-compose button {
+	min-width: 82px;
+}
+
+@media (max-width: 900px) {
+	.msn-shell-body {
+		grid-template-columns: 1fr;
+	}
+
+	.msn-buddy-pane {
+		border-right: 0;
+		border-bottom: 1px solid #8ea5d0;
+		max-height: 48%;
+	}
+
+	.msn-compose {
+		grid-template-columns: auto minmax(0, 1fr) auto;
+	}
+
+	.msn-compose label:first-child {
+		grid-row: 1;
+		grid-column: 1;
+	}
+
+	.msn-compose input:first-of-type {
+		grid-row: 1;
+		grid-column: 2 / 4;
+	}
+
+	.msn-compose label:nth-of-type(2) {
+		grid-row: 2;
+		grid-column: 1;
+	}
+
+	.msn-compose input:nth-of-type(2) {
+		grid-row: 2;
+		grid-column: 2;
+	}
+
+	.msn-compose button {
+		grid-row: 2;
+		grid-column: 3;
+	}
+}
+
 .otaclock-window .window-body {
 	height: calc(100% - 22px);
 	margin: 0;

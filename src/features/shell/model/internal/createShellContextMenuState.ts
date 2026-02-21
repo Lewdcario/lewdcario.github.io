@@ -19,6 +19,7 @@ export function createShellContextMenuState(deps: any) {
 		openStandardBrowser,
 		openVlcWindow,
 		openNoiseWindow,
+		openChatWindow,
 		openOtaClockWindow,
 		performLogoff,
 		minimizeAllWindows,
@@ -129,6 +130,11 @@ export function createShellContextMenuState(deps: any) {
 					id: 'open-noise',
 					label: 'Open Noise Generator',
 					action: () => openNoiseWindow()
+				},
+				{
+					id: 'open-chat',
+					label: 'Open MSN Chat',
+					action: () => openChatWindow()
 				},
 				{
 					id: 'open-otaclock',

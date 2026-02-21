@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ShellBrowserWindow from './ShellBrowserWindow.vue';
+import ShellChatWindow from './ShellChatWindow.vue';
 import ShellCmdWindow from './ShellCmdWindow.vue';
 import ShellClockWindow from './ShellClockWindow.vue';
 import ShellLinksWindow from './ShellLinksWindow.vue';
@@ -20,6 +21,7 @@ import ShellVlcWindow from './ShellVlcWindow.vue';
 
 		<ShellBrowserWindow />
 		<ShellCmdWindow />
+		<ShellChatWindow />
 		<ShellVlcWindow />
 		<ShellNoiseWindow />
 		<ShellRemoteWindow />
