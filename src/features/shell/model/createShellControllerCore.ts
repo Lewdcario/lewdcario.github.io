@@ -180,7 +180,7 @@ function buildShellController() {
 		fallbackTimer: null as number | null
 	};
 	const windowRuntime = {
-		zCounter: 17,
+		zCounter: 18,
 		draggedIconIds: new Set<string>()
 	};
 
@@ -544,6 +544,7 @@ function buildShellController() {
 		openNoiseWindow: browserMediaActions.openNoiseWindow,
 		openChatWindow: () => desktopActions.openWindowFromMenu('chat'),
 		openMinesWindow: () => desktopActions.openWindowFromMenu('mines'),
+		openControlWindow: () => desktopActions.openWindowFromMenu('control'),
 		openOtaClockWindow: browserMediaActions.openOtaClockWindow,
 		performLogoff: sessionActions.performLogoff,
 		minimizeAllWindows: desktopActions.minimizeAllWindows,

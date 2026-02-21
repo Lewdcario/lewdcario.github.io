@@ -2186,6 +2186,239 @@ legend {
 	color: #6c6c6c;
 }
 
+.control-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: #ece9d8;
+}
+
+.control-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.xp-control-shell {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: #ece9d8;
+	color: #17325f;
+	font-family: 'Tahoma', 'Segoe UI', sans-serif;
+	min-height: 0;
+}
+
+.xp-control-menu-bar {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: 1px 6px 2px;
+	background: #efede2;
+	border-bottom: 1px solid #bcb8a3;
+}
+
+.xp-control-menu-bar button {
+	all: unset;
+	padding: 1px 8px;
+	font-size: 12px;
+	color: #111111;
+	border: 1px solid transparent;
+	cursor: default;
+}
+
+.xp-control-menu-bar button:hover {
+	border-color: #9fb8e8;
+	background: #e4eefc;
+}
+
+.xp-control-menu-mnemonic {
+	text-decoration: underline;
+}
+
+.xp-control-toolbar {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+	padding: 6px;
+	background: #efede2;
+	border-top: 1px solid #f8f7ef;
+	border-bottom: 1px solid #c2bea8;
+}
+
+.xp-control-address-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.xp-control-address-label {
+	font-size: 12px;
+	color: #936e2b;
+}
+
+.xp-control-address-field {
+	display: grid;
+	grid-template-columns: 18px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 6px;
+	min-height: 28px;
+	padding: 0 4px;
+	background: #ffffff;
+	border: 1px solid #7f9db9;
+	box-shadow: inset 1px 1px 0 #ffffff;
+}
+
+.xp-control-address-field img {
+	width: 16px;
+	height: 16px;
+	object-fit: contain;
+}
+
+.xp-control-address-field span {
+	color: #14376f;
+	font-size: 12px;
+	line-height: 1.1;
+}
+
+.xp-control-address-arrow {
+	all: unset;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 17px;
+	height: 20px;
+	border: 1px solid #8ea7ce;
+	background: linear-gradient(180deg, #f6fbff 0%, #d9e8ff 100%);
+	color: #1f4e99;
+	font-size: 11px;
+}
+
+.xp-control-nav-buttons {
+	display: inline-flex;
+	gap: 4px;
+}
+
+.xp-control-nav-buttons button {
+	min-width: 66px;
+	min-height: 24px;
+	padding: 2px 8px;
+	font-size: 12px;
+}
+
+.xp-control-workspace {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: 214px minmax(0, 1fr);
+}
+
+.xp-control-side-pane {
+	padding: 10px 8px;
+	background:
+		linear-gradient(180deg, #8fafeb 0%, #7da0e4 50%, #6f90db 100%);
+	border-right: 1px solid #6a89cf;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	overflow: auto;
+}
+
+.xp-control-side-card {
+	background: linear-gradient(180deg, #f5f9ff 0%, #dce8ff 100%);
+	border: 1px solid #7f9fd7;
+	box-shadow: inset 0 1px 0 #ffffff;
+}
+
+.xp-control-side-card header {
+	padding: 6px 9px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #ffffff;
+	background: linear-gradient(180deg, #2f67d6 0%, #1d4fb6 100%);
+	border-bottom: 1px solid #1d4ea9;
+}
+
+.xp-control-task-link {
+	all: unset;
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 7px 10px;
+	font-size: 12px;
+	color: #1f4a97;
+	cursor: default;
+}
+
+.xp-control-task-link:hover {
+	background: #e9f0ff;
+	text-decoration: underline;
+}
+
+.xp-control-see-also .xp-control-task-link {
+	color: #2a67be;
+}
+
+.xp-control-main-pane {
+	background: #ffffff;
+	padding: 12px 14px;
+	min-height: 0;
+	overflow: auto;
+}
+
+.xp-control-applet-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px 6px;
+}
+
+.xp-control-applet {
+	all: unset;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 4px 6px;
+	cursor: default;
+	color: #0d2d66;
+}
+
+.xp-control-applet:hover {
+	background: #edf4ff;
+}
+
+.xp-control-applet:focus-visible {
+	outline: 1px dotted #1d1d1d;
+	outline-offset: -2px;
+}
+
+.xp-control-applet img {
+	width: 32px;
+	height: 32px;
+	object-fit: contain;
+}
+
+.xp-control-applet span {
+	max-width: 110px;
+	text-align: center;
+	font-size: 12px;
+	line-height: 1.2;
+	word-break: break-word;
+}
+
+.xp-control-status-bar {
+	padding: 3px 8px 4px;
+	font-size: 12px;
+	color: #2f2f2f;
+	background: #efede2;
+	border-top: 1px solid #c0bca8;
+}
+
 .chat-window .window-body {
 	height: calc(100% - 22px);
 	margin: 0;
@@ -2544,6 +2777,26 @@ legend {
 	.msn-compose button {
 		grid-row: 2;
 		grid-column: 3;
+	}
+
+	.xp-control-toolbar {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.xp-control-workspace {
+		grid-template-columns: 1fr;
+	}
+
+	.xp-control-side-pane {
+		order: 2;
+		padding-top: 8px;
+		border-right: 0;
+		border-top: 1px solid #6a89cf;
+	}
+
+	.xp-control-applet-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 

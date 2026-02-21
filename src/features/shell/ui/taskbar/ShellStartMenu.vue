@@ -146,6 +146,18 @@ const shell = useShellControllerContext();
 				</button>
 				<button
 					class="start-menu-item"
+					@click="shell.openWindowFromMenu('control')"
+				>
+					<img
+						:src="shellIcons.control"
+						width="16"
+						height="16"
+						alt="control panel icon"
+					/>
+					<span>Open Control Panel</span>
+				</button>
+				<button
+					class="start-menu-item"
 					@click="shell.openWindowFromMenu('remote')"
 				>
 					<img

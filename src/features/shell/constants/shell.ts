@@ -34,6 +34,9 @@ export const shellIcons = {
 	cmd: '/xp-icons/pack/cmd.png',
 	chat: '/xp-icons/pack/msn-messenger-icon.png',
 	mines: '/xp-icons/pack/minesweeper-icon.png',
+	control: '/xp-icons/pack/control-panel.png',
+	accessibility: '/xp-icons/pack/accessibility-options.png',
+	addRemovePrograms: '/xp-icons/pack/add-remove-programs.png',
 	remote: '/xp-icons/pack/computer.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
@@ -288,6 +291,14 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 48
 	},
 	{
+		id: 'control-panel',
+		label: 'Control Panel',
+		icon: shellIcons.control,
+		windowId: 'control',
+		x: 226,
+		y: 156
+	},
+	{
 		id: 'minesweeper',
 		label: 'Minesweeper',
 		icon: shellIcons.mines,
@@ -301,7 +312,7 @@ export const desktopIcons: DesktopIcon[] = [
 		icon: shellIcons.recycle,
 		recycle: true,
 		x: 226,
-		y: 156
+		y: 372
 	}
 ];
 
@@ -357,6 +368,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.mines
 	},
 	{
+		id: 'control',
+		label: 'Control Panel',
+		icon: shellIcons.control
+	},
+	{
 		id: 'remote',
 		label: 'Remote App Stream',
 		icon: shellIcons.remote
@@ -384,7 +400,8 @@ export function createDefaultWindowPositions(): Record<
 		otaclock: { x: 880, y: 120, z: 14 },
 		remote: { x: 610, y: 90, z: 15 },
 		chat: { x: 690, y: 138, z: 16 },
-		mines: { x: 760, y: 170, z: 17 }
+		mines: { x: 760, y: 170, z: 17 },
+		control: { x: 580, y: 140, z: 18 }
 	};
 }
 
@@ -400,6 +417,7 @@ export function createDefaultWindowState(): WindowStateMap {
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
 		chat: { isOpen: false, isMinimized: false, isMaximized: false },
 		mines: { isOpen: false, isMinimized: false, isMaximized: false },
+		control: { isOpen: false, isMinimized: false, isMaximized: false },
 		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
 		remote: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
@@ -429,6 +447,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		cmd: { width: 560, height: 360 },
 		chat: { width: 700, height: 470 },
 		mines: { width: 320, height: 410 },
+		control: { width: 720, height: 620 },
 		otaclock: { width: 440, height: 520 },
 		remote: { width: 760, height: 520 }
 	};

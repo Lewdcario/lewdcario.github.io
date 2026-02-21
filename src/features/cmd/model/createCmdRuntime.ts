@@ -60,6 +60,7 @@ const openWindowTargets: Record<string, WindowId> = {
 	cmd: 'cmd',
 	chat: 'chat',
 	mines: 'mines',
+	control: 'control',
 	otaclock: 'otaclock',
 	remote: 'remote'
 };

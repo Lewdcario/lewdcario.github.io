@@ -3,6 +3,7 @@ import ShellBrowserWindow from './ShellBrowserWindow.vue';
 import ShellChatWindow from './ShellChatWindow.vue';
 import ShellCmdWindow from './ShellCmdWindow.vue';
 import ShellClockWindow from './ShellClockWindow.vue';
+import ShellControlPanelWindow from './ShellControlPanelWindow.vue';
 import ShellLinksWindow from './ShellLinksWindow.vue';
 import ShellMainWindow from './ShellMainWindow.vue';
 import ShellMinesweeperWindow from './ShellMinesweeperWindow.vue';
@@ -24,6 +25,7 @@ import ShellVlcWindow from './ShellVlcWindow.vue';
 		<ShellCmdWindow />
 		<ShellChatWindow />
 		<ShellMinesweeperWindow />
+		<ShellControlPanelWindow />
 		<ShellVlcWindow />
 		<ShellNoiseWindow />
 		<ShellRemoteWindow />

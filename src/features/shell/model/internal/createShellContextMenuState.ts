@@ -21,6 +21,7 @@ export function createShellContextMenuState(deps: any) {
 		openNoiseWindow,
 		openChatWindow,
 		openMinesWindow,
+		openControlWindow,
 		openOtaClockWindow,
 		performLogoff,
 		minimizeAllWindows,
@@ -141,6 +142,11 @@ export function createShellContextMenuState(deps: any) {
 					id: 'open-mines',
 					label: 'Open Minesweeper',
 					action: () => openMinesWindow()
+				},
+				{
+					id: 'open-control',
+					label: 'Open Control Panel',
+					action: () => openControlWindow()
 				},
 				{
 					id: 'open-otaclock',

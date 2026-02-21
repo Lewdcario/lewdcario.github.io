@@ -190,7 +190,7 @@ export function createSessionActions(deps: any) {
 		windowState.value = createDefaultWindowState();
 		windowPositions.value = createDefaultWindowPositions();
 		windowSizes.value = createDefaultWindowSizes();
-		windowRuntime.zCounter = 17;
+		windowRuntime.zCounter = 18;
 		normalizeDesktopLayout();
 	}
 

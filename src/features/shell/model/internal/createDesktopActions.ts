@@ -111,6 +111,7 @@ export function createDesktopActions(deps: any) {
 		if (windowId === 'cmd') return { width: 420, height: 240 };
 		if (windowId === 'chat') return { width: 520, height: 320 };
 		if (windowId === 'mines') return { width: 280, height: 320 };
+		if (windowId === 'control') return { width: 560, height: 420 };
 		if (windowId === 'recycle') return { width: 260, height: 180 };
 		if (windowId === 'otaclock') return { width: 390, height: 360 };
 		return { width: 180, height: 120 };
