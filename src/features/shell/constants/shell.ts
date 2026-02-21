@@ -34,6 +34,7 @@ export const shellIcons = {
 	cmd: '/xp-icons/pack/cmd.png',
 	chat: '/xp-icons/pack/msn-messenger-icon.png',
 	mines: '/xp-icons/pack/minesweeper-icon.png',
+	paint: '/xp-icons/pack/paint.png',
 	control: '/xp-icons/pack/control-panel.png',
 	accessibility: '/xp-icons/pack/accessibility-options.png',
 	addRemovePrograms: '/xp-icons/pack/add-remove-programs.png',
@@ -307,12 +308,20 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 264
 	},
 	{
+		id: 'paint',
+		label: 'Paint',
+		icon: shellIcons.paint,
+		windowId: 'paint',
+		x: 226,
+		y: 372
+	},
+	{
 		id: 'recycle-bin',
 		label: 'Recycle Bin',
 		icon: shellIcons.recycle,
 		recycle: true,
 		x: 226,
-		y: 372
+		y: 480
 	}
 ];
 
@@ -368,6 +377,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.mines
 	},
 	{
+		id: 'paint',
+		label: 'Paint',
+		icon: shellIcons.paint
+	},
+	{
 		id: 'control',
 		label: 'Control Panel',
 		icon: shellIcons.control
@@ -401,7 +415,8 @@ export function createDefaultWindowPositions(): Record<
 		remote: { x: 610, y: 90, z: 15 },
 		chat: { x: 690, y: 138, z: 16 },
 		mines: { x: 760, y: 170, z: 17 },
-		control: { x: 580, y: 140, z: 18 }
+		control: { x: 580, y: 140, z: 18 },
+		paint: { x: 640, y: 164, z: 19 }
 	};
 }
 
@@ -417,6 +432,7 @@ export function createDefaultWindowState(): WindowStateMap {
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
 		chat: { isOpen: false, isMinimized: false, isMaximized: false },
 		mines: { isOpen: false, isMinimized: false, isMaximized: false },
+		paint: { isOpen: false, isMinimized: false, isMaximized: false },
 		control: { isOpen: false, isMinimized: false, isMaximized: false },
 		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
 		remote: { isOpen: false, isMinimized: false, isMaximized: false }
@@ -447,6 +463,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		cmd: { width: 560, height: 360 },
 		chat: { width: 700, height: 470 },
 		mines: { width: 320, height: 410 },
+		paint: { width: 760, height: 560 },
 		control: { width: 720, height: 620 },
 		otaclock: { width: 440, height: 520 },
 		remote: { width: 760, height: 520 }
