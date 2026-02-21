@@ -203,15 +203,15 @@ export const desktopIcons: DesktopIcon[] = [
 		icon: shellIcons.browser,
 		href: 'https://github.com/Lewdcario',
 		x: 34,
-		y: 130
+		y: 48
 	},
 	{
 		id: 'about-me',
 		label: 'About Me',
 		icon: shellIcons.browser,
 		href: 'https://library.okami.codes',
-		x: 126,
-		y: 130
+		x: 34,
+		y: 156
 	},
 	{
 		id: 'tor-browser',
@@ -219,80 +219,80 @@ export const desktopIcons: DesktopIcon[] = [
 		icon: '/tor-browser-icon.png',
 		href: torBrowserHomeUrl,
 		tor: true,
-		x: 126,
-		y: 370
+		x: 34,
+		y: 264
 	},
 	{
 		id: 'vlc-player',
 		label: 'VLC Player',
 		icon: shellIcons.vlc,
 		windowId: 'vlc',
-		x: 222,
-		y: 370
+		x: 34,
+		y: 372
 	},
 	{
 		id: 'noise-generator',
 		label: 'Noise Player',
 		icon: shellIcons.noise,
 		windowId: 'noise',
-		x: 318,
-		y: 370
+		x: 34,
+		y: 480
 	},
 	{
 		id: 'cmd',
 		label: 'Command Prompt',
 		icon: shellIcons.cmd,
 		windowId: 'cmd',
-		x: 414,
-		y: 370
+		x: 130,
+		y: 48
 	},
 	{
 		id: 'msn-chat',
 		label: 'MSN Chat',
 		icon: shellIcons.chat,
 		windowId: 'chat',
-		x: 510,
-		y: 370
+		x: 130,
+		y: 156
 	},
 	{
 		id: 'remote-app',
 		label: 'Remote App',
 		icon: shellIcons.remote,
 		windowId: 'remote',
-		x: 318,
-		y: 250
+		x: 130,
+		y: 264
 	},
 	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock,
 		windowId: 'otaclock',
-		x: 222,
-		y: 250
+		x: 130,
+		y: 372
 	},
 	{
 		id: 'projects',
 		label: 'Projects',
 		icon: shellIcons.computer,
 		tab: 'projects',
-		x: 34,
-		y: 250
+		x: 130,
+		y: 480
 	},
 	{
 		id: 'contact',
 		label: 'Contact',
 		icon: shellIcons.contact,
 		tab: 'contact',
-		x: 34,
-		y: 370
+		x: 226,
+		y: 48
 	},
 	{
 		id: 'recycle-bin',
 		label: 'Recycle Bin',
 		icon: shellIcons.recycle,
 		recycle: true,
-		x: 0,
-		y: 0
+		x: 226,
+		y: 156
 	}
 ];
 

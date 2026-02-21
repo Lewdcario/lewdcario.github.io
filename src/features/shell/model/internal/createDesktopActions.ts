@@ -82,6 +82,26 @@ export function createDesktopActions(deps: any) {
 		return { minX: 12, maxX, minY: 40, maxY };
 	}
 
+	function windowsAutoIconPosition(index: number) {
+		const bounds = iconBounds();
+		const startX = 34;
+		const startY = bounds.minY + 8;
+		const stepX = 96;
+		const stepY = 108;
+		const availableHeight = Math.max(0, bounds.maxY - startY);
+		const rowsPerColumn = Math.max(
+			1,
+			Math.floor(availableHeight / stepY) + 1
+		);
+		const column = Math.floor(index / rowsPerColumn);
+		const row = index % rowsPerColumn;
+
+		return {
+			x: startX + column * stepX,
+			y: startY + row * stepY
+		};
+	}
+
 	function windowMinSize(windowId: WindowId) {
 		if (windowId === 'main') return { width: 520, height: 360 };
 		if (windowId === 'browser') return { width: 460, height: 320 };
@@ -118,24 +138,10 @@ export function createDesktopActions(deps: any) {
 		const nextIcons: Record<string, { x: number; y: number }> = {
 			...iconPositions.value
 		};
-		for (const icon of desktopIcons) {
+		for (const [index, icon] of desktopIcons.entries()) {
 			if (!nextIcons[icon.id]) {
-				nextIcons[icon.id] = { x: icon.x, y: icon.y };
+				nextIcons[icon.id] = windowsAutoIconPosition(index);
 			}
-		}
-
-		if (!nextIcons['recycle-bin']) {
-			nextIcons['recycle-bin'] = { x: 0, y: 0 };
-		}
-
-		if (
-			nextIcons['recycle-bin'].x === 0 &&
-			nextIcons['recycle-bin'].y === 0
-		) {
-			nextIcons['recycle-bin'] = {
-				x: Math.max(12, window.innerWidth - 108),
-				y: Math.max(42, window.innerHeight - 160)
-			};
 		}
 
 		const iconLimits = iconBounds();
