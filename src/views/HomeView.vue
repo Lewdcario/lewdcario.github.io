@@ -6,7 +6,7 @@ import { createBlogPostInputSchema, type BlogPost } from '~/shared/blog';
 import type { AuthSessionRole } from '~/shared/auth';
 
 type TabId = 'about' | 'projects' | 'blog' | 'contact';
-type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc' | 'otaclock';
+type WindowId = 'links' | 'clock' | 'main' | 'browser' | 'recycle' | 'vlc' | 'noise' | 'otaclock';
 
 interface ShellShortcut {
 	id: string;
@@ -96,6 +96,14 @@ type BrowserRenderMode = 'direct' | 'snapshot';
 type BrowserBackend = 'standard' | 'tor';
 type BrowserSkin = 'netscape' | 'tor';
 type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'startpage';
+type NoisePresetId =
+	| 'brown-drift'
+	| 'white-static'
+	| 'pink-cloud'
+	| 'tape-hiss'
+	| 'purring-white';
+
+type NoiseSourceType = 'noise' | 'purr';
 
 const browserHomeUrl = 'https://library.okami.codes/';
 const torBrowserHomeUrl = 'https://check.torproject.org/';
@@ -108,6 +116,7 @@ const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	browser: '/xp-icons/pack/browser.png',
 	vlc: '/xp-icons/pack/media.png',
+	noise: '/xp-icons/pack/media.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
 	folderOpen: '/xp-icons/pack/folder-open.png',
@@ -139,6 +148,100 @@ const xpThemes = [
 	{ id: 'high-contrast-white', label: 'High Contrast White' },
 	{ id: 'candy', label: 'Candy' }
 ] as const;
+
+const noisePresets: Array<{
+	id: NoisePresetId;
+	label: string;
+	description: string;
+	source: NoiseSourceType;
+	highpass: number;
+	lowpass: number;
+	gain: number;
+	modRateHz?: number;
+	modRateDriftHz?: number;
+	modRateDriftAmountHz?: number;
+	modDepth?: number;
+	modWave?: OscillatorType;
+	modDepthDriftHz?: number;
+	modDepthDriftMix?: number;
+	carrierHz?: number;
+	harmonicHz?: number;
+	harmonicMix?: number;
+	carrierWave?: OscillatorType;
+	harmonicWave?: OscillatorType;
+	formantAHz?: number;
+	formantBHz?: number;
+	formantQ?: number;
+	formantMixA?: number;
+	formantMixB?: number;
+	jitterRateHz?: number;
+	jitterDepthHz?: number;
+}> = [
+	{
+		id: 'brown-drift',
+		label: 'Brown Drift',
+		description: 'Deep low rumble for a cocooned room feel.',
+		source: 'noise',
+		highpass: 14,
+		lowpass: 540,
+		gain: 0.94
+	},
+	{
+		id: 'white-static',
+		label: 'White Static',
+		description: 'Full-spectrum hiss like old TV snow.',
+		source: 'noise',
+		highpass: 24,
+		lowpass: 19800,
+		gain: 0.58
+	},
+	{
+		id: 'pink-cloud',
+		label: 'Pink Cloud',
+		description: 'Softer blanket with less high-frequency bite.',
+		source: 'noise',
+		highpass: 34,
+		lowpass: 4200,
+		gain: 0.82
+	},
+	{
+		id: 'tape-hiss',
+		label: 'Tape Hiss',
+		description: 'High-air analog hiss with light body.',
+		source: 'noise',
+		highpass: 2600,
+		lowpass: 14500,
+		gain: 0.46
+	},
+	{
+		id: 'purring-white',
+		label: 'Purring',
+		description: 'Pure purr tone with no static hiss.',
+		source: 'purr',
+		highpass: 18,
+		lowpass: 420,
+		gain: 0.92,
+		modRateHz: 1.6,
+		modRateDriftHz: 0.13,
+		modRateDriftAmountHz: 0.42,
+		modDepth: 0.76,
+		modWave: 'sine',
+		modDepthDriftHz: 0.18,
+		modDepthDriftMix: 0.2,
+		carrierHz: 26,
+		harmonicHz: 52,
+		harmonicMix: 0.36,
+		carrierWave: 'sawtooth',
+		harmonicWave: 'triangle',
+		formantAHz: 118,
+		formantBHz: 238,
+		formantQ: 1.45,
+		formantMixA: 0.68,
+		formantMixB: 0.47,
+		jitterRateHz: 0.58,
+		jitterDepthHz: 1.25
+	}
+];
 
 type XpThemeId = (typeof xpThemes)[number]['id'];
 const defaultThemeId: XpThemeId = 'luna-blue';
@@ -237,6 +340,14 @@ const desktopIcons: DesktopIcon[] = [
 		y: 370
 	},
 	{
+		id: 'noise-generator',
+		label: 'Noise Player',
+		icon: shellIcons.noise,
+		windowId: 'noise',
+		x: 318,
+		y: 370
+	},
+	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock,
@@ -310,6 +421,11 @@ const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.vlc
 	},
 	{
+		id: 'noise',
+		label: 'White Noise Generator',
+		icon: shellIcons.noise
+	},
+	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock
@@ -324,7 +440,8 @@ function createDefaultWindowPositions(): Record<WindowId, WindowPosition> {
 		browser: { x: 300, y: 96, z: 9 },
 		recycle: { x: 540, y: 132, z: 10 },
 		vlc: { x: 460, y: 120, z: 11 },
-		otaclock: { x: 880, y: 120, z: 12 }
+		noise: { x: 690, y: 190, z: 12 },
+		otaclock: { x: 880, y: 120, z: 13 }
 	};
 }
 
@@ -336,8 +453,17 @@ function createDefaultWindowState() {
 		browser: { isOpen: false, isMinimized: false, isMaximized: false },
 		recycle: { isOpen: false, isMinimized: false, isMaximized: false },
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
+		noise: { isOpen: false, isMinimized: false, isMaximized: false },
 		otaclock: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
+}
+
+function noiseWindowHeightForPresetList() {
+	const shellControlsHeight = 212;
+	const presetItemHeight = 43;
+	const presetItemGap = 5;
+	const presetCount = Math.max(1, noisePresets.length);
+	return shellControlsHeight + presetCount * presetItemHeight + (presetCount - 1) * presetItemGap;
 }
 
 function createDefaultWindowSizes() {
@@ -348,6 +474,7 @@ function createDefaultWindowSizes() {
 		browser: { width: 640, height: 600 },
 		recycle: { width: 360, height: 280 },
 		vlc: { width: 640, height: 430 },
+		noise: { width: 430, height: noiseWindowHeightForPresetList() },
 		otaclock: { width: 440, height: 520 }
 	};
 }
@@ -390,6 +517,7 @@ const mainWindowRef = ref<HTMLElement | null>(null);
 const browserWindowRef = ref<HTMLElement | null>(null);
 const recycleWindowRef = ref<HTMLElement | null>(null);
 const vlcWindowRef = ref<HTMLElement | null>(null);
+const noiseWindowRef = ref<HTMLElement | null>(null);
 const otaClockWindowRef = ref<HTMLElement | null>(null);
 const activeDrag = ref<DragState | null>(null);
 const browserAddress = ref(browserHomeUrl);
@@ -421,6 +549,10 @@ const vlcEmbedOrigin = ref('');
 const vlcSourcePanelOpen = ref(false);
 const vlcCurrentSeconds = ref(0);
 const vlcDurationSeconds = ref(0);
+const noisePresetId = ref<NoisePresetId>('brown-drift');
+const noiseVolume = ref(42);
+const noiseIsPlaying = ref(false);
+const noiseError = ref('');
 const otaClockAudioLaughRef = ref<HTMLAudioElement | null>(null);
 const otaClockAudioOkRef = ref<HTMLAudioElement | null>(null);
 const otaClockUse24Hour = ref(true);
@@ -455,6 +587,29 @@ const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const contextTarget = ref<ContextTarget>({ type: 'desktop' });
 
+let noiseAudioContext: AudioContext | null = null;
+let noiseSourceNode: AudioBufferSourceNode | null = null;
+let noiseCarrierNode: OscillatorNode | null = null;
+let noiseHarmonicNode: OscillatorNode | null = null;
+let noiseHarmonicGainNode: GainNode | null = null;
+let noisePurrPreMixNode: GainNode | null = null;
+let noisePurrFormantANode: BiquadFilterNode | null = null;
+let noisePurrFormantBNode: BiquadFilterNode | null = null;
+let noisePurrFormantAGainNode: GainNode | null = null;
+let noisePurrFormantBGainNode: GainNode | null = null;
+let noiseJitterOscNode: OscillatorNode | null = null;
+let noiseJitterCarrierGainNode: GainNode | null = null;
+let noiseJitterHarmonicGainNode: GainNode | null = null;
+let noiseGainNode: GainNode | null = null;
+let noiseHighpassNode: BiquadFilterNode | null = null;
+let noiseLowpassNode: BiquadFilterNode | null = null;
+let noiseModOscNode: OscillatorNode | null = null;
+let noiseModGainNode: GainNode | null = null;
+let noiseModRateLfoNode: OscillatorNode | null = null;
+let noiseModRateLfoGainNode: GainNode | null = null;
+let noiseModDepthLfoNode: OscillatorNode | null = null;
+let noiseModDepthLfoGainNode: GainNode | null = null;
+
 const marqueeText =
 	'okami portfolio - windows shell rewrite - click around like it is 2002';
 const onlineStatus = 'online';
@@ -466,6 +621,9 @@ const activeThemeLabel = computed(() => themeLabel(activeThemeId.value));
 const signedInAsAdmin = computed(() => sessionRole.value === 'admin');
 const selectedBlogPost = computed(() =>
 	blogPosts.value.find((post) => post.id === selectedBlogPostId.value) ?? null
+);
+const selectedNoisePreset = computed(
+	() => noisePresets.find((preset) => preset.id === noisePresetId.value) ?? noisePresets[0]
 );
 const otaClockDisplayTime = computed(() => {
 	const now = otaClockNow.value;
@@ -685,6 +843,11 @@ const contextMenuItems = computed<ContextMenuItem[]>(() => {
 				action: () => openVlcWindow()
 			},
 			{
+				id: 'open-noise',
+				label: 'Open Noise Generator',
+				action: () => openNoiseWindow()
+			},
+			{
 				id: 'open-otaclock',
 				label: 'Open OtaClock',
 				action: () => openOtaClockWindow()
@@ -731,7 +894,7 @@ let blinkieRequestSerial = 0;
 let browserFallbackTimer: number | null = null;
 let otaClockAlarmStopTimer: number | null = null;
 let disposed = false;
-let zCounter = 12;
+let zCounter = 13;
 const draggedIconIds = new Set<string>();
 
 function randomBetween(min: number, max: number) {
@@ -1141,6 +1304,7 @@ function windowMinSize(windowId: WindowId) {
 	if (windowId === 'main') return { width: 520, height: 360 };
 	if (windowId === 'browser') return { width: 460, height: 320 };
 	if (windowId === 'vlc') return { width: 420, height: 280 };
+	if (windowId === 'noise') return { width: 340, height: 280 };
 	if (windowId === 'recycle') return { width: 260, height: 180 };
 	if (windowId === 'otaclock') return { width: 390, height: 360 };
 	return { width: 180, height: 120 };
@@ -1934,6 +2098,475 @@ function handleVlcFrameMessage(rawData: unknown) {
 	}
 }
 
+function resolveNoiseAudioContext() {
+	const constructor =
+		window.AudioContext ||
+		(window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+	if (!constructor) return null;
+
+	if (!noiseAudioContext || noiseAudioContext.state === 'closed') {
+		noiseAudioContext = new constructor();
+	}
+
+	return noiseAudioContext;
+}
+
+function buildNoiseBuffer(context: AudioContext, durationSeconds = 3) {
+	const frameCount = Math.max(1, Math.floor(context.sampleRate * durationSeconds));
+	const buffer = context.createBuffer(1, frameCount, context.sampleRate);
+	const channel = buffer.getChannelData(0);
+	for (let index = 0; index < channel.length; index += 1) {
+		channel[index] = Math.random() * 2 - 1;
+	}
+	return buffer;
+}
+
+function applyNoisePresetToNodes() {
+	if (!noiseAudioContext || !noiseHighpassNode || !noiseLowpassNode || !noiseGainNode) return;
+	const preset = selectedNoisePreset.value;
+	const now = noiseAudioContext.currentTime;
+	const toneSmoothing = preset.source === 'purr' ? 0.012 : 0.03;
+	const gainSmoothing = preset.source === 'purr' ? 0.015 : 0.04;
+	const modSmoothing = preset.source === 'purr' ? 0.004 : 0.04;
+	noiseHighpassNode.frequency.setTargetAtTime(preset.highpass, now, toneSmoothing);
+	noiseLowpassNode.frequency.setTargetAtTime(preset.lowpass, now, toneSmoothing);
+
+	const targetGain = Math.max(0.0001, Math.pow(noiseVolume.value / 100, 1.55) * preset.gain);
+	noiseGainNode.gain.cancelScheduledValues(now);
+	noiseGainNode.gain.setTargetAtTime(targetGain, now, gainSmoothing);
+
+	if (noiseCarrierNode) {
+		noiseCarrierNode.type = preset.carrierWave ?? 'sine';
+		noiseCarrierNode.frequency.cancelScheduledValues(now);
+		noiseCarrierNode.frequency.setTargetAtTime(preset.carrierHz ?? 50, now, toneSmoothing);
+	}
+	if (noiseHarmonicNode) {
+		noiseHarmonicNode.type = preset.harmonicWave ?? 'sine';
+		noiseHarmonicNode.frequency.cancelScheduledValues(now);
+		noiseHarmonicNode.frequency.setTargetAtTime(preset.harmonicHz ?? 100, now, toneSmoothing);
+	}
+	if (noiseHarmonicGainNode) {
+		noiseHarmonicGainNode.gain.cancelScheduledValues(now);
+		noiseHarmonicGainNode.gain.setTargetAtTime(preset.harmonicMix ?? 0.35, now, toneSmoothing);
+	}
+	if (noisePurrFormantANode) {
+		noisePurrFormantANode.frequency.cancelScheduledValues(now);
+		noisePurrFormantANode.frequency.setTargetAtTime(preset.formantAHz ?? 118, now, toneSmoothing);
+		noisePurrFormantANode.Q.cancelScheduledValues(now);
+		noisePurrFormantANode.Q.setTargetAtTime(preset.formantQ ?? 1.45, now, toneSmoothing);
+	}
+	if (noisePurrFormantBNode) {
+		noisePurrFormantBNode.frequency.cancelScheduledValues(now);
+		noisePurrFormantBNode.frequency.setTargetAtTime(preset.formantBHz ?? 238, now, toneSmoothing);
+		noisePurrFormantBNode.Q.cancelScheduledValues(now);
+		noisePurrFormantBNode.Q.setTargetAtTime(preset.formantQ ?? 1.45, now, toneSmoothing);
+	}
+	if (noisePurrFormantAGainNode) {
+		noisePurrFormantAGainNode.gain.cancelScheduledValues(now);
+		noisePurrFormantAGainNode.gain.setTargetAtTime(preset.formantMixA ?? 0.68, now, toneSmoothing);
+	}
+	if (noisePurrFormantBGainNode) {
+		noisePurrFormantBGainNode.gain.cancelScheduledValues(now);
+		noisePurrFormantBGainNode.gain.setTargetAtTime(preset.formantMixB ?? 0.47, now, toneSmoothing);
+	}
+	if (noiseJitterOscNode) {
+		noiseJitterOscNode.frequency.cancelScheduledValues(now);
+		noiseJitterOscNode.frequency.setTargetAtTime(preset.jitterRateHz ?? 0.82, now, toneSmoothing);
+	}
+	if (noiseJitterCarrierGainNode) {
+		noiseJitterCarrierGainNode.gain.cancelScheduledValues(now);
+		noiseJitterCarrierGainNode.gain.setTargetAtTime(preset.jitterDepthHz ?? 1.6, now, toneSmoothing);
+	}
+	if (noiseJitterHarmonicGainNode) {
+		noiseJitterHarmonicGainNode.gain.cancelScheduledValues(now);
+		noiseJitterHarmonicGainNode.gain.setTargetAtTime(
+			(preset.jitterDepthHz ?? 1.6) * 1.8,
+			now,
+			toneSmoothing
+		);
+	}
+
+	if (noiseModOscNode && noiseModGainNode) {
+		const baseModRate = Math.max(0.08, preset.modRateHz ?? 0.1);
+		noiseModOscNode.type = preset.modWave ?? 'sine';
+		noiseModOscNode.frequency.cancelScheduledValues(now);
+		noiseModOscNode.frequency.setTargetAtTime(baseModRate, now, modSmoothing);
+
+		if (noiseModRateLfoNode && noiseModRateLfoGainNode) {
+			noiseModRateLfoNode.frequency.cancelScheduledValues(now);
+			noiseModRateLfoNode.frequency.setTargetAtTime(
+				preset.modRateDriftHz ?? 0.12,
+				now,
+				modSmoothing
+			);
+			const modRateDriftAmount = Math.max(
+				0,
+				Math.min(baseModRate * 0.85, preset.modRateDriftAmountHz ?? 0)
+			);
+			noiseModRateLfoGainNode.gain.cancelScheduledValues(now);
+			noiseModRateLfoGainNode.gain.setTargetAtTime(
+				modRateDriftAmount,
+				now,
+				modSmoothing
+			);
+		}
+
+		const modulationDepth = Math.max(
+			0,
+			Math.min(targetGain * 0.92, targetGain * (preset.modDepth ?? 0))
+		);
+		noiseModGainNode.gain.cancelScheduledValues(now);
+		noiseModGainNode.gain.setTargetAtTime(modulationDepth, now, modSmoothing);
+
+		if (noiseModDepthLfoNode && noiseModDepthLfoGainNode) {
+			noiseModDepthLfoNode.frequency.cancelScheduledValues(now);
+			noiseModDepthLfoNode.frequency.setTargetAtTime(
+				preset.modDepthDriftHz ?? 0.48,
+				now,
+				modSmoothing
+			);
+			const driftMix = Math.max(0, Math.min(0.49, preset.modDepthDriftMix ?? 0));
+			noiseModDepthLfoGainNode.gain.cancelScheduledValues(now);
+			noiseModDepthLfoGainNode.gain.setTargetAtTime(
+				modulationDepth * driftMix,
+				now,
+				modSmoothing
+			);
+		}
+	}
+}
+
+function destroyNoiseSource() {
+	if (noiseSourceNode) {
+		noiseSourceNode.onended = null;
+		try {
+			noiseSourceNode.stop();
+		} catch {
+			// Ignore stop errors if node already ended.
+		}
+		noiseSourceNode.disconnect();
+		noiseSourceNode = null;
+	}
+	if (noiseCarrierNode) {
+		try {
+			noiseCarrierNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseCarrierNode.disconnect();
+		noiseCarrierNode = null;
+	}
+	if (noiseHarmonicNode) {
+		try {
+			noiseHarmonicNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseHarmonicNode.disconnect();
+		noiseHarmonicNode = null;
+	}
+	if (noiseHarmonicGainNode) {
+		noiseHarmonicGainNode.disconnect();
+		noiseHarmonicGainNode = null;
+	}
+	if (noiseJitterOscNode) {
+		try {
+			noiseJitterOscNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseJitterOscNode.disconnect();
+		noiseJitterOscNode = null;
+	}
+	if (noiseJitterCarrierGainNode) {
+		noiseJitterCarrierGainNode.disconnect();
+		noiseJitterCarrierGainNode = null;
+	}
+	if (noiseJitterHarmonicGainNode) {
+		noiseJitterHarmonicGainNode.disconnect();
+		noiseJitterHarmonicGainNode = null;
+	}
+	if (noisePurrPreMixNode) {
+		noisePurrPreMixNode.disconnect();
+		noisePurrPreMixNode = null;
+	}
+	if (noisePurrFormantANode) {
+		noisePurrFormantANode.disconnect();
+		noisePurrFormantANode = null;
+	}
+	if (noisePurrFormantBNode) {
+		noisePurrFormantBNode.disconnect();
+		noisePurrFormantBNode = null;
+	}
+	if (noisePurrFormantAGainNode) {
+		noisePurrFormantAGainNode.disconnect();
+		noisePurrFormantAGainNode = null;
+	}
+	if (noisePurrFormantBGainNode) {
+		noisePurrFormantBGainNode.disconnect();
+		noisePurrFormantBGainNode = null;
+	}
+
+	if (noiseModOscNode) {
+		try {
+			noiseModOscNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseModOscNode.disconnect();
+		noiseModOscNode = null;
+	}
+	if (noiseModRateLfoNode) {
+		try {
+			noiseModRateLfoNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseModRateLfoNode.disconnect();
+		noiseModRateLfoNode = null;
+	}
+	if (noiseModRateLfoGainNode) {
+		noiseModRateLfoGainNode.disconnect();
+		noiseModRateLfoGainNode = null;
+	}
+	if (noiseModDepthLfoNode) {
+		try {
+			noiseModDepthLfoNode.stop();
+		} catch {
+			// Ignore stop errors if oscillator already ended.
+		}
+		noiseModDepthLfoNode.disconnect();
+		noiseModDepthLfoNode = null;
+	}
+	if (noiseModDepthLfoGainNode) {
+		noiseModDepthLfoGainNode.disconnect();
+		noiseModDepthLfoGainNode = null;
+	}
+	if (noiseModGainNode) {
+		noiseModGainNode.disconnect();
+		noiseModGainNode = null;
+	}
+
+	if (noiseGainNode) {
+		noiseGainNode.disconnect();
+		noiseGainNode = null;
+	}
+	if (noiseLowpassNode) {
+		noiseLowpassNode.disconnect();
+		noiseLowpassNode = null;
+	}
+	if (noiseHighpassNode) {
+		noiseHighpassNode.disconnect();
+		noiseHighpassNode = null;
+	}
+}
+
+async function startNoiseGenerator(announce = true) {
+	const context = resolveNoiseAudioContext();
+	if (!context) {
+		noiseError.value = 'Web Audio is unavailable in this browser.';
+		return;
+	}
+
+	if (context.state === 'suspended') {
+		await context.resume().catch(() => undefined);
+	}
+
+	destroyNoiseSource();
+
+	const preset = selectedNoisePreset.value;
+	const source = context.createBufferSource();
+	const highpass = context.createBiquadFilter();
+	highpass.type = 'highpass';
+	const lowpass = context.createBiquadFilter();
+	lowpass.type = 'lowpass';
+	const gain = context.createGain();
+	const modOsc = context.createOscillator();
+	const modGain = context.createGain();
+	const modRateLfo = context.createOscillator();
+	const modRateLfoGain = context.createGain();
+	const modDepthLfo = context.createOscillator();
+	const modDepthLfoGain = context.createGain();
+
+	modOsc.type = 'sine';
+	modOsc.frequency.value = 0.1;
+	modGain.gain.value = 0;
+	modRateLfo.type = 'sine';
+	modRateLfo.frequency.value = 0.12;
+	modRateLfoGain.gain.value = 0;
+	modDepthLfo.type = 'sine';
+	modDepthLfo.frequency.value = 0.48;
+	modDepthLfoGain.gain.value = 0;
+
+	if (preset.source === 'purr') {
+		const carrier = context.createOscillator();
+		carrier.type = preset.carrierWave ?? 'sawtooth';
+		carrier.frequency.value = preset.carrierHz ?? 50;
+
+		const harmonic = context.createOscillator();
+		harmonic.type = preset.harmonicWave ?? 'triangle';
+		harmonic.frequency.value = preset.harmonicHz ?? 100;
+
+		const harmonicGain = context.createGain();
+		harmonicGain.gain.value = preset.harmonicMix ?? 0.35;
+
+		const preMix = context.createGain();
+		preMix.gain.value = 1;
+		const formantA = context.createBiquadFilter();
+		formantA.type = 'bandpass';
+		formantA.frequency.value = preset.formantAHz ?? 118;
+		formantA.Q.value = preset.formantQ ?? 1.45;
+		const formantB = context.createBiquadFilter();
+		formantB.type = 'bandpass';
+		formantB.frequency.value = preset.formantBHz ?? 238;
+		formantB.Q.value = preset.formantQ ?? 1.45;
+		const formantAGain = context.createGain();
+		formantAGain.gain.value = preset.formantMixA ?? 0.68;
+		const formantBGain = context.createGain();
+		formantBGain.gain.value = preset.formantMixB ?? 0.47;
+
+		carrier.connect(preMix);
+		harmonic.connect(harmonicGain);
+		harmonicGain.connect(preMix);
+		preMix.connect(formantA);
+		preMix.connect(formantB);
+		formantA.connect(formantAGain);
+		formantB.connect(formantBGain);
+		formantAGain.connect(highpass);
+		formantBGain.connect(highpass);
+
+		const jitterOsc = context.createOscillator();
+		jitterOsc.type = 'sine';
+		jitterOsc.frequency.value = preset.jitterRateHz ?? 0.82;
+		const jitterCarrierGain = context.createGain();
+		jitterCarrierGain.gain.value = preset.jitterDepthHz ?? 1.6;
+		const jitterHarmonicGain = context.createGain();
+		jitterHarmonicGain.gain.value = (preset.jitterDepthHz ?? 1.6) * 1.8;
+		jitterOsc.connect(jitterCarrierGain);
+		jitterOsc.connect(jitterHarmonicGain);
+		jitterCarrierGain.connect(carrier.frequency);
+		jitterHarmonicGain.connect(harmonic.frequency);
+
+		noiseCarrierNode = carrier;
+		noiseHarmonicNode = harmonic;
+		noiseHarmonicGainNode = harmonicGain;
+		noisePurrPreMixNode = preMix;
+		noisePurrFormantANode = formantA;
+		noisePurrFormantBNode = formantB;
+		noisePurrFormantAGainNode = formantAGain;
+		noisePurrFormantBGainNode = formantBGain;
+		noiseJitterOscNode = jitterOsc;
+		noiseJitterCarrierGainNode = jitterCarrierGain;
+		noiseJitterHarmonicGainNode = jitterHarmonicGain;
+	} else {
+		source.buffer = buildNoiseBuffer(context, 3);
+		source.loop = true;
+		source.connect(highpass);
+	}
+
+	highpass.connect(lowpass);
+	lowpass.connect(gain);
+	modRateLfo.connect(modRateLfoGain);
+	modRateLfoGain.connect(modOsc.frequency);
+	modOsc.connect(modGain);
+	modDepthLfo.connect(modDepthLfoGain);
+	modDepthLfoGain.connect(modGain.gain);
+	modGain.connect(gain.gain);
+	gain.connect(context.destination);
+
+	noiseSourceNode = preset.source === 'noise' ? source : null;
+	noiseHighpassNode = highpass;
+	noiseLowpassNode = lowpass;
+	noiseGainNode = gain;
+	noiseModOscNode = modOsc;
+	noiseModGainNode = modGain;
+	noiseModRateLfoNode = modRateLfo;
+	noiseModRateLfoGainNode = modRateLfoGain;
+	noiseModDepthLfoNode = modDepthLfo;
+	noiseModDepthLfoGainNode = modDepthLfoGain;
+	applyNoisePresetToNodes();
+	try {
+		modRateLfo.start();
+		modDepthLfo.start();
+		modOsc.start();
+		if (preset.source === 'purr') {
+			noiseCarrierNode?.start();
+			noiseHarmonicNode?.start();
+			noiseJitterOscNode?.start();
+		} else {
+			source.start();
+		}
+	} catch {
+		destroyNoiseSource();
+		noiseIsPlaying.value = false;
+		noiseError.value = 'Unable to start audio output.';
+		return;
+	}
+
+	if (preset.source === 'noise') {
+		source.onended = () => {
+			if (noiseSourceNode === source) {
+				noiseSourceNode = null;
+				noiseIsPlaying.value = false;
+			}
+		};
+	}
+
+	noiseIsPlaying.value = true;
+	noiseError.value = '';
+	if (announce) {
+		pushStatus(`${selectedNoisePreset.value.label} noise started.`);
+	}
+}
+
+function stopNoiseGenerator(announce = true) {
+	destroyNoiseSource();
+	noiseIsPlaying.value = false;
+
+	if (announce) {
+		pushStatus('White noise stopped.');
+	}
+}
+
+function toggleNoiseGenerator() {
+	if (noiseIsPlaying.value) {
+		stopNoiseGenerator();
+		return;
+	}
+	void startNoiseGenerator();
+}
+
+function setNoiseVolume(event: Event) {
+	const input = event.target as HTMLInputElement | null;
+	if (!input) return;
+	noiseVolume.value = clamp(Number.parseInt(input.value, 10) || 0, 0, 100);
+	applyNoisePresetToNodes();
+}
+
+function selectNoisePreset(nextPreset: NoisePresetId) {
+	const previousPreset = selectedNoisePreset.value;
+	noisePresetId.value = nextPreset;
+	if (noiseIsPlaying.value) {
+		const sourceChanged = previousPreset.source !== selectedNoisePreset.value.source;
+		if (sourceChanged) {
+			void startNoiseGenerator(false);
+		} else {
+			applyNoisePresetToNodes();
+		}
+		pushStatus(`${selectedNoisePreset.value.label} preset selected.`);
+		return;
+	}
+	applyNoisePresetToNodes();
+}
+
+function cycleNoisePreset(direction: -1 | 1) {
+	const currentIndex = noisePresets.findIndex((preset) => preset.id === noisePresetId.value);
+	const safeCurrent = currentIndex >= 0 ? currentIndex : 0;
+	const nextIndex =
+		(safeCurrent + direction + noisePresets.length) % noisePresets.length;
+	selectNoisePreset(noisePresets[nextIndex]!.id);
+}
+
 function syncBrowserSearchEngine(backend: BrowserBackend) {
 	if (backend === 'tor') {
 		browserSearchEngine.value = 'ahmia';
@@ -1993,6 +2626,14 @@ function openVlcWindow() {
 	focusWindow('vlc');
 	vlcSourcePanelOpen.value = false;
 	pushStatus('VLC media player opened.');
+}
+
+function openNoiseWindow() {
+	startMenuOpen.value = false;
+	windowSizes.value.noise.height = noiseWindowHeightForPresetList();
+	restoreWindow('noise', false);
+	focusWindow('noise');
+	pushStatus('White noise generator opened.');
 }
 
 function openOtaClockWindow() {
@@ -2092,6 +2733,9 @@ function closeWindow(windowId: WindowId) {
 		stopOtaClockAlarm(false);
 		otaClockConfigOpen.value = false;
 	}
+	if (windowId === 'noise') {
+		stopNoiseGenerator(false);
+	}
 
 	state.isOpen = false;
 	state.isMinimized = false;
@@ -2164,6 +2808,11 @@ function isTaskbarWindowActive(windowId: WindowId) {
 function openShellShortcut(shortcut: ShellShortcut) {
 	if (shortcut.windowId === 'vlc') {
 		openVlcWindow();
+		return;
+	}
+
+	if (shortcut.windowId === 'noise') {
+		openNoiseWindow();
 		return;
 	}
 
@@ -2359,6 +3008,7 @@ function resetSessionState() {
 	closeContextMenu();
 	clearBrowserFallbackTimer();
 	stopOtaClockAlarm(false);
+	stopNoiseGenerator(false);
 	selectedLoginUser.value = 'guest';
 	adminLoginPassword.value = '';
 	loginSubmitting.value = false;
@@ -2390,6 +3040,10 @@ function resetSessionState() {
 	vlcSourcePanelOpen.value = false;
 	vlcCurrentSeconds.value = 0;
 	vlcDurationSeconds.value = 0;
+	noisePresetId.value = 'brown-drift';
+	noiseVolume.value = 42;
+	noiseIsPlaying.value = false;
+	noiseError.value = '';
 	otaClockUse24Hour.value = true;
 	otaClockAlarmEnabled.value = false;
 	otaClockAlarmSound.value = 'LAUGH';
@@ -2415,7 +3069,7 @@ function resetSessionState() {
 	windowState.value = createDefaultWindowState();
 	windowPositions.value = createDefaultWindowPositions();
 	windowSizes.value = createDefaultWindowSizes();
-	zCounter = 12;
+	zCounter = 13;
 	normalizeDesktopLayout();
 }
 
@@ -2583,6 +3237,11 @@ onBeforeUnmount(() => {
 	clearBrowserFallbackTimer();
 	browserRequestSerial += 1;
 	blinkieRequestSerial += 1;
+	stopNoiseGenerator(false);
+	if (noiseAudioContext) {
+		void noiseAudioContext.close().catch(() => undefined);
+		noiseAudioContext = null;
+	}
 
 	document.removeEventListener('click', closeStartMenuOnOutsideClick);
 	document.removeEventListener('keydown', closeMenusOnEscape);
@@ -3222,6 +3881,100 @@ onBeforeUnmount(() => {
 
 			<Transition name="xp-window">
 				<div
+					v-if="isWindowVisible('noise')"
+					ref="noiseWindowRef"
+					class="window noise-window draggable-window"
+					data-window-id="noise"
+					:class="{ 'window-maximized': isWindowMaximized('noise') }"
+					:style="windowStyle('noise')"
+					@pointerdown="focusWindow('noise')"
+				>
+					<div
+						class="title-bar drag-handle"
+						@pointerdown.stop="startWindowDrag('noise', $event)"
+					>
+						<div class="title-bar-text">
+							<img
+								:src="shellIcons.noise"
+								width="12"
+								height="12"
+								alt="noise icon"
+							/>
+							White Noise Generator
+						</div>
+						<div class="title-bar-controls">
+							<button aria-label="Minimize" @click.stop="minimizeWindow('noise')"></button>
+							<button
+								:aria-label="isWindowMaximized('noise') ? 'Restore' : 'Maximize'"
+								@click.stop="toggleMaximizeWindow('noise')"
+							></button>
+							<button aria-label="Close" @click.stop="closeWindow('noise')"></button>
+						</div>
+					</div>
+					<div class="window-body noise-window-body">
+						<div class="noise-menubar" role="menubar" aria-label="Noise player menu">
+							<button type="button" class="noise-menu-item" @click="pushStatus('File menu not implemented.')">File</button>
+							<button type="button" class="noise-menu-item" @click="pushStatus('Playback menu not implemented.')">Playback</button>
+							<button type="button" class="noise-menu-item" @click="pushStatus('Effects menu not implemented.')">Effects</button>
+							<button type="button" class="noise-menu-item" @click="pushStatus('Help menu not implemented.')">Help</button>
+						</div>
+						<div class="noise-player-shell">
+							<div class="noise-lcd">
+								<p class="noise-lcd-title">NoiseBox 2002</p>
+								<p class="noise-lcd-preset">{{ selectedNoisePreset.label }}</p>
+								<p class="noise-lcd-status">
+									{{ noiseIsPlaying ? 'PLAYING' : 'STOPPED' }} • VOL {{ noiseVolume }}%
+								</p>
+							</div>
+							<div class="noise-control-row" role="toolbar" aria-label="Noise controls">
+								<button type="button" class="noise-button" @click="cycleNoisePreset(-1)">|&lt;</button>
+								<button type="button" class="noise-button" @click="toggleNoiseGenerator">
+									{{ noiseIsPlaying ? 'Stop' : 'Play' }}
+								</button>
+								<button type="button" class="noise-button" @click="stopNoiseGenerator()">[]</button>
+								<button type="button" class="noise-button" @click="cycleNoisePreset(1)">&gt;|</button>
+							</div>
+							<label class="noise-volume-row" for="noise-volume-slider">
+								<span>Intensity</span>
+								<input
+									id="noise-volume-slider"
+									type="range"
+									min="0"
+									max="100"
+									:value="noiseVolume"
+									@input="setNoiseVolume"
+								/>
+								<span>{{ noiseVolume }}%</span>
+							</label>
+							<div class="noise-preset-list" role="radiogroup" aria-label="Noise presets">
+								<button
+									v-for="preset in noisePresets"
+									:key="preset.id"
+									type="button"
+									class="noise-preset-item"
+									:class="{ active: noisePresetId === preset.id }"
+									@click="selectNoisePreset(preset.id)"
+								>
+									<span class="noise-preset-name">{{ preset.label }}</span>
+									<span class="noise-preset-description">{{ preset.description }}</span>
+								</button>
+							</div>
+							<p v-if="noiseError" class="noise-status-error">{{ noiseError }}</p>
+						</div>
+					</div>
+					<div
+						v-for="direction in resizeDirections"
+						v-if="canResizeWindow('noise')"
+						:key="`noise-${direction}`"
+						class="window-resize-handle"
+						:class="`handle-${direction}`"
+						@pointerdown="startWindowResize('noise', direction, $event)"
+					></div>
+				</div>
+			</Transition>
+
+			<Transition name="xp-window">
+				<div
 					v-if="isWindowVisible('recycle')"
 					ref="recycleWindowRef"
 					class="window recycle-window draggable-window"
@@ -3789,13 +4542,13 @@ onBeforeUnmount(() => {
 		<div class="taskbar">
 			<div class="start-button">
 				<button class="start-button-inner" @click.stop="toggleStartMenu">
-					<img
-						:src="shellIcons.start"
-						width="16"
-						height="16"
-						alt="start button"
-					/>
-					<span>Start</span>
+					<span class="start-button-flag" aria-hidden="true">
+						<span class="start-button-flag-pane red"></span>
+						<span class="start-button-flag-pane green"></span>
+						<span class="start-button-flag-pane blue"></span>
+						<span class="start-button-flag-pane yellow"></span>
+					</span>
+					<span class="start-button-label">start</span>
 				</button>
 				<div v-show="startMenuOpen" id="start-menu" class="start-menu">
 					<div class="start-menu-header">
@@ -3861,6 +4614,15 @@ onBeforeUnmount(() => {
 								alt="vlc icon"
 							/>
 							<span>Open VLC</span>
+						</button>
+						<button class="start-menu-item" @click="openNoiseWindow">
+							<img
+								:src="shellIcons.noise"
+								width="16"
+								height="16"
+								alt="noise icon"
+							/>
+							<span>Open Noise Generator</span>
 						</button>
 						<button class="start-menu-item" @click="openOtaClockWindow">
 							<img
