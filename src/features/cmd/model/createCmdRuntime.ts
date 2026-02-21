@@ -58,6 +58,7 @@ const openWindowTargets: Record<string, WindowId> = {
 	vlc: 'vlc',
 	noise: 'noise',
 	cmd: 'cmd',
+	chat: 'chat',
 	otaclock: 'otaclock',
 	remote: 'remote'
 };
@@ -186,6 +187,16 @@ function openTarget(target: string, shell: CmdShellPort): CmdLine[] {
 	}
 
 	return [error(`Unknown OPEN target: ${target}`)];
+}
+
+function randomMatrixLine(length = 42) {
+	const glyphs = '01#@%$[]{}<>*+-=';
+	let output = '';
+	for (let index = 0; index < length; index += 1) {
+		const charIndex = Math.floor(Math.random() * glyphs.length);
+		output += glyphs[charIndex] ?? '0';
+	}
+	return output;
 }
 
 export function createCmdBannerLines() {
@@ -343,6 +354,69 @@ export function runCmdCommand(
 		}
 		case 'echo':
 			return { nextDirectory: workingDirectory, lines: [ok(argText)] };
+		case 'chat':
+			shell.openWindowFromMenu('chat');
+			return {
+				nextDirectory: workingDirectory,
+				lines: [ok('Opening MSN Chat...')]
+			};
+		case 'winver':
+			return {
+				nextDirectory: workingDirectory,
+				lines: [
+					ok('Microsoft Windows XP'),
+					muted('Version 5.1 (Build 2600.xpsp_sp3_qfe)'),
+					muted('Copyright (c) Microsoft Corporation')
+				]
+			};
+		case 'konami':
+			if (shell.isThemeId('luna-blue')) {
+				shell.setTheme('luna-blue');
+			}
+			shell.openWindowFromMenu('chat');
+			shell.pushStatus('Hidden command accepted.');
+			return {
+				nextDirectory: workingDirectory,
+				lines: [
+					ok('Konami sequence accepted.'),
+					muted('Bonus unlocked: chat online.')
+				]
+			};
+		case 'xyzzy':
+			return {
+				nextDirectory: workingDirectory,
+				lines: [
+					ok('Nothing happens.'),
+					muted('...a distant modem squeal answers back.')
+				]
+			};
+		case 'matrix': {
+			const lines = [muted('Initializing digital rain...'), muted('')];
+			for (let index = 0; index < 12; index += 1) {
+				lines.push(ok(randomMatrixLine(44)));
+			}
+			lines.push(muted(''));
+			lines.push(muted('Press CLS to clear.'));
+			return { nextDirectory: workingDirectory, lines };
+		}
+		case 'sudo':
+			return {
+				nextDirectory: workingDirectory,
+				lines: [
+					error("'sudo' is not recognized in this shell."),
+					muted('Hint: try logging in as Admin from the XP login screen.')
+				]
+			};
+		case 'cat':
+			return {
+				nextDirectory: workingDirectory,
+				lines: [
+					ok(' /\\_/\\'),
+					ok('( o.o )'),
+					ok(' > ^ <'),
+					muted('purr.exe is running in the noise window.')
+				]
+			};
 		default:
 			return {
 				nextDirectory: workingDirectory,
