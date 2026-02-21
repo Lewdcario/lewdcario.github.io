@@ -1,13 +1,16 @@
-import { inject, provide, type InjectionKey } from 'vue';
+import { inject, provide, proxyRefs, type InjectionKey, type ShallowUnwrapRef } from 'vue';
 import {
 	createShellController,
 	type ShellController
 } from '~/src/features/shell/model/createShellController';
 
-export const shellControllerKey: InjectionKey<ShellController> = Symbol('shell-controller');
+export type ShellControllerContext = ShallowUnwrapRef<ShellController>;
+
+export const shellControllerKey: InjectionKey<ShellControllerContext> =
+	Symbol('shell-controller');
 
 export function provideShellController() {
-	const controller = createShellController();
+	const controller = proxyRefs(createShellController());
 	provide(shellControllerKey, controller);
 	return controller;
 }

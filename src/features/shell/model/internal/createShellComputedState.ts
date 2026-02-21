@@ -63,7 +63,7 @@ export function createShellComputedState(deps: any) {
 		vlcDurationSeconds
 	} = deps;
 
-	const marqueeText = 'okami portfolio - windows shell rewrite - click around like it is 2002';
+	const marqueeText = 'okami portfolio - personal project';
 	const onlineStatus = 'online';
 	const resizeDirections: ResizeDirection[] = ['n', 'e', 's', 'w', 'ne', 'nw', 'se', 'sw'];
 

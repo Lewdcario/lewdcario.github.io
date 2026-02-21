@@ -695,8 +695,7 @@ function buildShellController() {
 		vlcCurrentTimeLabel,
 		vlcDurationLabel,
 		contextMenuTitle,
-		contextMenuItems,
-		draggedIconIds: windowRuntime.draggedIconIds
+		contextMenuItems
 	};
 
 	const shellLocalActions = {

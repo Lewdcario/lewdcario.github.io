@@ -1,3 +1,5 @@
+import { defineNuxtConfig } from 'nuxt/config';
+
 export default defineNuxtConfig({
 	css: ['~/src/assets/main.css'],
 	devtools: { enabled: true },

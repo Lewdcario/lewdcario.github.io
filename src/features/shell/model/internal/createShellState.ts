@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import type { AuthSessionRole } from '~/shared/auth';
+import type { BlogPost } from '~/shared/blog';
 import {
 	browserHomeUrl,
 	createDefaultWindowPositions,
@@ -101,7 +102,7 @@ export function createShellState() {
 	const otaClockScale = ref(1);
 	const otaClockRinging = ref(false);
 	const otaClockConfigOpen = ref(false);
-	const blogPosts = ref([]);
+	const blogPosts = ref<BlogPost[]>([]);
 	const selectedBlogPostId = ref<number | null>(null);
 	const blogLoading = ref(false);
 	const blogError = ref('');

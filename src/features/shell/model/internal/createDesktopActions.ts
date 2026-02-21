@@ -130,7 +130,7 @@ export function createDesktopActions(deps: any) {
 	
 		const iconLimits = iconBounds();
 		for (const icon of desktopIcons) {
-			const current = nextIcons[icon.id];
+			const current = nextIcons[icon.id] ?? { x: icon.x, y: icon.y };
 			nextIcons[icon.id] = {
 				x: clamp(current.x, iconLimits.minX, iconLimits.maxX),
 				y: clamp(current.y, iconLimits.minY, iconLimits.maxY)

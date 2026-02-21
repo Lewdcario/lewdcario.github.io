@@ -1022,48 +1022,31 @@ legend {
 }
 
 .xp-startup-loader-track {
-	position: relative;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	gap: 2px;
 	width: 100%;
 	height: 100%;
+	padding: 2px 4px;
 	border: 1px solid #0f0f0f;
 	background: #020202;
 	overflow: hidden;
 }
 
-.xp-startup-loader-box {
-	position: absolute;
-	top: 2px;
-	left: -72px;
-	width: 16px;
+.xp-startup-loader-cell {
+	flex: 0 0 auto;
+	width: 14px;
 	height: 14px;
-	border: 1px solid #0b3b90;
-	background: linear-gradient(
-		180deg,
-		#d7eeff 0%,
-		#8ac1ff 28%,
-		#2d83e6 62%,
-		#0a4fbf 100%
-	);
+	border: 1px solid transparent;
+	background: transparent;
+	box-shadow: none;
+}
+
+.xp-startup-loader-cell.is-active {
+	border-color: #0b3b90;
+	background: linear-gradient(180deg, #d7eeff 0%, #8ac1ff 28%, #2d83e6 62%, #0a4fbf 100%);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
-	animation: xp-startup-box-scan 2.7s steps(42, end) infinite;
-}
-
-.xp-startup-loader-box-1 {
-	animation-delay: 0s;
-}
-
-.xp-startup-loader-box-2 {
-	animation-delay: 0.18s;
-}
-
-.xp-startup-loader-box-3 {
-	animation-delay: 0.36s;
-}
-
-@keyframes xp-startup-box-scan {
-	100% {
-		transform: translateX(calc(100% + 86px));
-	}
 }
 
 .power-screen {
@@ -2496,6 +2479,14 @@ legend {
 	text-overflow: ellipsis;
 }
 
+.netscape-shell {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+	height: 100%;
+}
+
 .netscape-shell button {
 	min-width: 0;
 	min-height: 0;
@@ -3299,6 +3290,27 @@ fieldset {
 	border-top: 1px solid #bcbcbc;
 	font-size: 11px;
 	flex-shrink: 0;
+	overflow: hidden;
+}
+
+.marquee-track {
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.marquee-track > span {
+	display: inline-block;
+	padding-left: 100%;
+	animation: shell-marquee 24s linear infinite;
+}
+
+@keyframes shell-marquee {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(-100%);
+	}
 }
 
 .footer-buttons {

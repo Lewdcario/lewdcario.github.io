@@ -36,9 +36,9 @@ const shell = useShellControllerContext();
 		<ShellMainContactTab />
 
 		<div class="marquee-wrap">
-			<marquee behavior="scroll" direction="left" scrollamount="2">
-				{{ shell.marqueeText }}
-			</marquee>
+			<div class="marquee-track">
+				<span>{{ shell.marqueeText }}</span>
+			</div>
 		</div>
 
 		<section class="field-row footer-buttons">

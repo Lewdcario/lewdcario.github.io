@@ -1,8 +1,50 @@
 <script setup lang="ts">
+import { onBeforeUnmount, watch, ref } from 'vue';
 import { guestLoginPasswordSeed } from '~/src/features/shell/constants/shell';
 import { useShellControllerContext } from '~/src/features/shell/model/useShellController';
 
 const shell = useShellControllerContext();
+const startupLoaderCellCount = 16;
+const startupLoaderHead = ref(-2);
+
+let startupLoaderTimer: ReturnType<typeof window.setInterval> | null = null;
+
+function isStartupLoaderCellActive(cellIndex: number) {
+	return cellIndex >= startupLoaderHead.value && cellIndex <= startupLoaderHead.value + 2;
+}
+
+function stopStartupLoaderAnimation() {
+	if (startupLoaderTimer !== null) {
+		window.clearInterval(startupLoaderTimer);
+		startupLoaderTimer = null;
+	}
+}
+
+function startStartupLoaderAnimation() {
+	if (typeof window === 'undefined' || startupLoaderTimer !== null) return;
+	startupLoaderHead.value = -2;
+	startupLoaderTimer = window.setInterval(() => {
+		const lastHead = startupLoaderCellCount - 1;
+		startupLoaderHead.value =
+			startupLoaderHead.value >= lastHead ? -2 : startupLoaderHead.value + 1;
+	}, 110);
+}
+
+watch(
+	() => [shell.splashVisible, shell.splashMode] as const,
+	([visible, mode]) => {
+		if (visible && mode === 'startup') {
+			startStartupLoaderAnimation();
+			return;
+		}
+		stopStartupLoaderAnimation();
+	},
+	{ immediate: true }
+);
+
+onBeforeUnmount(() => {
+	stopStartupLoaderAnimation();
+});
 </script>
 
 <template>
@@ -29,9 +71,12 @@ const shell = useShellControllerContext();
 				<p class="xp-startup-caption">Microsoft Windows XP</p>
 				<div class="xp-startup-loader" aria-hidden="true">
 					<div class="xp-startup-loader-track">
-						<span class="xp-startup-loader-box xp-startup-loader-box-1"></span>
-						<span class="xp-startup-loader-box xp-startup-loader-box-2"></span>
-						<span class="xp-startup-loader-box xp-startup-loader-box-3"></span>
+						<span
+							v-for="cellIndex in startupLoaderCellCount"
+							:key="`startup-loader-cell-${cellIndex}`"
+							class="xp-startup-loader-cell"
+							:class="{ 'is-active': isStartupLoaderCellActive(cellIndex - 1) }"
+						></span>
 					</div>
 				</div>
 			</div>

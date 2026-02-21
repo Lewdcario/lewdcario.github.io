@@ -2,6 +2,10 @@
 import { useShellControllerContext } from '~/src/features/shell/model/useShellController';
 
 const shell = useShellControllerContext();
+
+function listItemNumber(index: string | number) {
+	return Number(index) + 1;
+}
 </script>
 
 <template>
@@ -10,7 +14,7 @@ const shell = useShellControllerContext();
 			<legend>Profile</legend>
 			<p>
 				okami / she-her / full-stack engineer.
-				<br />this portfolio shell is a full rewrite with a windows xp navigation feel.
+				<br />personal website put stuff on
 			</p>
 		</fieldset>
 
@@ -33,7 +37,7 @@ const shell = useShellControllerContext();
 					v-for="(badgeSrc, index) in shell.blinkieBadges"
 					:key="badgeSrc"
 					:src="badgeSrc"
-					:alt="`Badge ${index + 1}`"
+					:alt="`Badge ${listItemNumber(index)}`"
 					class="blinkie-badge"
 					loading="lazy"
 					decoding="async"
@@ -53,7 +57,7 @@ const shell = useShellControllerContext();
 					v-for="(stampSrc, index) in shell.blinkieStamps"
 					:key="stampSrc"
 					:src="stampSrc"
-					:alt="`Stamp ${index + 1}`"
+					:alt="`Stamp ${listItemNumber(index)}`"
 					class="blinkie-stamp"
 					loading="lazy"
 					decoding="async"

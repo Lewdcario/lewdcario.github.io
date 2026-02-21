@@ -121,7 +121,7 @@ export function createBlogActions(deps: any) {
 					method: 'PATCH',
 					body: parseResult.data
 				});
-				const existingPostIndex = blogPosts.value.findIndex((post) => post.id === editingPostId);
+				const existingPostIndex = blogPosts.value.findIndex((post: BlogPost) => post.id === editingPostId);
 				if (existingPostIndex >= 0) {
 					const nextPosts = [...blogPosts.value];
 					nextPosts.splice(existingPostIndex, 1, payload.post);
@@ -163,7 +163,7 @@ export function createBlogActions(deps: any) {
 			const payload = await $fetch<{ deletedId: number }>(`/api/blog/posts/${post.id}`, {
 				method: 'DELETE'
 			});
-			blogPosts.value = blogPosts.value.filter((entry) => entry.id !== payload.deletedId);
+			blogPosts.value = blogPosts.value.filter((entry: BlogPost) => entry.id !== payload.deletedId);
 			if (selectedBlogPostId.value === payload.deletedId) {
 				selectedBlogPostId.value = blogPosts.value[0]?.id ?? null;
 			}

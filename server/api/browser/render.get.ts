@@ -235,7 +235,8 @@ function injectNavigatorBridge(html: string, sourceUrl: string) {
 function extractTitle(html: string) {
 	const titleMatch = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
 	if (!titleMatch) return '';
-	return titleMatch[1].replace(/\s+/g, ' ').trim();
+	const title = titleMatch[1] ?? '';
+	return title.replace(/\s+/g, ' ').trim();
 }
 
 function buildFallbackDocument(targetUrl: string, message: string) {

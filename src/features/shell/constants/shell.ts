@@ -354,7 +354,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		links: { width: 220, height: 230 },
 		clock: { width: 220, height: 150 },
 		main: { width: 860, height: 620 },
-		browser: { width: 640, height: 600 },
+		browser: { width: 820, height: 600 },
 		recycle: { width: 360, height: 280 },
 		vlc: { width: 640, height: 430 },
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
