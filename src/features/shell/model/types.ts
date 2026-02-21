@@ -10,6 +10,7 @@ export type WindowId =
 	| 'noise'
 	| 'cmd'
 	| 'chat'
+	| 'mines'
 	| 'otaclock'
 	| 'remote';
 

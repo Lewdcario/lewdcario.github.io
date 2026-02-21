@@ -59,6 +59,7 @@ const openWindowTargets: Record<string, WindowId> = {
 	noise: 'noise',
 	cmd: 'cmd',
 	chat: 'chat',
+	mines: 'mines',
 	otaclock: 'otaclock',
 	remote: 'remote'
 };

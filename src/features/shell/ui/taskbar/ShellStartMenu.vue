@@ -134,6 +134,18 @@ const shell = useShellControllerContext();
 				</button>
 				<button
 					class="start-menu-item"
+					@click="shell.openWindowFromMenu('mines')"
+				>
+					<img
+						:src="shellIcons.mines"
+						width="16"
+						height="16"
+						alt="minesweeper icon"
+					/>
+					<span>Open Minesweeper</span>
+				</button>
+				<button
+					class="start-menu-item"
 					@click="shell.openWindowFromMenu('remote')"
 				>
 					<img

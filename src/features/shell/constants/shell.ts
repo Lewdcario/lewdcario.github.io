@@ -33,6 +33,7 @@ export const shellIcons = {
 	noise: '/xp-icons/pack/media.png',
 	cmd: '/xp-icons/pack/cmd.png',
 	chat: '/xp-icons/pack/msn-messenger-icon.png',
+	mines: '/xp-icons/pack/minesweeper-icon.png',
 	remote: '/xp-icons/pack/computer.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
@@ -287,6 +288,14 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 48
 	},
 	{
+		id: 'minesweeper',
+		label: 'Minesweeper',
+		icon: shellIcons.mines,
+		windowId: 'mines',
+		x: 226,
+		y: 264
+	},
+	{
 		id: 'recycle-bin',
 		label: 'Recycle Bin',
 		icon: shellIcons.recycle,
@@ -343,6 +352,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.chat
 	},
 	{
+		id: 'mines',
+		label: 'Minesweeper',
+		icon: shellIcons.mines
+	},
+	{
 		id: 'remote',
 		label: 'Remote App Stream',
 		icon: shellIcons.remote
@@ -369,7 +383,8 @@ export function createDefaultWindowPositions(): Record<
 		cmd: { x: 720, y: 220, z: 13 },
 		otaclock: { x: 880, y: 120, z: 14 },
 		remote: { x: 610, y: 90, z: 15 },
-		chat: { x: 690, y: 138, z: 16 }
+		chat: { x: 690, y: 138, z: 16 },
+		mines: { x: 760, y: 170, z: 17 }
 	};
 }
 
@@ -384,6 +399,7 @@ export function createDefaultWindowState(): WindowStateMap {
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
 		chat: { isOpen: false, isMinimized: false, isMaximized: false },
+		mines: { isOpen: false, isMinimized: false, isMaximized: false },
 		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
 		remote: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
@@ -412,6 +428,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
 		cmd: { width: 560, height: 360 },
 		chat: { width: 700, height: 470 },
+		mines: { width: 320, height: 410 },
 		otaclock: { width: 440, height: 520 },
 		remote: { width: 760, height: 520 }
 	};

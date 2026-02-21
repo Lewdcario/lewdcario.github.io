@@ -20,6 +20,7 @@ export function createShellContextMenuState(deps: any) {
 		openVlcWindow,
 		openNoiseWindow,
 		openChatWindow,
+		openMinesWindow,
 		openOtaClockWindow,
 		performLogoff,
 		minimizeAllWindows,
@@ -135,6 +136,11 @@ export function createShellContextMenuState(deps: any) {
 					id: 'open-chat',
 					label: 'Open MSN Chat',
 					action: () => openChatWindow()
+				},
+				{
+					id: 'open-mines',
+					label: 'Open Minesweeper',
+					action: () => openMinesWindow()
 				},
 				{
 					id: 'open-otaclock',
