@@ -667,7 +667,11 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-	background: linear-gradient(180deg, var(--xp-scroll-track-top) 0%, var(--xp-scroll-track) 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-scroll-track-top) 0%,
+		var(--xp-scroll-track) 100%
+	);
 	border: 1px solid var(--xp-scroll-track-edge);
 }
 
@@ -850,8 +854,20 @@ a {
 	width: 10px;
 	height: 10px;
 	background-image:
-		linear-gradient(45deg, transparent 43%, #fff 43%, #fff 57%, transparent 57%),
-		linear-gradient(-45deg, transparent 43%, #fff 43%, #fff 57%, transparent 57%);
+		linear-gradient(
+			45deg,
+			transparent 43%,
+			#fff 43%,
+			#fff 57%,
+			transparent 57%
+		),
+		linear-gradient(
+			-45deg,
+			transparent 43%,
+			#fff 43%,
+			#fff 57%,
+			transparent 57%
+		);
 	background-size: 100% 100%;
 }
 
@@ -883,7 +899,9 @@ input[type='reset']:disabled {
 
 button.default {
 	border-color: #265fbc;
-	box-shadow: inset 0 0 0 1px #fff, 0 0 0 1px #7aa1e7;
+	box-shadow:
+		inset 0 0 0 1px #fff,
+		0 0 0 1px #7aa1e7;
 }
 
 button:active,
@@ -1045,7 +1063,13 @@ legend {
 
 .xp-startup-loader-cell.is-active {
 	border-color: #0b3b90;
-	background: linear-gradient(180deg, #d7eeff 0%, #8ac1ff 28%, #2d83e6 62%, #0a4fbf 100%);
+	background: linear-gradient(
+		180deg,
+		#d7eeff 0%,
+		#8ac1ff 28%,
+		#2d83e6 62%,
+		#0a4fbf 100%
+	);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
 }
 
@@ -1492,7 +1516,12 @@ legend {
 	width: 18px;
 	height: 18px;
 	border-radius: 50%;
-	background: radial-gradient(circle at 33% 33%, #ffd4ad 0%, #ee7a2b 45%, #bb4707 100%);
+	background: radial-gradient(
+		circle at 33% 33%,
+		#ffd4ad 0%,
+		#ee7a2b 45%,
+		#bb4707 100%
+	);
 	box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
@@ -1785,6 +1814,11 @@ legend {
 	max-width: none;
 }
 
+.remote-window {
+	width: auto;
+	max-width: none;
+}
+
 .otaclock-window {
 	width: auto;
 	max-width: none;
@@ -1818,7 +1852,9 @@ legend {
 	flex-direction: column;
 	min-height: 0;
 	border-top: 1px solid #f4f4f4;
-	box-shadow: inset 1px 1px 0 #f4f4f4, inset -1px -1px 0 #7d7b77;
+	box-shadow:
+		inset 1px 1px 0 #f4f4f4,
+		inset -1px -1px 0 #7d7b77;
 }
 
 .recycle-window-body {
@@ -1844,6 +1880,15 @@ legend {
 	background: #b9b8b4;
 }
 
+.remote-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: #b9b8b4;
+}
+
 .vlc-window-body {
 	display: flex;
 	flex-direction: column;
@@ -1855,6 +1900,13 @@ legend {
 	flex-direction: column;
 	min-height: 0;
 	overflow-y: auto;
+}
+
+.remote-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
 }
 
 .otaclock-window .window-body {
@@ -2007,7 +2059,8 @@ legend {
 	padding: 0;
 	border: 1px solid rgba(255, 255, 255, 0.4);
 	background: rgba(8, 12, 22, 0.5);
-	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+	box-shadow:
+		inset 1px 1px 0 rgba(255, 255, 255, 0.2),
 		0 0 0 1px rgba(0, 0, 0, 0.22);
 	cursor: pointer;
 	z-index: 4;
@@ -2079,7 +2132,10 @@ legend {
 
 .otaclock-control-row {
 	display: grid;
-	grid-template-columns: auto minmax(70px, auto) auto minmax(64px, auto) auto 1fr auto;
+	grid-template-columns: auto minmax(70px, auto) auto minmax(
+			64px,
+			auto
+		) auto 1fr auto;
 	align-items: center;
 	gap: 6px;
 	font-size: 11px;
@@ -2149,7 +2205,9 @@ legend {
 	padding: 2px 5px;
 	border: 1px solid #868686;
 	background: #fff;
-	box-shadow: inset 1px 1px 0 #f8f8f8, inset -1px -1px 0 #b8b8b8;
+	box-shadow:
+		inset 1px 1px 0 #f8f8f8,
+		inset -1px -1px 0 #b8b8b8;
 	font-size: 12px;
 }
 
@@ -2323,7 +2381,9 @@ legend {
 	border: 1px solid #5c5f56;
 	background: linear-gradient(180deg, #426154 0%, #33493f 100%);
 	color: #ddf9cc;
-	box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.2), inset -1px -1px 0 rgba(0, 0, 0, 0.35);
+	box-shadow:
+		inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+		inset -1px -1px 0 rgba(0, 0, 0, 0.35);
 	font-family: 'Courier New', monospace;
 	text-transform: uppercase;
 }
@@ -2461,7 +2521,11 @@ legend {
 }
 
 .recycle-shortcut:hover {
-	background: linear-gradient(180deg, rgba(207, 225, 252, 0.66) 0%, rgba(177, 207, 248, 0.66) 100%);
+	background: linear-gradient(
+		180deg,
+		rgba(207, 225, 252, 0.66) 0%,
+		rgba(177, 207, 248, 0.66) 100%
+	);
 	border-color: rgba(71, 122, 185, 0.65);
 }
 
@@ -2665,7 +2729,9 @@ legend {
 	border: 1px solid #6c6a65;
 	border-radius: 0;
 	background: #fff;
-	box-shadow: inset 1px 1px 0 #f8f8f8, inset -1px -1px 0 #b1afa9;
+	box-shadow:
+		inset 1px 1px 0 #f8f8f8,
+		inset -1px -1px 0 #b1afa9;
 	font-size: 12px;
 }
 
@@ -2749,7 +2815,9 @@ legend {
 	border: 1px solid #6c6a65;
 	border-radius: 0;
 	background: #fff;
-	box-shadow: inset 1px 1px 0 #f8f8f8, inset -1px -1px 0 #b1afa9;
+	box-shadow:
+		inset 1px 1px 0 #f8f8f8,
+		inset -1px -1px 0 #b1afa9;
 	font-size: 12px;
 }
 
@@ -2832,13 +2900,17 @@ legend {
 
 .tor-browser-skin .netscape-location-row input {
 	border-color: #5f4a89;
-	box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b8a8d9;
+	box-shadow:
+		inset 1px 1px 0 #ffffff,
+		inset -1px -1px 0 #b8a8d9;
 }
 
 .tor-browser-skin .netscape-search-row input,
 .tor-browser-skin .netscape-search-row select {
 	border-color: #5f4a89;
-	box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #b8a8d9;
+	box-shadow:
+		inset 1px 1px 0 #ffffff,
+		inset -1px -1px 0 #b8a8d9;
 }
 
 .tor-browser-skin .netscape-throbber {
@@ -2981,7 +3053,11 @@ fieldset {
 }
 
 .blinkie-gallery {
-	background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(233, 243, 255, 0.9) 100%);
+	background: linear-gradient(
+		180deg,
+		rgba(255, 255, 255, 0.92) 0%,
+		rgba(233, 243, 255, 0.9) 100%
+	);
 	min-width: 0;
 	overflow: visible;
 }
@@ -3432,11 +3508,7 @@ fieldset {
 }
 
 .start-button-inner:active {
-	background: linear-gradient(
-		180deg,
-		#2f8f29 0%,
-		#3da133 100%
-	);
+	background: linear-gradient(180deg, #2f8f29 0%, #3da133 100%);
 }
 
 .start-menu {
@@ -3642,7 +3714,11 @@ fieldset {
 	height: 26px;
 	border: 1px solid var(--xp-tray-border);
 	border-radius: 3px;
-	background: linear-gradient(180deg, var(--xp-tray-top) 0%, var(--xp-tray-bottom) 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-tray-top) 0%,
+		var(--xp-tray-bottom) 100%
+	);
 	box-shadow: inset 0 1px rgba(255, 255, 255, 0.35);
 	color: var(--xp-tray-text);
 	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);

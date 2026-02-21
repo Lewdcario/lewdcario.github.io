@@ -31,6 +31,7 @@ export const shellIcons = {
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
 	noise: '/xp-icons/pack/media.png',
+	remote: '/xp-icons/pack/computer.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
 	folderOpen: '/xp-icons/pack/folder-open.png',
@@ -236,6 +237,14 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 370
 	},
 	{
+		id: 'remote-app',
+		label: 'Remote App',
+		icon: shellIcons.remote,
+		windowId: 'remote',
+		x: 318,
+		y: 250
+	},
+	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock,
@@ -306,6 +315,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.noise
 	},
 	{
+		id: 'remote',
+		label: 'Remote App Stream',
+		icon: shellIcons.remote
+	},
+	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock
@@ -321,7 +335,8 @@ export function createDefaultWindowPositions(): Record<WindowId, WindowPosition>
 		recycle: { x: 540, y: 132, z: 10 },
 		vlc: { x: 460, y: 120, z: 11 },
 		noise: { x: 690, y: 190, z: 12 },
-		otaclock: { x: 880, y: 120, z: 13 }
+		otaclock: { x: 880, y: 120, z: 13 },
+		remote: { x: 610, y: 90, z: 14 }
 	};
 }
 
@@ -334,7 +349,8 @@ export function createDefaultWindowState(): WindowStateMap {
 		recycle: { isOpen: false, isMinimized: false, isMaximized: false },
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
-		otaclock: { isOpen: false, isMinimized: false, isMaximized: false }
+		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
+		remote: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
 }
 
@@ -355,6 +371,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		recycle: { width: 360, height: 280 },
 		vlc: { width: 640, height: 430 },
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
-		otaclock: { width: 440, height: 520 }
+		otaclock: { width: 440, height: 520 },
+		remote: { width: 760, height: 520 }
 	};
 }

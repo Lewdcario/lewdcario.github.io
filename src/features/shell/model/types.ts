@@ -8,7 +8,8 @@ export type WindowId =
 	| 'recycle'
 	| 'vlc'
 	| 'noise'
-	| 'otaclock';
+	| 'otaclock'
+	| 'remote';
 
 export interface ShellShortcut {
 	id: string;

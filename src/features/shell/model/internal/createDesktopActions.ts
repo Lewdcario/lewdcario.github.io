@@ -85,6 +85,7 @@ export function createDesktopActions(deps: any) {
 	function windowMinSize(windowId: WindowId) {
 		if (windowId === 'main') return { width: 520, height: 360 };
 		if (windowId === 'browser') return { width: 460, height: 320 };
+		if (windowId === 'remote') return { width: 560, height: 360 };
 		if (windowId === 'vlc') return { width: 420, height: 280 };
 		if (windowId === 'noise') return { width: 340, height: 280 };
 		if (windowId === 'recycle') return { width: 260, height: 180 };
