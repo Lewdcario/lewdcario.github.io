@@ -8,6 +8,7 @@ export type WindowId =
 	| 'recycle'
 	| 'vlc'
 	| 'noise'
+	| 'cmd'
 	| 'otaclock'
 	| 'remote';
 
@@ -76,7 +77,12 @@ export interface WindowMeta {
 	icon: string;
 }
 
-export type ContextTargetType = 'desktop' | 'icon' | 'window' | 'taskbar' | 'start';
+export type ContextTargetType =
+	| 'desktop'
+	| 'icon'
+	| 'window'
+	| 'taskbar'
+	| 'start';
 
 export interface ContextTarget {
 	type: ContextTargetType;
@@ -100,7 +106,11 @@ export interface BrowserRenderPayload {
 export type BrowserRenderMode = 'direct' | 'snapshot';
 export type BrowserBackend = 'standard' | 'tor';
 export type BrowserSkin = 'netscape' | 'tor';
-export type BrowserSearchEngineId = 'ahmia' | 'duckduckgo' | 'wiby' | 'startpage';
+export type BrowserSearchEngineId =
+	| 'ahmia'
+	| 'duckduckgo'
+	| 'wiby'
+	| 'startpage';
 
 export interface BrowserRequestOptions {
 	pushHistory?: boolean;

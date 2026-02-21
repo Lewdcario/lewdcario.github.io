@@ -1814,6 +1814,11 @@ legend {
 	max-width: none;
 }
 
+.cmd-window {
+	width: auto;
+	max-width: none;
+}
+
 .remote-window {
 	width: auto;
 	max-width: none;
@@ -1880,6 +1885,15 @@ legend {
 	background: #b9b8b4;
 }
 
+.cmd-window .window-body {
+	height: calc(100% - 22px);
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	background: #0a0a0a;
+}
+
 .remote-window .window-body {
 	height: calc(100% - 22px);
 	margin: 0;
@@ -1902,11 +1916,109 @@ legend {
 	overflow-y: auto;
 }
 
+.cmd-window-body {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+
 .remote-window-body {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
 	overflow: hidden;
+}
+
+.cmd-shell {
+	height: 100%;
+	background: #000000;
+	color: #f3f3f3;
+	font-family:
+		'Perfect DOS VGA 437',
+		'PxPlus IBM VGA 8x16',
+		'Lucida Console',
+		'Consolas',
+		'Courier New',
+		monospace;
+	font-size: 12px;
+	font-weight: 700;
+	-webkit-font-smoothing: none;
+	font-smooth: never;
+	text-rendering: optimizeSpeed;
+}
+
+.cmd-output {
+	height: 100%;
+	overflow: auto;
+	padding: 6px 7px;
+	white-space: pre-wrap;
+	line-height: 1.2;
+	word-break: break-word;
+}
+
+.cmd-line {
+	margin: 0;
+}
+
+.cmd-line + .cmd-line {
+	margin-top: 2px;
+}
+
+.cmd-line-output {
+	color: #f3f3f3;
+}
+
+.cmd-line-error {
+	color: #ffafaf;
+}
+
+.cmd-line-muted {
+	color: #d7d7d7;
+}
+
+.cmd-input-row {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	padding: 0;
+	margin-top: 2px;
+	background: #000000;
+}
+
+.cmd-prompt {
+	color: #f3f3f3;
+	margin-right: 0;
+	flex: none;
+}
+
+.cmd-input {
+	all: unset;
+	display: inline-block;
+	flex: 1;
+	min-width: 6px;
+	background: transparent !important;
+	color: #f3f3f3 !important;
+	-webkit-text-fill-color: #f3f3f3;
+	font-family:
+		'Perfect DOS VGA 437',
+		'PxPlus IBM VGA 8x16',
+		'Lucida Console',
+		'Consolas',
+		'Courier New',
+		monospace;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.2;
+	caret-color: #f3f3f3;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	outline: none !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	appearance: none !important;
+	-webkit-appearance: none !important;
 }
 
 .otaclock-window .window-body {
@@ -2132,10 +2244,9 @@ legend {
 
 .otaclock-control-row {
 	display: grid;
-	grid-template-columns: auto minmax(70px, auto) auto minmax(
-			64px,
-			auto
-		) auto 1fr auto;
+	grid-template-columns:
+		auto minmax(70px, auto) auto minmax(64px, auto)
+		auto 1fr auto;
 	align-items: center;
 	gap: 6px;
 	font-size: 11px;

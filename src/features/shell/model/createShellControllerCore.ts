@@ -1,9 +1,7 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 import projects, { type PortfolioProject } from '~/src/data/projects';
 import { createNoiseEngine } from '~/src/features/noise/model/createNoiseEngine';
-import {
-	themeStorageKey
-} from '~/src/features/shell/constants/shell';
+import { themeStorageKey } from '~/src/features/shell/constants/shell';
 import { createBrowserMediaActions } from '~/src/features/shell/model/internal/createBrowserMediaActions';
 import { createBlogActions } from '~/src/features/shell/model/internal/createBlogActions';
 import { createDesktopActions } from '~/src/features/shell/model/internal/createDesktopActions';
@@ -12,7 +10,6 @@ import { createShellState } from '~/src/features/shell/model/internal/createShel
 import { createShellComputedState } from '~/src/features/shell/model/internal/createShellComputedState';
 import { createShellContextMenuState } from '~/src/features/shell/model/internal/createShellContextMenuState';
 import { createShellUtilities } from '~/src/features/shell/model/internal/createShellUtilities';
-
 
 function buildShellController() {
 	const {
@@ -113,7 +110,7 @@ function buildShellController() {
 		contextMenuY,
 		contextTarget
 	} = createShellState();
-	
+
 	const noiseEngine = createNoiseEngine();
 
 	const {
@@ -176,7 +173,7 @@ function buildShellController() {
 		fallbackTimer: null as number | null
 	};
 	const windowRuntime = {
-		zCounter: 13,
+		zCounter: 15,
 		draggedIconIds: new Set<string>()
 	};
 
@@ -204,7 +201,7 @@ function buildShellController() {
 		blinkieError,
 		lifecycleRuntime
 	});
-	
+
 	function updateClocks() {
 		const now = new Date();
 		otaClockNow.value = now;
@@ -212,14 +209,14 @@ function buildShellController() {
 		const minutes = now.getMinutes().toString().padStart(2, '0');
 		const seconds = now.getSeconds().toString().padStart(2, '0');
 		liveClock.value = `${hour24}:${minutes}:${seconds}`;
-	
+
 		const hour12raw = now.getHours() % 12;
 		const hour12 = hour12raw === 0 ? 12 : hour12raw;
 		const meridiem = now.getHours() >= 12 ? 'PM' : 'AM';
 		taskbarClock.value = `${hour12}:${minutes} ${meridiem}`;
 		checkOtaClockAlarm(now);
 	}
-	
+
 	function parseOtaClockAlarmTimes(rawValue: string) {
 		const parsed = new Set<string>();
 		for (const line of rawValue.split(/\r?\n/g)) {
@@ -231,69 +228,76 @@ function buildShellController() {
 		}
 		return parsed;
 	}
-	
+
 	function stopOtaClockAlarm(announce = true) {
 		if (otaClockAlarmStopTimer !== null) {
 			window.clearTimeout(otaClockAlarmStopTimer);
 			otaClockAlarmStopTimer = null;
 		}
-	
+
 		otaClockRinging.value = false;
-		const audioElements = [otaClockAudioLaughRef.value, otaClockAudioOkRef.value];
+		const audioElements = [
+			otaClockAudioLaughRef.value,
+			otaClockAudioOkRef.value
+		];
 		for (const audio of audioElements) {
 			if (!audio) continue;
 			audio.pause();
 			audio.currentTime = 0;
 		}
-	
+
 		if (announce) {
 			pushStatus('OtaClock alarm stopped.');
 		}
 	}
-	
+
 	function startOtaClockAlarm() {
 		stopOtaClockAlarm(false);
 		otaClockRinging.value = true;
 		desktopActions.restoreWindow('otaclock', false);
 		desktopActions.focusWindow('otaclock');
-	
+
 		const targetAudio =
 			otaClockAlarmSound.value === 'LAUGH'
 				? otaClockAudioLaughRef.value
 				: otaClockAudioOkRef.value;
-	
+
 		if (targetAudio) {
 			targetAudio.loop = true;
 			void targetAudio.play().catch(() => {
-				pushStatus('OtaClock alarm triggered. Click Stop Alarm to silence it.');
+				pushStatus(
+					'OtaClock alarm triggered. Click Stop Alarm to silence it.'
+				);
 			});
 		}
-	
+
 		otaClockAlarmStopTimer = window.setTimeout(() => {
 			stopOtaClockAlarm(false);
 			pushStatus('OtaClock alarm finished.');
 		}, otaClockAlarmDuration.value * 1000);
 	}
-	
+
 	function checkOtaClockAlarm(now: Date) {
 		if (!otaClockAlarmEnabled.value) return;
 		if (otaClockRinging.value) return;
-	
-		const activeAlarms = parseOtaClockAlarmTimes(otaClockAlarmTimesInput.value);
+
+		const activeAlarms = parseOtaClockAlarmTimes(
+			otaClockAlarmTimesInput.value
+		);
 		if (activeAlarms.size === 0) return;
-	
+
 		const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
 			.getMinutes()
 			.toString()
 			.padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-	
+
 		if (!activeAlarms.has(currentTime)) {
 			return;
 		}
-	
+
 		startOtaClockAlarm();
 	}
-	
+
 	const blogActions = createBlogActions({
 		sessionRole,
 		blogLoading,
@@ -343,17 +347,26 @@ function buildShellController() {
 		blogLoading,
 		loadBlogPosts: blogActions.loadBlogPosts,
 		pushStatus,
-		openInBrowser: (...args: unknown[]) => browserMediaActions.openInBrowser(...args),
-		openStandardBrowser: (...args: unknown[]) => browserMediaActions.openStandardBrowser(...args),
-		openTorBrowser: (...args: unknown[]) => browserMediaActions.openTorBrowser(...args),
-		openVlcWindow: (...args: unknown[]) => browserMediaActions.openVlcWindow(...args),
-		openNoiseWindow: (...args: unknown[]) => browserMediaActions.openNoiseWindow(...args),
-		openOtaClockWindow: (...args: unknown[]) => browserMediaActions.openOtaClockWindow(...args),
-		performLogoff: (...args: unknown[]) => sessionActions.performLogoff(...args),
+		openInBrowser: (...args: unknown[]) =>
+			browserMediaActions.openInBrowser(...args),
+		openStandardBrowser: (...args: unknown[]) =>
+			browserMediaActions.openStandardBrowser(...args),
+		openTorBrowser: (...args: unknown[]) =>
+			browserMediaActions.openTorBrowser(...args),
+		openVlcWindow: (...args: unknown[]) =>
+			browserMediaActions.openVlcWindow(...args),
+		openNoiseWindow: (...args: unknown[]) =>
+			browserMediaActions.openNoiseWindow(...args),
+		openOtaClockWindow: (...args: unknown[]) =>
+			browserMediaActions.openOtaClockWindow(...args),
+		performLogoff: (...args: unknown[]) =>
+			sessionActions.performLogoff(...args),
 		clearBrowserFallbackTimer: (...args: unknown[]) =>
 			browserMediaActions.clearBrowserFallbackTimer(...args),
-		stopBrowserLoading: (...args: unknown[]) => browserMediaActions.stopBrowserLoading(...args),
-		stopNoiseGenerator: (...args: unknown[]) => browserMediaActions.stopNoiseGenerator(...args),
+		stopBrowserLoading: (...args: unknown[]) =>
+			browserMediaActions.stopBrowserLoading(...args),
+		stopNoiseGenerator: (...args: unknown[]) =>
+			browserMediaActions.stopNoiseGenerator(...args),
 		stopOtaClockAlarm,
 		windowRuntime
 	});
@@ -414,7 +427,8 @@ function buildShellController() {
 		activeTab,
 		startMenuOpen,
 		closeContextMenu: desktopActions.closeContextMenu,
-		clearBrowserFallbackTimer: browserMediaActions.clearBrowserFallbackTimer,
+		clearBrowserFallbackTimer:
+			browserMediaActions.clearBrowserFallbackTimer,
 		stopOtaClockAlarm,
 		stopNoiseGenerator: browserMediaActions.stopNoiseGenerator,
 		loginSubmitting,
@@ -431,7 +445,8 @@ function buildShellController() {
 		browserFrameSrc,
 		browserRenderMode,
 		browserDocument,
-		browserPlaceholderDocument: browserMediaActions.browserPlaceholderDocument,
+		browserPlaceholderDocument:
+			browserMediaActions.browserPlaceholderDocument,
 		browserHistory,
 		browserHistoryIndex,
 		browserSearchMenuOpen,
@@ -492,7 +507,8 @@ function buildShellController() {
 		browserShellTitle,
 		browserCurrentUrl,
 		pushStatus,
-		handleDesktopIconContextAction: desktopActions.handleDesktopIconContextAction,
+		handleDesktopIconContextAction:
+			desktopActions.handleDesktopIconContextAction,
 		openTorBrowser: browserMediaActions.openTorBrowser,
 		openInBrowser: browserMediaActions.openInBrowser,
 		toggleMaximizeWindow: desktopActions.toggleMaximizeWindow,
@@ -506,17 +522,17 @@ function buildShellController() {
 		minimizeAllWindows: desktopActions.minimizeAllWindows,
 		resetDesktopIcons: desktopActions.resetDesktopIcons
 	});
-	
+
 	watch(activeThemeId, (themeId, previousThemeId) => {
 		if (themeId === previousThemeId) return;
 		void loadThemeBlinkies(themeId);
 	});
-	
+
 	watch(otaClockAlwaysOnTop, (enabled) => {
 		if (!enabled || !desktopActions.isWindowVisible('otaclock')) return;
 		desktopActions.focusWindow('otaclock');
 	});
-	
+
 	onMounted(() => {
 		document.title = 'Okami Portfolio';
 		vlcEmbedOrigin.value = window.location.origin;
@@ -536,19 +552,31 @@ function buildShellController() {
 		desktopActions.normalizeDesktopLayout();
 		updateClocks();
 		clockTimer = window.setInterval(updateClocks, 1000);
-		document.addEventListener('click', desktopActions.closeStartMenuOnOutsideClick);
+		document.addEventListener(
+			'click',
+			desktopActions.closeStartMenuOnOutsideClick
+		);
 		document.addEventListener('keydown', desktopActions.closeMenusOnEscape);
 		window.addEventListener('resize', sessionActions.handleWindowResize);
-		window.addEventListener('pointermove', desktopActions.handlePointerMove);
+		window.addEventListener(
+			'pointermove',
+			desktopActions.handlePointerMove
+		);
 		window.addEventListener('pointerup', desktopActions.releaseActiveDrag);
-		window.addEventListener('pointercancel', desktopActions.releaseActiveDrag);
-		window.addEventListener('message', browserMediaActions.handleBrowserWindowMessage);
+		window.addEventListener(
+			'pointercancel',
+			desktopActions.releaseActiveDrag
+		);
+		window.addEventListener(
+			'message',
+			browserMediaActions.handleBrowserWindowMessage
+		);
 		void sessionActions.runStartupSequence();
 	});
-	
+
 	onBeforeUnmount(() => {
 		lifecycleRuntime.disposed = true;
-	
+
 		if (clockTimer !== null) {
 			window.clearInterval(clockTimer);
 		}
@@ -558,13 +586,31 @@ function buildShellController() {
 		browserMediaActions.stopNoiseGenerator(false);
 		void noiseEngine.close();
 
-		document.removeEventListener('click', desktopActions.closeStartMenuOnOutsideClick);
-		document.removeEventListener('keydown', desktopActions.closeMenusOnEscape);
+		document.removeEventListener(
+			'click',
+			desktopActions.closeStartMenuOnOutsideClick
+		);
+		document.removeEventListener(
+			'keydown',
+			desktopActions.closeMenusOnEscape
+		);
 		window.removeEventListener('resize', sessionActions.handleWindowResize);
-		window.removeEventListener('pointermove', desktopActions.handlePointerMove);
-		window.removeEventListener('pointerup', desktopActions.releaseActiveDrag);
-		window.removeEventListener('pointercancel', desktopActions.releaseActiveDrag);
-		window.removeEventListener('message', browserMediaActions.handleBrowserWindowMessage);
+		window.removeEventListener(
+			'pointermove',
+			desktopActions.handlePointerMove
+		);
+		window.removeEventListener(
+			'pointerup',
+			desktopActions.releaseActiveDrag
+		);
+		window.removeEventListener(
+			'pointercancel',
+			desktopActions.releaseActiveDrag
+		);
+		window.removeEventListener(
+			'message',
+			browserMediaActions.handleBrowserWindowMessage
+		);
 	});
 
 	const shellState = {

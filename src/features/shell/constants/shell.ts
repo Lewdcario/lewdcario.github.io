@@ -31,6 +31,7 @@ export const shellIcons = {
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
 	noise: '/xp-icons/pack/media.png',
+	cmd: '/xp-icons/pack/cmd.png',
 	remote: '/xp-icons/pack/computer.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
@@ -237,6 +238,14 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 370
 	},
 	{
+		id: 'cmd',
+		label: 'Command Prompt',
+		icon: shellIcons.cmd,
+		windowId: 'cmd',
+		x: 414,
+		y: 370
+	},
+	{
 		id: 'remote-app',
 		label: 'Remote App',
 		icon: shellIcons.remote,
@@ -315,6 +324,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.noise
 	},
 	{
+		id: 'cmd',
+		label: 'Command Prompt',
+		icon: shellIcons.cmd
+	},
+	{
 		id: 'remote',
 		label: 'Remote App Stream',
 		icon: shellIcons.remote
@@ -326,7 +340,10 @@ export const windowsMeta: WindowMeta[] = [
 	}
 ];
 
-export function createDefaultWindowPositions(): Record<WindowId, WindowPosition> {
+export function createDefaultWindowPositions(): Record<
+	WindowId,
+	WindowPosition
+> {
 	return {
 		links: { x: 150, y: 66, z: 6 },
 		clock: { x: 150, y: 330, z: 7 },
@@ -335,8 +352,9 @@ export function createDefaultWindowPositions(): Record<WindowId, WindowPosition>
 		recycle: { x: 540, y: 132, z: 10 },
 		vlc: { x: 460, y: 120, z: 11 },
 		noise: { x: 690, y: 190, z: 12 },
-		otaclock: { x: 880, y: 120, z: 13 },
-		remote: { x: 610, y: 90, z: 14 }
+		cmd: { x: 720, y: 220, z: 13 },
+		otaclock: { x: 880, y: 120, z: 14 },
+		remote: { x: 610, y: 90, z: 15 }
 	};
 }
 
@@ -349,6 +367,7 @@ export function createDefaultWindowState(): WindowStateMap {
 		recycle: { isOpen: false, isMinimized: false, isMaximized: false },
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
+		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
 		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
 		remote: { isOpen: false, isMinimized: false, isMaximized: false }
 	};
@@ -359,7 +378,11 @@ export function noiseWindowHeightForPresetList() {
 	const presetItemHeight = 43;
 	const presetItemGap = 5;
 	const presetCount = Math.max(1, noisePresets.length);
-	return shellControlsHeight + presetCount * presetItemHeight + (presetCount - 1) * presetItemGap;
+	return (
+		shellControlsHeight +
+		presetCount * presetItemHeight +
+		(presetCount - 1) * presetItemGap
+	);
 }
 
 export function createDefaultWindowSizes(): WindowSizesMap {
@@ -371,6 +394,7 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		recycle: { width: 360, height: 280 },
 		vlc: { width: 640, height: 430 },
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
+		cmd: { width: 560, height: 360 },
 		otaclock: { width: 440, height: 520 },
 		remote: { width: 760, height: 520 }
 	};
