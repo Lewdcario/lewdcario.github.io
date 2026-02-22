@@ -115,7 +115,10 @@ function buildShellController() {
 		contextMenuVisible,
 		contextMenuX,
 		contextMenuY,
-		contextTarget
+		contextTarget,
+		missingnoCrashVisible,
+		missingnoCrashProgress,
+		missingnoCrashPhase
 	} = createShellState();
 
 	const noiseEngine = createNoiseEngine();
@@ -363,6 +366,9 @@ function buildShellController() {
 		contextMenuX,
 		contextMenuY,
 		contextTarget,
+		missingnoCrashVisible,
+		missingnoCrashProgress,
+		missingnoCrashPhase,
 		splashVisible,
 		powerState,
 		blogLoading,
@@ -448,6 +454,7 @@ function buildShellController() {
 		activeTab,
 		startMenuOpen,
 		closeContextMenu: desktopActions.closeContextMenu,
+		resetMissingnoCrashState: desktopActions.resetMissingnoCrashState,
 		clearBrowserFallbackTimer:
 			browserMediaActions.clearBrowserFallbackTimer,
 		stopOtaClockAlarm,
@@ -639,6 +646,7 @@ function buildShellController() {
 		disposeShellUtilities();
 		browserMediaActions.disposeBrowserMediaActions();
 		browserMediaActions.stopNoiseGenerator(false);
+		desktopActions.clearMissingnoCrashTimers();
 		void noiseEngine.close();
 
 		document.removeEventListener(
@@ -770,7 +778,10 @@ function buildShellController() {
 		contextMenuVisible,
 		contextMenuX,
 		contextMenuY,
-		contextTarget
+		contextTarget,
+		missingnoCrashVisible,
+		missingnoCrashProgress,
+		missingnoCrashPhase
 	};
 
 	const shellComputedState = {

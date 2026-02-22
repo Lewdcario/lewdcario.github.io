@@ -133,6 +133,9 @@ export function createShellState() {
 	const contextMenuX = ref(0);
 	const contextMenuY = ref(0);
 	const contextTarget = ref<ContextTarget>({ type: 'desktop' });
+	const missingnoCrashVisible = ref(false);
+	const missingnoCrashProgress = ref(0);
+	const missingnoCrashPhase = ref<'idle' | 'desktop' | 'counting'>('idle');
 
 	return {
 		splashVisible,
@@ -236,6 +239,9 @@ export function createShellState() {
 		contextMenuVisible,
 		contextMenuX,
 		contextMenuY,
-		contextTarget
+		contextTarget,
+		missingnoCrashVisible,
+		missingnoCrashProgress,
+		missingnoCrashPhase
 	};
 }

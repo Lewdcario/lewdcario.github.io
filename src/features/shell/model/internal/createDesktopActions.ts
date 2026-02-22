@@ -19,6 +19,7 @@ import type {
 import type { PortfolioProject } from '~/src/data/projects';
 
 export function createDesktopActions(deps: any) {
+	const missingnoDesktopGlitchDurationMs = 3200;
 	const {
 		activeTab,
 		startMenuOpen,
@@ -39,6 +40,9 @@ export function createDesktopActions(deps: any) {
 		contextMenuX,
 		contextMenuY,
 		contextTarget,
+		missingnoCrashVisible,
+		missingnoCrashProgress,
+		missingnoCrashPhase,
 		splashVisible,
 		powerState,
 		blogLoading,
@@ -61,6 +65,71 @@ export function createDesktopActions(deps: any) {
 		zCounter: number;
 		draggedIconIds: Set<string>;
 	};
+	let missingnoProgressTimer: number | null = null;
+	let missingnoReloadTimer: number | null = null;
+	let missingnoDesktopTimer: number | null = null;
+
+	function clearMissingnoCrashTimers() {
+		if (missingnoDesktopTimer !== null) {
+			window.clearTimeout(missingnoDesktopTimer);
+			missingnoDesktopTimer = null;
+		}
+		if (missingnoProgressTimer !== null) {
+			window.clearInterval(missingnoProgressTimer);
+			missingnoProgressTimer = null;
+		}
+		if (missingnoReloadTimer !== null) {
+			window.clearTimeout(missingnoReloadTimer);
+			missingnoReloadTimer = null;
+		}
+	}
+
+	function resetMissingnoCrashState() {
+		clearMissingnoCrashTimers();
+		missingnoCrashVisible.value = false;
+		missingnoCrashProgress.value = 0;
+		missingnoCrashPhase.value = 'idle';
+	}
+
+	function triggerMissingnoCrash() {
+		if (missingnoCrashVisible.value || missingnoCrashPhase.value !== 'idle')
+			return;
+
+		clearMissingnoCrashTimers();
+		startMenuOpen.value = false;
+		closeContextMenu();
+		activeDrag.value = null;
+		stopBrowserLoading(false);
+		stopNoiseGenerator(false);
+		stopOtaClockAlarm(false);
+		missingnoCrashVisible.value = false;
+		missingnoCrashProgress.value = 0;
+		missingnoCrashPhase.value = 'desktop';
+		pushStatus('MISSINGNO. corrupted system memory.');
+
+		missingnoDesktopTimer = window.setTimeout(() => {
+			missingnoCrashVisible.value = true;
+			missingnoCrashPhase.value = 'counting';
+			missingnoProgressTimer = window.setInterval(() => {
+				const current = missingnoCrashProgress.value;
+				if (current >= 100) {
+					clearMissingnoCrashTimers();
+					missingnoCrashProgress.value = 100;
+					missingnoReloadTimer = window.setTimeout(() => {
+						window.location.reload();
+					}, 700);
+					return;
+				}
+
+				const remaining = 100 - current;
+				const nextStep = Math.max(
+					1,
+					Math.min(remaining, Math.floor(Math.random() * 6) + 1)
+				);
+				missingnoCrashProgress.value = Math.min(100, current + nextStep);
+			}, 130);
+		}, missingnoDesktopGlitchDurationMs);
+	}
 
 	function setTab(tab: TabId) {
 		if (!isWindowVisible('main')) {
@@ -594,6 +663,10 @@ export function createDesktopActions(deps: any) {
 			pushStatus(`${shortcut.label} is currently disabled.`);
 			return;
 		}
+		if (shortcut.id === 'missingno') {
+			triggerMissingnoCrash();
+			return;
+		}
 
 		if (shortcut.windowId === 'vlc') {
 			openVlcWindow();
@@ -832,6 +905,9 @@ export function createDesktopActions(deps: any) {
 		toggleStartMenu,
 		closeStartMenuOnOutsideClick,
 		closeMenusOnEscape,
-		runSoftAction
+		runSoftAction,
+		triggerMissingnoCrash,
+		resetMissingnoCrashState,
+		clearMissingnoCrashTimers
 	};
 }

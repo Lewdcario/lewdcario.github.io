@@ -977,6 +977,60 @@ legend {
 	z-index: 1;
 }
 
+.xp-shell.missingno-desktop-glitch::before {
+	opacity: 0.42;
+	filter: hue-rotate(12deg) saturate(1.1);
+}
+
+.missingno-desktop-glitch-mask {
+	position: fixed;
+	inset: 0;
+	z-index: 1202;
+	pointer-events: all;
+	background:
+		linear-gradient(
+			180deg,
+			rgba(8, 20, 58, 0.1) 0%,
+			rgba(255, 255, 255, 0.08) 100%
+		),
+		repeating-linear-gradient(
+			180deg,
+			transparent 0 8px,
+			rgba(255, 255, 255, 0.2) 8px 9px,
+			transparent 9px 18px
+		);
+	opacity: 0.28;
+	mix-blend-mode: screen;
+	animation: missingno-desktop-stripe-shift 420ms linear infinite;
+}
+
+.missingno-desktop-glitch-mask::before,
+.missingno-desktop-glitch-mask::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		repeating-linear-gradient(
+			180deg,
+			transparent 0 20px,
+			rgba(255, 60, 198, 0.14) 20px 24px,
+			transparent 24px 44px
+		);
+	mix-blend-mode: screen;
+	animation: missingno-desktop-strip-a 640ms linear infinite;
+}
+
+.missingno-desktop-glitch-mask::after {
+	background:
+		repeating-linear-gradient(
+			180deg,
+			transparent 0 16px,
+			rgba(95, 238, 255, 0.16) 16px 19px,
+			transparent 19px 34px
+		);
+	animation: missingno-desktop-strip-b 510ms linear infinite;
+}
+
 .splash-screen {
 	position: fixed;
 	inset: 0;
@@ -1571,6 +1625,7 @@ legend {
 .desktop-icon {
 	position: absolute;
 	width: 80px;
+	--desktop-icon-image: none;
 	text-align: center;
 	color: #fff;
 	text-shadow: 1px 1px 0 #000;
@@ -1594,10 +1649,85 @@ legend {
 	pointer-events: none;
 }
 
+.desktop-icon[data-icon-id='missingno'] img {
+	image-rendering: pixelated;
+}
+
 .desktop-icon p {
 	margin: 4px 0 0;
 	font-size: 11px;
 	line-height: 1.25;
+}
+
+.xp-shell.missingno-desktop-glitch .desktop-icon--glitching img {
+	opacity: 0.42;
+	filter: contrast(1.08) saturate(0.18) hue-rotate(0deg);
+}
+
+.desktop-icon-glitch-strips {
+	position: absolute;
+	left: 24px;
+	top: 0;
+	width: 32px;
+	height: 32px;
+	overflow: hidden;
+	pointer-events: none;
+	opacity: 0;
+}
+
+.xp-shell.missingno-desktop-glitch .desktop-icon--glitching .desktop-icon-glitch-strips {
+	opacity: 1;
+}
+
+.desktop-icon-strip {
+	position: absolute;
+	left: 0;
+	top: var(--strip-top, 0px);
+	width: 32px;
+	height: var(--strip-height, 4px);
+	pointer-events: none;
+	background-image: var(--desktop-icon-image);
+	background-repeat: no-repeat;
+	background-position: 0 var(--strip-bg-pos-y, 0px);
+	background-size: 32px 32px;
+	mix-blend-mode: screen;
+	filter: hue-rotate(0deg);
+	opacity: var(--strip-opacity, 0.52);
+	animation-duration: var(--strip-duration, 720ms);
+	animation-delay: var(--strip-delay, 0ms);
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+
+.desktop-icon-strip--v1 {
+	animation-name: missingno-icon-strip-v1;
+}
+
+.desktop-icon-strip--v2 {
+	animation-name: missingno-icon-strip-v2;
+}
+
+.desktop-icon-strip--v3 {
+	animation-name: missingno-icon-strip-v3;
+}
+
+.desktop-icon-strip--v4 {
+	animation-name: missingno-icon-strip-v4;
+}
+
+.desktop-icon-strip--v5 {
+	animation-name: missingno-icon-strip-v5;
+}
+
+.desktop-icon-strip--v6 {
+	animation-name: missingno-icon-strip-v6;
+}
+
+.xp-shell.missingno-desktop-glitch .desktop-icon--glitching p {
+	text-shadow:
+		1px 1px 0 #000,
+		2px 0 0 rgba(255, 80, 214, 0.62),
+		-2px 0 0 rgba(84, 248, 255, 0.62);
 }
 
 .contain {
@@ -5155,6 +5285,312 @@ fieldset {
 	height: 1px;
 	margin: 4px 3px;
 	background: var(--xp-context-separator);
+}
+
+.missingno-crash-screen {
+	position: fixed;
+	inset: 0;
+	z-index: 1305;
+	background: #0078d7;
+	color: #e7f6ff;
+	overflow: hidden;
+	pointer-events: all;
+}
+
+.missingno-crash-screen::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background:
+		repeating-linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.04) 0px,
+			rgba(255, 255, 255, 0.04) 1px,
+			transparent 1px,
+			transparent 4px
+		);
+	mix-blend-mode: screen;
+	opacity: 0.1;
+}
+
+.missingno-crash-content {
+	position: relative;
+	margin-top: clamp(72px, 11vh, 120px);
+	margin-left: clamp(44px, 10vw, 170px);
+	width: min(78vw, 960px);
+	min-height: 380px;
+	border-top: 1px dotted rgba(208, 240, 255, 0.45);
+}
+
+.missingno-crash-copy {
+	position: relative;
+	font-family: 'Segoe UI', Tahoma, sans-serif;
+	letter-spacing: 0.1px;
+}
+
+.missingno-emoticon {
+	margin: 78px 0 0;
+	font-size: clamp(68px, 9vw, 126px);
+	font-weight: 300;
+	line-height: 0.9;
+}
+
+.missingno-lead {
+	margin: 16px 0 0;
+	max-width: min(82vw, 760px);
+	font-size: clamp(22px, 2.7vw, 52px);
+	line-height: 1.22;
+	font-weight: 300;
+}
+
+.missingno-progress {
+	margin: clamp(24px, 5.2vh, 52px) 0 0;
+	font-size: clamp(26px, 2.4vw, 42px);
+	font-weight: 300;
+}
+
+.missingno-footnote {
+	margin: clamp(28px, 6.2vh, 68px) 0 0;
+	max-width: min(82vw, 930px);
+	font-size: clamp(14px, 1.14vw, 18px);
+	opacity: 0.82;
+}
+
+.missingno-stopcode {
+	margin: 14px 0 0;
+	font-size: clamp(16px, 1.1vw, 20px);
+	opacity: 0.92;
+}
+
+@keyframes missingno-desktop-stripe-shift {
+	0%,
+	32.9%,
+	43.1%,
+	66.1%,
+	76.3%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg);
+	}
+	33%,
+	43% {
+		transform: translateX(18px);
+		filter: hue-rotate(16deg);
+	}
+	66.2%,
+	76.2% {
+		transform: translateX(-22px);
+		filter: hue-rotate(-18deg);
+	}
+}
+
+@keyframes missingno-desktop-strip-a {
+	0%,
+	34.9%,
+	52.1%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg);
+		opacity: 0.35;
+	}
+	35%,
+	52% {
+		transform: translateX(26px);
+		filter: hue-rotate(28deg);
+		opacity: 0.5;
+	}
+}
+
+@keyframes missingno-desktop-strip-b {
+	0%,
+	26.9%,
+	47.1%,
+	73.1%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg);
+		opacity: 0.32;
+	}
+	27%,
+	47% {
+		transform: translateX(-20px);
+		filter: hue-rotate(-24deg);
+		opacity: 0.48;
+	}
+	73.2%,
+	84% {
+		transform: translateX(14px);
+		filter: hue-rotate(12deg);
+		opacity: 0.4;
+	}
+}
+
+@keyframes missingno-icon-strip-v1 {
+	0%,
+	32.9%,
+	43.1%,
+	66.1%,
+	76.3%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	33%,
+	43% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(2px 0 0 rgb(255 0 115 / 0.2))
+			drop-shadow(-2px 0 0 rgb(0 215 255 / 0.2));
+	}
+	66.2%,
+	76.2% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-3px 0 0 rgb(255 0 106 / 0.2))
+			drop-shadow(2px 0 0 rgb(0 190 255 / 0.2));
+	}
+}
+
+@keyframes missingno-icon-strip-v2 {
+	0%,
+	28.9%,
+	39.1%,
+	62.9%,
+	72.8%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	29%,
+	39% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-2px 0 0 rgb(255 32 123 / 0.18))
+			drop-shadow(2px 0 0 rgb(38 223 255 / 0.18));
+	}
+	63%,
+	72.7% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(2px 0 0 rgb(255 41 160 / 0.2))
+			drop-shadow(-2px 0 0 rgb(43 218 255 / 0.2));
+	}
+}
+
+@keyframes missingno-icon-strip-v3 {
+	0%,
+	35.9%,
+	44.7%,
+	58.9%,
+	70.1%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	36%,
+	44.6% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(3px 0 0 rgb(255 64 138 / 0.18))
+			drop-shadow(-3px 0 0 rgb(56 211 255 / 0.18));
+	}
+	59%,
+	70% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-2px 0 0 rgb(255 64 143 / 0.2))
+			drop-shadow(2px 0 0 rgb(69 210 255 / 0.2));
+	}
+}
+
+@keyframes missingno-icon-strip-v4 {
+	0%,
+	24.9%,
+	33.8%,
+	69.1%,
+	78.2%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	25%,
+	33.7% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-3px 0 0 rgb(255 83 137 / 0.2))
+			drop-shadow(2px 0 0 rgb(55 201 255 / 0.2));
+	}
+	69.2%,
+	78.1% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(2px 0 0 rgb(255 92 177 / 0.2))
+			drop-shadow(-2px 0 0 rgb(79 210 255 / 0.2));
+	}
+}
+
+@keyframes missingno-icon-strip-v5 {
+	0%,
+	30.7%,
+	40.3%,
+	64.4%,
+	73.6%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	30.8%,
+	40.2% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(2px 0 0 rgb(255 86 182 / 0.22))
+			drop-shadow(-2px 0 0 rgb(74 228 255 / 0.2));
+	}
+	64.5%,
+	73.5% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-3px 0 0 rgb(255 58 124 / 0.2))
+			drop-shadow(2px 0 0 rgb(69 214 255 / 0.2));
+	}
+}
+
+@keyframes missingno-icon-strip-v6 {
+	0%,
+	27.9%,
+	37.1%,
+	53.9%,
+	63.1%,
+	100% {
+		transform: translateX(0);
+		filter: hue-rotate(0deg) drop-shadow(0 0 0 rgb(0 0 255 / 0));
+	}
+	28%,
+	37% {
+		transform: translateX(var(--glitch-x-2));
+		filter:
+			hue-rotate(var(--glitch-hue-2))
+			drop-shadow(-3px 0 0 rgb(255 69 149 / 0.22))
+			drop-shadow(2px 0 0 rgb(58 209 255 / 0.2));
+	}
+	54%,
+	63% {
+		transform: translateX(var(--glitch-x-1));
+		filter:
+			hue-rotate(var(--glitch-hue-1))
+			drop-shadow(3px 0 0 rgb(255 82 187 / 0.2))
+			drop-shadow(-2px 0 0 rgb(64 224 255 / 0.2));
+	}
 }
 
 @media (max-width: 1180px) {

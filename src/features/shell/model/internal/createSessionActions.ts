@@ -23,6 +23,7 @@ export function createSessionActions(deps: any) {
 		activeTab,
 		startMenuOpen,
 		closeContextMenu,
+		resetMissingnoCrashState,
 		clearBrowserFallbackTimer,
 		stopOtaClockAlarm,
 		stopNoiseGenerator,
@@ -122,6 +123,7 @@ export function createSessionActions(deps: any) {
 		activeTab.value = 'about';
 		startMenuOpen.value = false;
 		closeContextMenu();
+		resetMissingnoCrashState();
 		clearBrowserFallbackTimer();
 		stopOtaClockAlarm(false);
 		stopNoiseGenerator(false);

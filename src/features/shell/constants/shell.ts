@@ -68,6 +68,7 @@ export const shellIcons = {
 	chat: '/xp-icons/pack/msn-messenger-icon.png',
 	mines: '/xp-icons/pack/minesweeper-icon.png',
 	paint: '/xp-icons/pack/paint.png',
+	missingno: '/xp-icons/pack/missingno.webp',
 	picture: '/xp-icons/pack/documents.png',
 	control: '/xp-icons/pack/control-panel.png',
 	accessibility: '/xp-icons/pack/accessibility-options.png',
@@ -338,6 +339,13 @@ const allDesktopIcons: DesktopIcon[] = [
 		windowId: 'gallery',
 		x: 322,
 		y: 48
+	},
+	{
+		id: 'missingno',
+		label: 'MISSINGNO.',
+		icon: shellIcons.missingno,
+		x: 322,
+		y: 264
 	},
 	{
 		id: 'free-palestine',
