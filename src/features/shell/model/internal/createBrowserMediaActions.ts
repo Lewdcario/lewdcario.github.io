@@ -89,6 +89,7 @@ export function createBrowserMediaActions(deps: any) {
 	let trackerAuthPending = false;
 	let trackerAuthPendingUntil = 0;
 	let trackerAuthResyncAttempts = 0;
+	let trackerAuthLastResyncAt = 0;
 	let trackerAuthResyncTimer: number | null = null;
 	let trackerAuthListenersBound = false;
 	const trackerAuthPendingWindowMs = 4 * 60 * 1000;
@@ -369,6 +370,7 @@ export function createBrowserMediaActions(deps: any) {
 		trackerAuthPending = false;
 		trackerAuthPendingUntil = 0;
 		trackerAuthResyncAttempts = 0;
+		trackerAuthLastResyncAt = 0;
 		clearTrackerAuthResyncTimer();
 		unbindTrackerAuthSyncListeners();
 	}
@@ -381,8 +383,10 @@ export function createBrowserMediaActions(deps: any) {
 		) {
 			return;
 		}
+		const now = Date.now();
+		if (now - trackerAuthLastResyncAt < 1200) return;
 
-		if (Date.now() > trackerAuthPendingUntil) {
+		if (now > trackerAuthPendingUntil) {
 			clearTrackerAuthPending();
 			pushBrowserLog('Tracker auth sync timed out before refresh.');
 			return;
@@ -398,12 +402,10 @@ export function createBrowserMediaActions(deps: any) {
 		}
 
 		trackerAuthResyncAttempts += 1;
+		trackerAuthLastResyncAt = now;
 		pushBrowserLog(
 			`Tracker auth sync refresh (${source}) [${trackerAuthResyncAttempts}/${trackerAuthMaxResyncAttempts}].`
 		);
-		trackerAuthPending = false;
-		clearTrackerAuthResyncTimer();
-		unbindTrackerAuthSyncListeners();
 		openInBrowser(trackerCurrentUrl(), 'Dissociation Tracker', {
 			backend: 'standard',
 			skin: 'netscape',
