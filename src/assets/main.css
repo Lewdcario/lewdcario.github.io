@@ -4797,14 +4797,13 @@ fieldset {
 	height: 29px;
 	min-width: 114px;
 	padding: 0 14px 0 10px;
-	border: 1px solid #1f5f1c;
+	border: 1px solid var(--xp-start-button-border);
 	border-radius: 16px 9px 9px 16px;
 	background: linear-gradient(
 		180deg,
-		#4fbe43 0%,
-		#3ea736 38%,
-		#2b8f25 64%,
-		#277c21 100%
+		var(--xp-start-green-top) 0%,
+		var(--xp-start-green-mid) 45%,
+		var(--xp-start-green-bottom) 100%
 	);
 	box-shadow:
 		inset 1px 1px 0 rgba(255, 255, 255, 0.45),
@@ -4858,7 +4857,11 @@ fieldset {
 }
 
 .start-button-inner:active {
-	background: linear-gradient(180deg, #2f8f29 0%, #3da133 100%);
+	background: linear-gradient(
+		180deg,
+		var(--xp-start-pressed-top) 0%,
+		var(--xp-start-pressed-bottom) 100%
+	);
 }
 
 .start-menu {

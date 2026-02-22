@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { $fetch } from 'ofetch';
 import {
 	browserHomeUrl,
+	isWindowEnabled,
 	noisePresets,
 	noiseWindowHeightForPresetList,
 	standardBrowserName,
@@ -702,6 +703,11 @@ export function createBrowserMediaActions(deps: any) {
 	}
 
 	function openOtaClockWindow() {
+		if (!isWindowEnabled('otaclock')) {
+			pushStatus('OtaClock is currently disabled.');
+			startMenuOpen.value = false;
+			return;
+		}
 		startMenuOpen.value = false;
 		restoreWindow('otaclock', false);
 		focusWindow('otaclock');

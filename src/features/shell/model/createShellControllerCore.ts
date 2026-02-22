@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 import projects, { type PortfolioProject } from '~/src/data/projects';
 import { createNoiseEngine } from '~/src/features/noise/model/createNoiseEngine';
-import { themeStorageKey } from '~/src/features/shell/constants/shell';
+import { shellFeatureFlags, themeStorageKey } from '~/src/features/shell/constants/shell';
 import { createBrowserMediaActions } from '~/src/features/shell/model/internal/createBrowserMediaActions';
 import { createBlogActions } from '~/src/features/shell/model/internal/createBlogActions';
 import { createChatActions } from '~/src/features/shell/model/internal/createChatActions';
@@ -259,6 +259,7 @@ function buildShellController() {
 	}
 
 	function startOtaClockAlarm() {
+		if (!shellFeatureFlags.otaclock) return;
 		stopOtaClockAlarm(false);
 		otaClockRinging.value = true;
 		desktopActions.restoreWindow('otaclock', false);
@@ -285,6 +286,7 @@ function buildShellController() {
 	}
 
 	function checkOtaClockAlarm(now: Date) {
+		if (!shellFeatureFlags.otaclock) return;
 		if (!otaClockAlarmEnabled.value) return;
 		if (otaClockRinging.value) return;
 
@@ -557,6 +559,7 @@ function buildShellController() {
 	});
 
 	watch(otaClockAlwaysOnTop, (enabled) => {
+		if (!shellFeatureFlags.otaclock) return;
 		if (!enabled || !desktopActions.isWindowVisible('otaclock')) return;
 		desktopActions.focusWindow('otaclock');
 	});

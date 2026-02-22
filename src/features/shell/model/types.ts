@@ -1,4 +1,4 @@
-export type TabId = 'about' | 'projects' | 'blog' | 'contact';
+export type TabId = 'about' | 'blog' | 'contact';
 
 export type WindowId =
 	| 'links'

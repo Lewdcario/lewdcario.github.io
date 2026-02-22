@@ -2,6 +2,8 @@ import { nextTick } from 'vue';
 import {
 	browserHomeUrl,
 	desktopIcons,
+	isShortcutEnabled,
+	isWindowEnabled,
 	torBrowserHomeUrl,
 	windowsMeta
 } from '~/src/features/shell/constants/shell';
@@ -119,14 +121,15 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function getWindowSize(windowId: WindowId) {
-		return windowSizes.value[windowId];
+		return windowSizes.value[windowId] ?? windowMinSize(windowId);
 	}
 
 	function windowBounds(windowId: WindowId) {
 		const state = windowState.value[windowId];
 		const size = getWindowSize(windowId);
-		const width = state.isMaximized ? window.innerWidth - 8 : size.width;
-		const height = state.isMaximized
+		const isMaximized = state?.isMaximized ?? false;
+		const width = isMaximized ? window.innerWidth - 8 : size.width;
+		const height = isMaximized
 			? window.innerHeight - 42
 			: size.height;
 		const maxX = Math.max(12, window.innerWidth - width - 12);
@@ -157,9 +160,14 @@ export function createDesktopActions(deps: any) {
 		}
 		iconPositions.value = nextIcons;
 
-		for (const windowId of Object.keys(
-			windowPositions.value
-		) as WindowId[]) {
+		for (const windowId of Object.keys(windowState.value) as WindowId[]) {
+			if (!windowPositions.value[windowId]) {
+				windowPositions.value[windowId] = { x: 150, y: 96, z: ++runtime.zCounter };
+			}
+			if (!windowSizes.value[windowId]) {
+				windowSizes.value[windowId] = windowMinSize(windowId);
+			}
+
 			const minSize = windowMinSize(windowId);
 			const maxWidth = Math.max(minSize.width, window.innerWidth - 24);
 			const maxHeight = Math.max(minSize.height, window.innerHeight - 54);
@@ -182,6 +190,7 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function focusWindow(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return;
 		if (isCompactLayout.value) return;
 		if (
 			!windowState.value[windowId].isOpen ||
@@ -414,7 +423,9 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function isWindowVisible(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return false;
 		const state = windowState.value[windowId];
+		if (!state) return false;
 		return state.isOpen && !state.isMinimized;
 	}
 
@@ -461,6 +472,7 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function minimizeWindow(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return;
 		const state = windowState.value[windowId];
 		if (!state.isOpen || state.isMinimized) return;
 
@@ -469,6 +481,7 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function toggleMaximizeWindow(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return;
 		if (isCompactLayout.value) return;
 
 		const state = windowState.value[windowId];
@@ -489,6 +502,7 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function closeWindow(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return;
 		const state = windowState.value[windowId];
 		if (!state.isOpen) return;
 
@@ -507,6 +521,12 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function restoreWindow(windowId: WindowId, announce = true) {
+		if (!isWindowEnabled(windowId)) {
+			if (announce) {
+				pushStatus(`${windowLabel(windowId)} is currently disabled.`);
+			}
+			return;
+		}
 		const state = windowState.value[windowId];
 		state.isOpen = true;
 		state.isMinimized = false;
@@ -518,11 +538,16 @@ export function createDesktopActions(deps: any) {
 
 	function openWindowFromMenu(windowId: WindowId) {
 		startMenuOpen.value = false;
+		if (!isWindowEnabled(windowId)) {
+			pushStatus(`${windowLabel(windowId)} is currently disabled.`);
+			return;
+		}
 		restoreWindow(windowId, false);
 		pushStatus(`${windowLabel(windowId)} opened.`);
 	}
 
 	function toggleWindowFromTaskbar(windowId: WindowId) {
+		if (!isWindowEnabled(windowId)) return;
 		const state = windowState.value[windowId];
 
 		if (!state.isOpen) {
@@ -565,6 +590,11 @@ export function createDesktopActions(deps: any) {
 	}
 
 	function openShellShortcut(shortcut: ShellShortcut) {
+		if (!isShortcutEnabled(shortcut)) {
+			pushStatus(`${shortcut.label} is currently disabled.`);
+			return;
+		}
+
 		if (shortcut.windowId === 'vlc') {
 			openVlcWindow();
 			return;

@@ -1,5 +1,11 @@
 import { computed } from 'vue';
-import { browserHomeUrl, desktopIcons, torBrowserHomeUrl, windowsMeta } from '~/src/features/shell/constants/shell';
+import {
+	browserHomeUrl,
+	desktopIcons,
+	shellFeatureFlags,
+	torBrowserHomeUrl,
+	windowsMeta
+} from '~/src/features/shell/constants/shell';
 import type { ContextMenuItem, WindowId } from '~/src/features/shell/model/types';
 
 export function createShellContextMenuState(deps: any) {
@@ -111,7 +117,7 @@ export function createShellContextMenuState(deps: any) {
 		}
 
 		if (contextTarget.value.type === 'start') {
-			return [
+			const startItems: ContextMenuItem[] = [
 				{
 					id: 'open-browser',
 					label: 'Open Navigator',
@@ -147,12 +153,16 @@ export function createShellContextMenuState(deps: any) {
 					id: 'open-control',
 					label: 'Open Control Panel',
 					action: () => openControlWindow()
-				},
-				{
+				}
+			];
+			if (shellFeatureFlags.otaclock) {
+				startItems.push({
 					id: 'open-otaclock',
 					label: 'Open OtaClock',
 					action: () => openOtaClockWindow()
-				},
+				});
+			}
+			startItems.push(
 				{
 					id: 'logoff',
 					label: 'Log Off...',
@@ -160,7 +170,8 @@ export function createShellContextMenuState(deps: any) {
 						void performLogoff();
 					}
 				}
-			];
+			);
+			return startItems;
 		}
 
 		return [

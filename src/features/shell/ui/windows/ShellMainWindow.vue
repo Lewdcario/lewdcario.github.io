@@ -5,7 +5,6 @@ import ShellWindowFrame from './ShellWindowFrame.vue';
 import ShellMainAboutTab from './main/ShellMainAboutTab.vue';
 import ShellMainBlogTab from './main/ShellMainBlogTab.vue';
 import ShellMainContactTab from './main/ShellMainContactTab.vue';
-import ShellMainProjectsTab from './main/ShellMainProjectsTab.vue';
 
 const shell = useShellControllerContext();
 </script>
@@ -31,7 +30,6 @@ const shell = useShellControllerContext();
 		</menu>
 
 		<ShellMainAboutTab />
-		<ShellMainProjectsTab />
 		<ShellMainBlogTab />
 		<ShellMainContactTab />
 

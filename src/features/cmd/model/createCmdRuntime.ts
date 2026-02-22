@@ -1,5 +1,6 @@
 import {
 	browserHomeUrl,
+	isWindowEnabled,
 	torBrowserHomeUrl,
 	xpThemes
 } from '~/src/features/shell/constants/shell';
@@ -37,7 +38,7 @@ const rootFiles: Record<string, string> = {
 	'ABOUT.TXT':
 		'Okami Portfolio XP shell.\nBuilt for experimentation, aesthetics, and interaction design.',
 	'PROJECTS.TXT':
-		'Use OPEN PROJECTS to jump to the projects tab.\nUse OPEN BROWSER to browse external links.',
+		'Use OPEN BLOG to jump to the blog tab.\nUse OPEN BROWSER to browse external links.',
 	'LINKS.TXT':
 		'Useful commands:\n  OPEN ABOUT\n  OPEN CONTACT\n  OPEN HTTPS://library.okami.codes',
 	'TODO.TXT':
@@ -61,13 +62,11 @@ const openWindowTargets: Record<string, WindowId> = {
 	chat: 'chat',
 	mines: 'mines',
 	control: 'control',
-	otaclock: 'otaclock',
-	remote: 'remote'
+	otaclock: 'otaclock'
 };
 
 const openTabTargets: Record<string, TabId> = {
 	about: 'about',
-	projects: 'projects',
 	blog: 'blog',
 	contact: 'contact'
 };
@@ -183,6 +182,9 @@ function openTarget(target: string, shell: CmdShellPort): CmdLine[] {
 			openWindowTargets[normalized as keyof typeof openWindowTargets];
 		if (!windowId) {
 			return [error(`Unknown OPEN target: ${target}`)];
+		}
+		if (!isWindowEnabled(windowId)) {
+			return [error(`${normalized} is disabled in this build.`)];
 		}
 		shell.openWindowFromMenu(windowId);
 		return [ok(`Opening ${normalized} window...`)];

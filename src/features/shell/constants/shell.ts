@@ -24,9 +24,41 @@ export const mainWindowTitle = 'okami@workstation:~/control-room';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
+export const shellFeatureFlags = {
+	otaclock: false
+} as const;
+
+type ShellFeatureId = keyof typeof shellFeatureFlags;
+
+const windowFeatureMap: Partial<Record<WindowId, ShellFeatureId>> = {
+	otaclock: 'otaclock'
+};
+
+const shortcutFeatureMap: Partial<Record<string, ShellFeatureId>> = {
+	otaclock: 'otaclock'
+};
+
+export function isWindowEnabled(windowId: WindowId) {
+	const feature = windowFeatureMap[windowId];
+	return feature ? shellFeatureFlags[feature] : true;
+}
+
+export function isShortcutEnabled(
+	shortcut: Pick<ShellShortcut, 'id' | 'windowId'>
+) {
+	const featureFromId = shortcutFeatureMap[shortcut.id];
+	if (featureFromId) {
+		return shellFeatureFlags[featureFromId];
+	}
+	if (shortcut.windowId) {
+		return isWindowEnabled(shortcut.windowId);
+	}
+	return true;
+}
 
 export const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
+	briefcase: '/xp-icons/pack/briefcase.png',
 	browser: '/xp-icons/pack/browser.png',
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
@@ -53,7 +85,6 @@ export const shellIcons = {
 
 export const tabs: Array<{ id: TabId; label: string }> = [
 	{ id: 'about', label: 'About' },
-	{ id: 'projects', label: 'Projects' },
 	{ id: 'blog', label: 'Blog' },
 	{ id: 'contact', label: 'Contact' }
 ];
@@ -201,12 +232,12 @@ export const recycleBinShortcuts: ShellShortcut[] = [
 	}
 ];
 
-export const desktopIcons: DesktopIcon[] = [
+const allDesktopIcons: DesktopIcon[] = [
 	{
-		id: 'github',
-		label: 'GitHub',
-		icon: shellIcons.browser,
-		href: 'https://github.com/Lewdcario',
+		id: 'portfolio',
+		label: 'Portfolio',
+		icon: shellIcons.briefcase,
+		href: 'https://portfolio.okami.codes',
 		x: 34,
 		y: 48
 	},
@@ -317,7 +348,11 @@ export const desktopIcons: DesktopIcon[] = [
 	}
 ];
 
-export const windowsMeta: WindowMeta[] = [
+export const desktopIcons: DesktopIcon[] = allDesktopIcons.filter((icon) =>
+	isShortcutEnabled(icon)
+);
+
+const allWindowsMeta: WindowMeta[] = [
 	{
 		id: 'links',
 		label: 'Links',
@@ -390,6 +425,10 @@ export const windowsMeta: WindowMeta[] = [
 	}
 ];
 
+export const windowsMeta: WindowMeta[] = allWindowsMeta.filter((entry) =>
+	isWindowEnabled(entry.id)
+);
+
 export function createDefaultWindowPositions(): Record<
 	WindowId,
 	WindowPosition
@@ -404,13 +443,12 @@ export function createDefaultWindowPositions(): Record<
 		noise: { x: 690, y: 190, z: 12 },
 		cmd: { x: 720, y: 220, z: 13 },
 		otaclock: { x: 880, y: 120, z: 14 },
-		remote: { x: 610, y: 90, z: 15 },
 		chat: { x: 690, y: 138, z: 16 },
-			mines: { x: 760, y: 170, z: 17 },
-			control: { x: 580, y: 140, z: 18 },
-			paint: { x: 640, y: 164, z: 19 },
-			gallery: { x: 420, y: 96, z: 20 }
-		};
+		mines: { x: 760, y: 170, z: 17 },
+		control: { x: 580, y: 140, z: 18 },
+		paint: { x: 640, y: 164, z: 19 },
+		gallery: { x: 420, y: 96, z: 20 }
+	};
 }
 
 export function createDefaultWindowState(): WindowStateMap {
@@ -423,14 +461,13 @@ export function createDefaultWindowState(): WindowStateMap {
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
-			chat: { isOpen: false, isMinimized: false, isMaximized: false },
-			mines: { isOpen: false, isMinimized: false, isMaximized: false },
-			paint: { isOpen: false, isMinimized: false, isMaximized: false },
-			gallery: { isOpen: false, isMinimized: false, isMaximized: false },
-			control: { isOpen: false, isMinimized: false, isMaximized: false },
-			otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
-			remote: { isOpen: false, isMinimized: false, isMaximized: false }
-		};
+		chat: { isOpen: false, isMinimized: false, isMaximized: false },
+		mines: { isOpen: false, isMinimized: false, isMaximized: false },
+		paint: { isOpen: false, isMinimized: false, isMaximized: false },
+		gallery: { isOpen: false, isMinimized: false, isMaximized: false },
+		control: { isOpen: false, isMinimized: false, isMaximized: false },
+		otaclock: { isOpen: false, isMinimized: false, isMaximized: false }
+	};
 }
 
 export function noiseWindowHeightForPresetList() {
@@ -455,12 +492,11 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		vlc: { width: 640, height: 430 },
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
 		cmd: { width: 560, height: 360 },
-			chat: { width: 700, height: 470 },
-			mines: { width: 320, height: 410 },
-			paint: { width: 760, height: 560 },
-			gallery: { width: 780, height: 560 },
-			control: { width: 720, height: 620 },
-			otaclock: { width: 440, height: 520 },
-			remote: { width: 760, height: 520 }
-		};
+		chat: { width: 700, height: 470 },
+		mines: { width: 320, height: 410 },
+		paint: { width: 760, height: 560 },
+		gallery: { width: 780, height: 560 },
+		control: { width: 720, height: 620 },
+		otaclock: { width: 440, height: 520 }
+	};
 }

@@ -53,12 +53,6 @@ const controlApplets: ControlApplet[] = [
 		onOpen: () => openWindow('vlc')
 	},
 	{
-		id: 'date-time',
-		label: 'Date and Time',
-		icon: shellIcons.otaclock,
-		onOpen: () => openWindow('otaclock')
-	},
-	{
 		id: 'display',
 		label: 'Display',
 		icon: shellIcons.computer,
@@ -107,12 +101,6 @@ const controlApplets: ControlApplet[] = [
 		onOpen: () => openWindow('chat')
 	},
 	{
-		id: 'network',
-		label: 'Network Connections',
-		icon: shellIcons.remote,
-		onOpen: () => openWindow('remote')
-	},
-	{
 		id: 'sounds-audio',
 		label: 'Sounds and Audio Devices',
 		icon: shellIcons.noise,
@@ -141,14 +129,6 @@ const controlApplets: ControlApplet[] = [
 	}
 ];
 
-function toggle24HourClock() {
-	shell.otaClockUse24Hour = !shell.otaClockUse24Hour;
-	shell.pushStatus(
-		shell.otaClockUse24Hour
-			? 'OtaClock now uses 24-hour time.'
-			: 'OtaClock now uses 12-hour time.'
-	);
-}
 </script>
 
 <template>
@@ -204,9 +184,6 @@ function toggle24HourClock() {
 							@click="shell.pushStatus('Category View is not available in this build.')"
 						>
 							Switch to Category View
-						</button>
-						<button type="button" class="xp-control-task-link" @click="toggle24HourClock">
-							Toggle 24-hour Clock
 						</button>
 						<button
 							type="button"

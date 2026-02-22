@@ -8,12 +8,18 @@ import ShellWindowFrame from './ShellWindowFrame.vue';
 const shell = useShellControllerContext();
 const mode = ref<'icons' | 'viewer'>('icons');
 const securityShieldVisible = ref(false);
+const securityShieldPersistent = ref(false);
 const galleryGridRef = ref<HTMLElement | null>(null);
 const filmstripRef = ref<HTMLElement | null>(null);
 const iconImagesLoaded = ref<Record<string, boolean>>({});
+const brokenArtworkIds = ref<Record<string, boolean>>({});
+const artworkSourceOverrides = ref<
+	Record<string, Partial<Record<'thumbnail' | 'image', string>>>
+>({});
 
 const iconBatchSize = 56;
 const iconLoadThresholdPx = 520;
+const fallbackImageExtensions = ['.jpg', '.jpeg', '.png', '.webp'] as const;
 
 function postedAtMs(value: string) {
 	const parsed = Date.parse(value);
@@ -31,7 +37,9 @@ function artworkYearLabel(artwork: ArtworkItem) {
 }
 
 const sortedArtworks = computed(() =>
-	[...artworks].sort((left, right) => {
+	[...artworks]
+		.filter((entry) => !brokenArtworkIds.value[entry.id])
+		.sort((left, right) => {
 		const delta = postedAtMs(right.postedAt) - postedAtMs(left.postedAt);
 		if (delta !== 0) return delta;
 		return left.title.localeCompare(right.title);
@@ -89,6 +97,62 @@ const iconYearGroups = computed(() => {
 
 let shieldTimer: number | null = null;
 
+function baseArtworkSource(artwork: ArtworkItem, field: 'thumbnail' | 'image') {
+	return field === 'thumbnail' ? artwork.thumbnail : artwork.image;
+}
+
+function artworkSource(artwork: ArtworkItem, field: 'thumbnail' | 'image') {
+	return artworkSourceOverrides.value[artwork.id]?.[field] ?? baseArtworkSource(artwork, field);
+}
+
+function buildImageSourceCandidates(pathValue: string) {
+	const match = pathValue.match(/^(.*?)(\.[a-z0-9]+)$/i);
+	if (!match) return [pathValue];
+	const basePath = match[1];
+	const originalExt = match[2].toLowerCase();
+	const candidates = [pathValue];
+	for (const ext of [originalExt, ...fallbackImageExtensions]) {
+		const candidate = `${basePath}${ext}`;
+		if (!candidates.includes(candidate)) {
+			candidates.push(candidate);
+		}
+	}
+	return candidates;
+}
+
+function nextImageSourceCandidate(candidates: string[], currentValue: string) {
+	const index = candidates.indexOf(currentValue);
+	if (index >= 0) {
+		return candidates[index + 1] ?? null;
+	}
+	return candidates.find((candidate) => candidate !== currentValue) ?? null;
+}
+
+function markArtworkUnavailable(artwork: ArtworkItem) {
+	if (brokenArtworkIds.value[artwork.id]) return;
+	brokenArtworkIds.value[artwork.id] = true;
+	if (artworkSourceOverrides.value[artwork.id]) {
+		delete artworkSourceOverrides.value[artwork.id];
+	}
+	shell.pushStatus(`${artwork.title} was skipped because the image file could not be loaded.`);
+}
+
+function handleArtworkSourceError(artwork: ArtworkItem, field: 'thumbnail' | 'image') {
+	if (brokenArtworkIds.value[artwork.id]) return;
+	const baseSource = baseArtworkSource(artwork, field);
+	const currentSource = artworkSource(artwork, field);
+	const candidates = buildImageSourceCandidates(baseSource);
+	const nextSource = nextImageSourceCandidate(candidates, currentSource);
+	if (nextSource) {
+		artworkSourceOverrides.value[artwork.id] = {
+			...(artworkSourceOverrides.value[artwork.id] ?? {}),
+			[field]: nextSource
+		};
+		return;
+	}
+	markArtworkUnavailable(artwork);
+}
+
 function selectArtwork(artworkId: string) {
 	selectedArtworkId.value = artworkId;
 }
@@ -130,7 +194,7 @@ function stepArtwork(offset: number) {
 
 function openArtworkInNavigator() {
 	if (!selectedArtwork.value) return;
-	const source = selectedArtwork.value.image;
+	const source = artworkSource(selectedArtwork.value, 'image');
 	const url = /^https?:\/\//i.test(source)
 		? source
 		: typeof window === 'undefined'
@@ -222,11 +286,21 @@ function clearSecurityShieldTimer() {
 	}
 }
 
-function showSecurityShield(message: string, durationMs = 1400) {
+function showSecurityShield(
+	message: string,
+	options: { durationMs?: number; persistent?: boolean } = {}
+) {
+	const { durationMs = 1400, persistent = false } = options;
 	securityShieldVisible.value = true;
+	securityShieldPersistent.value =
+		securityShieldPersistent.value || persistent;
 	shell.pushStatus(message);
 	clearSecurityShieldTimer();
-	if (typeof window !== 'undefined') {
+	if (
+		typeof window !== 'undefined' &&
+		!securityShieldPersistent.value &&
+		durationMs > 0
+	) {
 		shieldTimer = window.setTimeout(() => {
 			securityShieldVisible.value = false;
 			shieldTimer = null;
@@ -235,7 +309,7 @@ function showSecurityShield(message: string, durationMs = 1400) {
 }
 
 function handleProtectedInteraction(message: string) {
-	showSecurityShield(message, 1000);
+	showSecurityShield(message, { durationMs: 1000 });
 }
 
 function detectBlockedCommand(event: KeyboardEvent) {
@@ -253,52 +327,90 @@ function detectBlockedCommand(event: KeyboardEvent) {
 			['3', '4', '5', '#', '$', '%'].includes(key));
 
 	if (event.key === 'PrintScreen') {
-		return 'Screenshot shortcut detected. Picture capture is blocked.';
+		return {
+			message: 'Screenshot shortcut detected. Picture capture is blocked.',
+			persistent: true
+		};
 	}
 
 	if (isMacScreenshotChordPressed) {
-		return 'Screenshot shortcut detected. Picture capture is blocked.';
+		return {
+			message: 'Screenshot shortcut detected. Picture capture is blocked.',
+			persistent: true
+		};
 	}
 
 	if (isMacScreenshotCombo) {
-		return 'Screenshot shortcut detected. Picture capture is blocked.';
+		return {
+			message: 'Screenshot shortcut detected. Picture capture is blocked.',
+			persistent: true
+		};
 	}
 
 	if (ctrlOrMeta && ['s', 'p', 'c', 'x', 'u'].includes(key)) {
-		return 'Copy and save shortcuts are blocked in My Pictures.';
+		return {
+			message: 'Copy and save shortcuts are blocked in My Pictures.'
+		};
 	}
 
 	if (ctrlOrMeta && event.shiftKey && ['i', 'j', 'c'].includes(key)) {
-		return 'Developer-tool shortcuts are blocked while My Pictures is open.';
+		return {
+			message: 'Developer-tool shortcuts are blocked while My Pictures is open.'
+		};
 	}
 
 	if (event.key === 'F12') {
-		return 'Developer-tool shortcuts are blocked while My Pictures is open.';
+		return {
+			message: 'Developer-tool shortcuts are blocked while My Pictures is open.'
+		};
 	}
 
 	return null;
 }
 
+function isEditableTarget(target: EventTarget | null) {
+	if (!(target instanceof HTMLElement)) return false;
+	const tagName = target.tagName;
+	return (
+		target.isContentEditable ||
+		tagName === 'INPUT' ||
+		tagName === 'TEXTAREA' ||
+		tagName === 'SELECT'
+	);
+}
+
 function handleGlobalKeydown(event: KeyboardEvent) {
-	const message = detectBlockedCommand(event);
-	if (!message) return;
+	if (
+		mode.value === 'viewer' &&
+		(event.key === 'ArrowLeft' || event.key === 'ArrowRight') &&
+		!isEditableTarget(event.target)
+	) {
+		event.preventDefault();
+		event.stopPropagation();
+		stepArtwork(event.key === 'ArrowLeft' ? -1 : 1);
+		return;
+	}
+	const blocked = detectBlockedCommand(event);
+	if (!blocked) return;
 	event.preventDefault();
 	event.stopPropagation();
-	showSecurityShield(message);
+	showSecurityShield(blocked.message, { persistent: blocked.persistent });
 }
 
 function handleGlobalKeyup(event: KeyboardEvent) {
-	const message = detectBlockedCommand(event);
-	if (!message) return;
+	const blocked = detectBlockedCommand(event);
+	if (!blocked) return;
 	event.preventDefault();
 	event.stopPropagation();
-	showSecurityShield(message);
+	showSecurityShield(blocked.message, { persistent: blocked.persistent });
 }
 
 function handleGlobalProtectedEvent(event: Event) {
 	event.preventDefault();
 	event.stopPropagation();
-	showSecurityShield('Protected media cannot be copied, dragged, or saved.', 900);
+	showSecurityShield('Protected media cannot be copied, dragged, or saved.', {
+		durationMs: 900
+	});
 }
 
 watch(
@@ -363,6 +475,7 @@ onBeforeUnmount(() => {
 		window.removeEventListener('resize', handleGalleryResize);
 	}
 	clearSecurityShieldTimer();
+	securityShieldPersistent.value = false;
 });
 </script>
 
@@ -430,13 +543,14 @@ onBeforeUnmount(() => {
 									@dblclick="openArtwork(artwork.id)"
 								>
 									<img
-										:src="artwork.thumbnail"
+										:src="artworkSource(artwork, 'thumbnail')"
 										:alt="artwork.title"
 										loading="lazy"
 										decoding="async"
 										draggable="false"
 										:class="{ loaded: iconImagesLoaded[artwork.id] }"
 										@load="markIconLoaded(artwork.id)"
+										@error="handleArtworkSourceError(artwork, 'thumbnail')"
 									/>
 								</button>
 							</div>
@@ -461,7 +575,12 @@ onBeforeUnmount(() => {
 
 					<div v-if="selectedArtwork" class="gallery-viewer-layout">
 						<div class="gallery-viewer-stage">
-							<img :src="selectedArtwork.image" :alt="selectedArtwork.title" draggable="false" />
+							<img
+								:src="artworkSource(selectedArtwork, 'image')"
+								:alt="selectedArtwork.title"
+								draggable="false"
+								@error="handleArtworkSourceError(selectedArtwork, 'image')"
+							/>
 						</div>
 						<aside class="gallery-viewer-info">
 							<h3>{{ selectedArtwork.title }}</h3>
@@ -488,10 +607,11 @@ onBeforeUnmount(() => {
 							@dblclick="openArtwork(artwork.id)"
 						>
 							<img
-								:src="artwork.thumbnail"
+								:src="artworkSource(artwork, 'thumbnail')"
 								:alt="`${artwork.title} thumbnail`"
 								loading="lazy"
 								draggable="false"
+								@error="handleArtworkSourceError(artwork, 'thumbnail')"
 							/>
 						</button>
 					</div>

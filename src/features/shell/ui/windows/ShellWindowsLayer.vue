@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { shellFeatureFlags } from '~/src/features/shell/constants/shell';
 import ShellBrowserWindow from './ShellBrowserWindow.vue';
 import ShellChatWindow from './ShellChatWindow.vue';
 import ShellCmdWindow from './ShellCmdWindow.vue';
@@ -32,7 +33,7 @@ import ShellVlcWindow from './ShellVlcWindow.vue';
 		<ShellVlcWindow />
 		<ShellNoiseWindow />
 		<ShellRecycleWindow />
-		<ShellOtaClockWindow />
+		<ShellOtaClockWindow v-if="shellFeatureFlags.otaclock" />
 		<ShellMainWindow />
 	</div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
 	browserHomeUrl,
+	shellFeatureFlags,
 	shellIcons,
 	torBrowserHomeUrl,
 	xpThemes
@@ -29,10 +30,6 @@ const shell = useShellControllerContext();
 				<button class="start-menu-item" @click="shell.setTab('about')">
 					<img :src="shellIcons.about" width="16" height="16" alt="about icon" />
 					<span>About</span>
-				</button>
-				<button class="start-menu-item" @click="shell.setTab('projects')">
-					<img :src="shellIcons.folder" width="16" height="16" alt="projects icon" />
-					<span>Projects</span>
 				</button>
 				<button class="start-menu-item" @click="shell.setTab('blog')">
 					<img :src="shellIcons.about" width="16" height="16" alt="blog icon" />
@@ -127,6 +124,7 @@ const shell = useShellControllerContext();
 					<span>Open Control Panel</span>
 				</button>
 				<button
+					v-if="shellFeatureFlags.otaclock"
 					class="start-menu-item"
 					@click="shell.openOtaClockWindow"
 				>
