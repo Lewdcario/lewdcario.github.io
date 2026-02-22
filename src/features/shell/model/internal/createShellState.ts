@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import type { AuthSessionRole } from '~/shared/auth';
 import type { BlogPost } from '~/shared/blog';
-import type { ChatMessage } from '~/shared/chat';
+import type { ChatBlacklistedWord, ChatMessage } from '~/shared/chat';
 import {
 	browserPlaceholderPrompt,
 	browserHomeUrl,
@@ -49,7 +49,9 @@ export function createShellState() {
 	const statusMessage = ref(desktopReadyStatus);
 	const isCompactLayout = ref(false);
 	const iconPositions = ref<Record<string, { x: number; y: number }>>({});
-	const windowPositions = ref<Record<WindowId, WindowPosition>>(createDefaultWindowPositions());
+	const windowPositions = ref<Record<WindowId, WindowPosition>>(
+		createDefaultWindowPositions()
+	);
 	const windowState = ref(createDefaultWindowState());
 	const windowSizes = ref(createDefaultWindowSizes());
 	const linksWindowRef = ref<HTMLElement | null>(null);
@@ -63,7 +65,9 @@ export function createShellState() {
 	const activeDrag = ref<DragState | null>(null);
 	const browserAddress = ref(browserHomeUrl);
 	const browserCurrentUrl = ref(browserHomeUrl);
-	const browserDocument = ref(initialBrowserPlaceholderDocument(browserHomeUrl));
+	const browserDocument = ref(
+		initialBrowserPlaceholderDocument(browserHomeUrl)
+	);
 	const browserFrameSrc = ref(browserHomeUrl);
 	const browserRenderMode = ref<'direct' | 'snapshot'>('snapshot');
 	const browserBackend = ref<'standard' | 'tor'>('standard');
@@ -78,7 +82,9 @@ export function createShellState() {
 	const browserHistoryIndex = ref(0);
 	const browserSearchMenuOpen = ref(false);
 	const browserSearchQuery = ref('');
-	const browserSearchEngine = ref<'ahmia' | 'duckduckgo' | 'wiby' | 'startpage'>('duckduckgo');
+	const browserSearchEngine = ref<
+		'ahmia' | 'duckduckgo' | 'wiby' | 'startpage'
+	>('duckduckgo');
 	const vlcFrameRef = ref<HTMLIFrameElement | null>(null);
 	const vlcPlaylistInput = ref(vlcDefaultPlaylistUrl);
 	const vlcPlaylistId = ref(vlcDefaultPlaylistId);
@@ -124,6 +130,14 @@ export function createShellState() {
 	const chatName = ref('');
 	const chatDraft = ref('');
 	const chatSending = ref(false);
+	const chatBlacklistWords = ref<ChatBlacklistedWord[]>([]);
+	const chatModerationOpen = ref(false);
+	const chatModerationLoading = ref(false);
+	const chatModerationError = ref('');
+	const chatBlacklistDraft = ref('');
+	const chatBlacklistSaving = ref(false);
+	const chatDeletingMessageId = ref<number | null>(null);
+	const chatDeletingBlacklistWordId = ref<number | null>(null);
 	const blinkieBadges = ref<string[]>([]);
 	const blinkieStamps = ref<string[]>([]);
 	const blinkieLoading = ref(false);
@@ -231,6 +245,14 @@ export function createShellState() {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,

@@ -1009,25 +1009,23 @@ legend {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background:
-		repeating-linear-gradient(
-			180deg,
-			transparent 0 20px,
-			rgba(255, 60, 198, 0.14) 20px 24px,
-			transparent 24px 44px
-		);
+	background: repeating-linear-gradient(
+		180deg,
+		transparent 0 20px,
+		rgba(255, 60, 198, 0.14) 20px 24px,
+		transparent 24px 44px
+	);
 	mix-blend-mode: screen;
 	animation: missingno-desktop-strip-a 640ms linear infinite;
 }
 
 .missingno-desktop-glitch-mask::after {
-	background:
-		repeating-linear-gradient(
-			180deg,
-			transparent 0 16px,
-			rgba(95, 238, 255, 0.16) 16px 19px,
-			transparent 19px 34px
-		);
+	background: repeating-linear-gradient(
+		180deg,
+		transparent 0 16px,
+		rgba(95, 238, 255, 0.16) 16px 19px,
+		transparent 19px 34px
+	);
 	animation: missingno-desktop-strip-b 510ms linear infinite;
 }
 
@@ -1675,7 +1673,9 @@ legend {
 	opacity: 0;
 }
 
-.xp-shell.missingno-desktop-glitch .desktop-icon--glitching .desktop-icon-glitch-strips {
+.xp-shell.missingno-desktop-glitch
+	.desktop-icon--glitching
+	.desktop-icon-glitch-strips {
 	opacity: 1;
 }
 
@@ -2065,12 +2065,8 @@ legend {
 	background: #000000;
 	color: #f3f3f3;
 	font-family:
-		'Perfect DOS VGA 437',
-		'PxPlus IBM VGA 8x16',
-		'Lucida Console',
-		'Consolas',
-		'Courier New',
-		monospace;
+		'Perfect DOS VGA 437', 'PxPlus IBM VGA 8x16', 'Lucida Console',
+		'Consolas', 'Courier New', monospace;
 	font-size: 12px;
 	font-weight: 700;
 	-webkit-font-smoothing: none;
@@ -2131,12 +2127,8 @@ legend {
 	color: #f3f3f3 !important;
 	-webkit-text-fill-color: #f3f3f3;
 	font-family:
-		'Perfect DOS VGA 437',
-		'PxPlus IBM VGA 8x16',
-		'Lucida Console',
-		'Consolas',
-		'Courier New',
-		monospace;
+		'Perfect DOS VGA 437', 'PxPlus IBM VGA 8x16', 'Lucida Console',
+		'Consolas', 'Courier New', monospace;
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.2;
@@ -2880,8 +2872,7 @@ legend {
 
 .xp-control-side-pane {
 	padding: 10px 8px;
-	background:
-		linear-gradient(180deg, #8fafeb 0%, #7da0e4 50%, #6f90db 100%);
+	background: linear-gradient(180deg, #8fafeb 0%, #7da0e4 50%, #6f90db 100%);
 	border-right: 1px solid #6a89cf;
 	display: flex;
 	flex-direction: column;
@@ -3055,7 +3046,12 @@ legend {
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
-	background: radial-gradient(circle at 30% 30%, #9bf8a2 0%, #34a240 65%, #2d7f35 100%);
+	background: radial-gradient(
+		circle at 30% 30%,
+		#9bf8a2 0%,
+		#34a240 65%,
+		#2d7f35 100%
+	);
 	border: 1px solid #2f7840;
 }
 
@@ -3213,12 +3209,97 @@ legend {
 	color: #153568;
 }
 
+.msn-room-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.msn-moderation-toggle {
+	min-width: 28px;
+	width: 28px;
+	padding: 0;
+	font-size: 14px;
+	line-height: 1;
+}
+
+.msn-moderation-toggle.active {
+	background: #d6e5ff;
+	border-color: #6f93cd;
+}
+
 .msn-chat-error {
 	margin: 8px 0 0;
 	padding: 6px 8px;
 	border: 1px solid #c66f6f;
 	background: #fde9e9;
 	color: #8a2323;
+}
+
+.msn-moderation-panel {
+	margin-top: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 7px;
+	border: 1px solid #8ea3c8;
+	background: #f8fbff;
+}
+
+.msn-moderation-panel header {
+	color: #153568;
+}
+
+.msn-moderation-panel .msn-chat-error {
+	margin: 0;
+}
+
+.msn-moderation-form {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 6px;
+}
+
+.msn-moderation-form input {
+	min-width: 0;
+}
+
+.msn-moderation-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid #9cb0d4;
+	background: #ffffff;
+	max-height: 120px;
+	overflow: auto;
+}
+
+.msn-moderation-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 4px 6px;
+	border-top: 1px solid #d3ddf1;
+}
+
+.msn-moderation-list li:first-child {
+	border-top: 0;
+}
+
+.msn-moderation-list li span {
+	color: #112f5f;
+	word-break: break-word;
+}
+
+.msn-moderation-list li button {
+	min-width: 74px;
+}
+
+.msn-moderation-empty {
+	color: #5a6f99;
+	font-style: italic;
 }
 
 .msn-room-feed {
@@ -3268,6 +3349,19 @@ legend {
 .msn-room-entry-header span {
 	font-size: 11px;
 	color: #4a628e;
+}
+
+.msn-room-entry-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.msn-room-entry-delete {
+	min-width: 64px;
+	min-height: 0;
+	padding: 1px 6px;
+	font-size: 11px;
 }
 
 .msn-room-entry p {
@@ -3337,6 +3431,10 @@ legend {
 	.msn-compose button {
 		grid-row: 2;
 		grid-column: 3;
+	}
+
+	.msn-moderation-form {
+		grid-template-columns: 1fr;
 	}
 
 	.xp-control-toolbar {
@@ -5301,14 +5399,13 @@ fieldset {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background:
-		repeating-linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.04) 0px,
-			rgba(255, 255, 255, 0.04) 1px,
-			transparent 1px,
-			transparent 4px
-		);
+	background: repeating-linear-gradient(
+		180deg,
+		rgba(255, 255, 255, 0.04) 0px,
+		rgba(255, 255, 255, 0.04) 1px,
+		transparent 1px,
+		transparent 4px
+	);
 	mix-blend-mode: screen;
 	opacity: 0.1;
 }
@@ -5438,16 +5535,14 @@ fieldset {
 	33%,
 	43% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(2px 0 0 rgb(255 0 115 / 0.2))
 			drop-shadow(-2px 0 0 rgb(0 215 255 / 0.2));
 	}
 	66.2%,
 	76.2% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-3px 0 0 rgb(255 0 106 / 0.2))
 			drop-shadow(2px 0 0 rgb(0 190 255 / 0.2));
 	}
@@ -5466,16 +5561,14 @@ fieldset {
 	29%,
 	39% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-2px 0 0 rgb(255 32 123 / 0.18))
 			drop-shadow(2px 0 0 rgb(38 223 255 / 0.18));
 	}
 	63%,
 	72.7% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(2px 0 0 rgb(255 41 160 / 0.2))
 			drop-shadow(-2px 0 0 rgb(43 218 255 / 0.2));
 	}
@@ -5494,16 +5587,14 @@ fieldset {
 	36%,
 	44.6% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(3px 0 0 rgb(255 64 138 / 0.18))
 			drop-shadow(-3px 0 0 rgb(56 211 255 / 0.18));
 	}
 	59%,
 	70% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-2px 0 0 rgb(255 64 143 / 0.2))
 			drop-shadow(2px 0 0 rgb(69 210 255 / 0.2));
 	}
@@ -5522,16 +5613,14 @@ fieldset {
 	25%,
 	33.7% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-3px 0 0 rgb(255 83 137 / 0.2))
 			drop-shadow(2px 0 0 rgb(55 201 255 / 0.2));
 	}
 	69.2%,
 	78.1% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(2px 0 0 rgb(255 92 177 / 0.2))
 			drop-shadow(-2px 0 0 rgb(79 210 255 / 0.2));
 	}
@@ -5550,16 +5639,14 @@ fieldset {
 	30.8%,
 	40.2% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(2px 0 0 rgb(255 86 182 / 0.22))
 			drop-shadow(-2px 0 0 rgb(74 228 255 / 0.2));
 	}
 	64.5%,
 	73.5% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-3px 0 0 rgb(255 58 124 / 0.2))
 			drop-shadow(2px 0 0 rgb(69 214 255 / 0.2));
 	}
@@ -5578,16 +5665,14 @@ fieldset {
 	28%,
 	37% {
 		transform: translateX(var(--glitch-x-2));
-		filter:
-			hue-rotate(var(--glitch-hue-2))
+		filter: hue-rotate(var(--glitch-hue-2))
 			drop-shadow(-3px 0 0 rgb(255 69 149 / 0.22))
 			drop-shadow(2px 0 0 rgb(58 209 255 / 0.2));
 	}
 	54%,
 	63% {
 		transform: translateX(var(--glitch-x-1));
-		filter:
-			hue-rotate(var(--glitch-hue-1))
+		filter: hue-rotate(var(--glitch-hue-1))
 			drop-shadow(3px 0 0 rgb(255 82 187 / 0.2))
 			drop-shadow(-2px 0 0 rgb(64 224 255 / 0.2));
 	}

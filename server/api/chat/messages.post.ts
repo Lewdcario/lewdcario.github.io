@@ -6,9 +6,12 @@ import {
 	setResponseHeader
 } from 'h3';
 import type { H3Event } from 'h3';
-import { chatMessageResponseSchema, createChatMessageInputSchema } from '~/shared/chat';
+import {
+	chatMessageResponseSchema,
+	createChatMessageInputSchema
+} from '~/shared/chat';
 import { ensureBlogStorage, getBlogDb } from '~/server/db/client';
-import { chatMessages } from '~/server/db/schema';
+import { chatBlacklistedWords, chatMessages } from '~/server/db/schema';
 import { toChatMessageRecord } from '~/server/utils/chat';
 
 type RateLimitBucket = {
@@ -19,6 +22,30 @@ type RateLimitBucket = {
 const shortBurstLimit: RateLimitBucket = { max: 3, windowMs: 10_000 };
 const minuteBurstLimit: RateLimitBucket = { max: 12, windowMs: 60_000 };
 const rateLimitStore = new Map<string, number[]>();
+
+function escapeRegex(value: string) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function messageContainsBlockedWord(message: string, blockedWords: string[]) {
+	const normalizedMessage = message.toLowerCase();
+	for (const rawWord of blockedWords) {
+		const blocked = rawWord.trim().toLowerCase();
+		if (!blocked) continue;
+		if (blocked.includes(' ')) {
+			if (normalizedMessage.includes(blocked)) return true;
+			continue;
+		}
+
+		const pattern = new RegExp(
+			`(^|[^a-z0-9])${escapeRegex(blocked)}([^a-z0-9]|$)`,
+			'i'
+		);
+		if (pattern.test(normalizedMessage)) return true;
+	}
+
+	return false;
+}
 
 function getClientIp(event: H3Event) {
 	const forwardedFor = getRequestHeader(event, 'x-forwarded-for');
@@ -37,7 +64,9 @@ function checkRateLimit(key: string, bucket: RateLimitBucket) {
 	const now = Date.now();
 	const windowStart = now - bucket.windowMs;
 	const previousHits = rateLimitStore.get(key) ?? [];
-	const recentHits = previousHits.filter((timestamp) => timestamp > windowStart);
+	const recentHits = previousHits.filter(
+		(timestamp) => timestamp > windowStart
+	);
 	const nextCount = recentHits.length + 1;
 
 	if (nextCount > bucket.max) {
@@ -60,7 +89,8 @@ export default defineEventHandler(async (event) => {
 	if (!parsed.success) {
 		throw createError({
 			statusCode: 400,
-			statusMessage: parsed.error.issues[0]?.message ?? 'Invalid chat payload.'
+			statusMessage:
+				parsed.error.issues[0]?.message ?? 'Invalid chat payload.'
 		});
 	}
 
@@ -70,26 +100,56 @@ export default defineEventHandler(async (event) => {
 		const input = parsed.data;
 		const normalizedName = input.name.trim().toLowerCase();
 		const clientIp = getClientIp(event);
-		const limiterKeys = [`ip:${clientIp}`, `name:${normalizedName}`, `pair:${clientIp}:${normalizedName}`];
+		const limiterKeys = [
+			`ip:${clientIp}`,
+			`name:${normalizedName}`,
+			`pair:${clientIp}:${normalizedName}`
+		];
 
 		for (const key of limiterKeys) {
 			const shortResult = checkRateLimit(`${key}:short`, shortBurstLimit);
 			if (!shortResult.allowed) {
-				setResponseHeader(event, 'Retry-After', String(shortResult.retryAfterSeconds));
+				setResponseHeader(
+					event,
+					'Retry-After',
+					String(shortResult.retryAfterSeconds)
+				);
 				throw createError({
 					statusCode: 429,
 					statusMessage: `You're sending messages too quickly. Please wait ${shortResult.retryAfterSeconds}s.`
 				});
 			}
 
-			const minuteResult = checkRateLimit(`${key}:minute`, minuteBurstLimit);
+			const minuteResult = checkRateLimit(
+				`${key}:minute`,
+				minuteBurstLimit
+			);
 			if (!minuteResult.allowed) {
-				setResponseHeader(event, 'Retry-After', String(minuteResult.retryAfterSeconds));
+				setResponseHeader(
+					event,
+					'Retry-After',
+					String(minuteResult.retryAfterSeconds)
+				);
 				throw createError({
 					statusCode: 429,
 					statusMessage: `Rate limit reached. Try sending another message in ${minuteResult.retryAfterSeconds}s.`
 				});
 			}
+		}
+
+		const blockedRows = await db
+			.select({
+				word: chatBlacklistedWords.word
+			})
+			.from(chatBlacklistedWords);
+		const blockedWords = blockedRows
+			.map((row) => row.word.trim())
+			.filter(Boolean);
+		if (messageContainsBlockedWord(input.message, blockedWords)) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'Message blocked by chat word filter.'
+			});
 		}
 
 		const inserted = await db

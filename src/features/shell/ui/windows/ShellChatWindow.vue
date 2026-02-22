@@ -48,6 +48,12 @@ const canSend = computed(
 		normalizedName.value.trim().length >= 2 &&
 		shell.chatDraft.trim().length > 0
 );
+const canAddBlockedWord = computed(
+	() =>
+		shell.signedInAsAdmin &&
+		!shell.chatBlacklistSaving &&
+		shell.chatBlacklistDraft.trim().length > 0
+);
 
 function focusMessageInput() {
 	nextTick(() => {
@@ -77,6 +83,26 @@ function selectContact(name: string) {
 
 function refreshMessages() {
 	void shell.loadChatMessages();
+	if (shell.signedInAsAdmin && shell.chatModerationOpen) {
+		void shell.loadChatBlacklist({ quiet: true });
+	}
+}
+
+function toggleModerationPanel() {
+	shell.toggleChatModerationPanel();
+}
+
+async function submitBlockedWord() {
+	if (!canAddBlockedWord.value) return;
+	await shell.addChatBlacklistWord();
+}
+
+async function deleteBlockedWord(wordId: number) {
+	await shell.removeChatBlacklistWord(wordId);
+}
+
+async function deleteMessage(messageId: number) {
+	await shell.deleteChatMessage(messageId);
 }
 
 watch(
@@ -94,6 +120,14 @@ watch(
 		scrollToBottom();
 	},
 	{ deep: true }
+);
+
+watch(
+	() => shell.chatModerationOpen,
+	(isOpen) => {
+		if (!isOpen || !shell.signedInAsAdmin) return;
+		void shell.loadChatBlacklist({ quiet: true });
+	}
 );
 </script>
 
@@ -135,7 +169,9 @@ watch(
 
 					<section class="msn-contact-groups">
 						<div class="msn-contact-group">
-							<h3>Online ({{ contactPresence.online.length }})</h3>
+							<h3>
+								Online ({{ contactPresence.online.length }})
+							</h3>
 							<button
 								v-for="contact in contactPresence.online"
 								:key="`online-${contact.name}`"
@@ -143,12 +179,19 @@ watch(
 								class="msn-contact-row online"
 								@click="selectContact(contact.name)"
 							>
-								<span class="msn-presence-dot" aria-hidden="true"></span>
+								<span
+									class="msn-presence-dot"
+									aria-hidden="true"
+								></span>
 								<span>{{ contact.name }}</span>
 							</button>
 						</div>
 						<div class="msn-contact-group">
-							<h3>Not Online ({{ contactPresence.offline.length }})</h3>
+							<h3>
+								Not Online ({{
+									contactPresence.offline.length
+								}})
+							</h3>
 							<button
 								v-for="contact in contactPresence.offline"
 								:key="`offline-${contact.name}`"
@@ -156,7 +199,10 @@ watch(
 								class="msn-contact-row offline"
 								@click="selectContact(contact.name)"
 							>
-								<span class="msn-presence-dot" aria-hidden="true"></span>
+								<span
+									class="msn-presence-dot"
+									aria-hidden="true"
+								></span>
 								<span>{{ contact.name }}</span>
 							</button>
 						</div>
@@ -181,18 +227,107 @@ watch(
 				<section class="msn-room-pane">
 					<header class="msn-room-header">
 						<strong># chat</strong>
-						<button
-							type="button"
-							:disabled="shell.chatLoading"
-							@click="refreshMessages"
-						>
-							{{ shell.chatLoading ? 'Loading...' : 'Refresh' }}
-						</button>
+						<div class="msn-room-header-actions">
+							<button
+								type="button"
+								:disabled="shell.chatLoading"
+								@click="refreshMessages"
+							>
+								{{
+									shell.chatLoading ? 'Loading...' : 'Refresh'
+								}}
+							</button>
+							<button
+								v-if="shell.signedInAsAdmin"
+								type="button"
+								class="msn-moderation-toggle"
+								:class="{ active: shell.chatModerationOpen }"
+								:title="
+									shell.chatModerationOpen
+										? 'Close moderation'
+										: 'Open moderation'
+								"
+								:aria-pressed="shell.chatModerationOpen"
+								@click="toggleModerationPanel"
+							>
+								⚙
+							</button>
+						</div>
 					</header>
 
 					<p v-if="shell.chatError" class="msn-chat-error">
 						{{ shell.chatError }}
 					</p>
+
+					<section
+						v-if="shell.signedInAsAdmin && shell.chatModerationOpen"
+						class="msn-moderation-panel"
+					>
+						<header>
+							<strong>Word Filter</strong>
+						</header>
+						<p
+							v-if="shell.chatModerationError"
+							class="msn-chat-error"
+						>
+							{{ shell.chatModerationError }}
+						</p>
+						<form
+							class="msn-moderation-form"
+							@submit.prevent="submitBlockedWord"
+						>
+							<input
+								v-model="shell.chatBlacklistDraft"
+								type="text"
+								maxlength="64"
+								autocomplete="off"
+								spellcheck="false"
+								placeholder="Add blocked word..."
+							/>
+							<button
+								type="submit"
+								:disabled="!canAddBlockedWord"
+							>
+								{{
+									shell.chatBlacklistSaving
+										? 'Saving...'
+										: 'Add'
+								}}
+							</button>
+						</form>
+						<ul class="msn-moderation-list">
+							<li
+								v-for="word in shell.chatBlacklistWords"
+								:key="word.id"
+							>
+								<span>{{ word.word }}</span>
+								<button
+									type="button"
+									:disabled="
+										shell.chatDeletingBlacklistWordId !==
+										null
+									"
+									@click="deleteBlockedWord(word.id)"
+								>
+									{{
+										shell.chatDeletingBlacklistWordId ===
+										word.id
+											? 'Removing...'
+											: 'Remove'
+									}}
+								</button>
+							</li>
+							<li
+								v-if="
+									!shell.chatModerationLoading &&
+									shell.chatBlacklistWords.length === 0
+								"
+								class="msn-moderation-empty"
+							>
+								No blocked words configured.
+							</li>
+						</ul>
+					</section>
 
 					<div ref="feedRef" class="msn-room-feed">
 						<p
@@ -212,9 +347,29 @@ watch(
 						>
 							<header class="msn-room-entry-header">
 								<strong>{{ entry.name }}</strong>
-								<span>{{
-									shell.formatChatTimestamp(entry.createdAt)
-								}}</span>
+								<div class="msn-room-entry-meta">
+									<span>{{
+										shell.formatChatTimestamp(
+											entry.createdAt
+										)
+									}}</span>
+									<button
+										v-if="shell.signedInAsAdmin"
+										type="button"
+										class="msn-room-entry-delete"
+										:disabled="
+											shell.chatDeletingMessageId !== null
+										"
+										@click="deleteMessage(entry.id)"
+									>
+										{{
+											shell.chatDeletingMessageId ===
+											entry.id
+												? 'Deleting...'
+												: 'Delete'
+										}}
+									</button>
+								</div>
 							</header>
 							<p>{{ entry.message }}</p>
 						</article>

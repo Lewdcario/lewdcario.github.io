@@ -478,7 +478,7 @@ export function createDefaultWindowState(): WindowStateMap {
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
-		chat: { isOpen: false, isMinimized: false, isMaximized: false },
+		chat: { isOpen: true, isMinimized: false, isMaximized: false },
 		mines: { isOpen: false, isMinimized: false, isMaximized: false },
 		paint: { isOpen: false, isMinimized: false, isMaximized: false },
 		gallery: { isOpen: false, isMinimized: false, isMaximized: false },

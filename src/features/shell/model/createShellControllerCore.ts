@@ -1,7 +1,10 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue';
 import projects, { type PortfolioProject } from '~/src/data/projects';
 import { createNoiseEngine } from '~/src/features/noise/model/createNoiseEngine';
-import { shellFeatureFlags, themeStorageKey } from '~/src/features/shell/constants/shell';
+import {
+	shellFeatureFlags,
+	themeStorageKey
+} from '~/src/features/shell/constants/shell';
 import { createBrowserMediaActions } from '~/src/features/shell/model/internal/createBrowserMediaActions';
 import { createBlogActions } from '~/src/features/shell/model/internal/createBlogActions';
 import { createChatActions } from '~/src/features/shell/model/internal/createChatActions';
@@ -107,6 +110,14 @@ function buildShellController() {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,
@@ -338,6 +349,15 @@ function buildShellController() {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
+		sessionRole,
 		pushStatus,
 		readApiErrorMessage
 	});
@@ -520,6 +540,14 @@ function buildShellController() {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
 		windowState,
 		windowPositions,
 		windowSizes,
@@ -574,6 +602,8 @@ function buildShellController() {
 	watch(
 		() => windowState.value.chat,
 		(state) => {
+			if (typeof window === 'undefined') return;
+
 			if (!state.isOpen || state.isMinimized) {
 				if (chatPollTimer !== null) {
 					window.clearInterval(chatPollTimer);
@@ -589,7 +619,7 @@ function buildShellController() {
 				void chatActions.loadChatMessages({ quiet: true });
 			}, 5000);
 		},
-		{ deep: true }
+		{ deep: true, immediate: true }
 	);
 
 	onMounted(() => {
@@ -770,6 +800,14 @@ function buildShellController() {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
 		blinkieBadges,
 		blinkieStamps,
 		blinkieLoading,

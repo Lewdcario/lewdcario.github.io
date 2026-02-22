@@ -87,6 +87,14 @@ export function createSessionActions(deps: any) {
 		chatName,
 		chatDraft,
 		chatSending,
+		chatBlacklistWords,
+		chatModerationOpen,
+		chatModerationLoading,
+		chatModerationError,
+		chatBlacklistDraft,
+		chatBlacklistSaving,
+		chatDeletingMessageId,
+		chatDeletingBlacklistWordId,
 		windowState,
 		windowPositions,
 		windowSizes,
@@ -110,9 +118,9 @@ export function createSessionActions(deps: any) {
 		}
 
 		void nextTick(() => {
-			const adminPasswordInput = document.getElementById('xp-login-password') as
-				| HTMLInputElement
-				| null;
+			const adminPasswordInput = document.getElementById(
+				'xp-login-password'
+			) as HTMLInputElement | null;
 			adminPasswordInput?.focus();
 		});
 	}
@@ -143,7 +151,10 @@ export function createSessionActions(deps: any) {
 		browserAddress.value = browserHomeUrl;
 		browserFrameSrc.value = browserHomeUrl;
 		browserRenderMode.value = 'snapshot';
-		browserDocument.value = browserPlaceholderDocument(browserPlaceholderPrompt, browserHomeUrl);
+		browserDocument.value = browserPlaceholderDocument(
+			browserPlaceholderPrompt,
+			browserHomeUrl
+		);
 		browserHistory.value = [browserHomeUrl];
 		browserHistoryIndex.value = 0;
 		browserSearchMenuOpen.value = false;
@@ -189,6 +200,14 @@ export function createSessionActions(deps: any) {
 		chatName.value = '';
 		chatDraft.value = '';
 		chatSending.value = false;
+		chatBlacklistWords.value = [];
+		chatModerationOpen.value = false;
+		chatModerationLoading.value = false;
+		chatModerationError.value = '';
+		chatBlacklistDraft.value = '';
+		chatBlacklistSaving.value = false;
+		chatDeletingMessageId.value = null;
+		chatDeletingBlacklistWordId.value = null;
 		windowState.value = createDefaultWindowState();
 		windowPositions.value = createDefaultWindowPositions();
 		windowSizes.value = createDefaultWindowSizes();
@@ -199,7 +218,8 @@ export function createSessionActions(deps: any) {
 	function playShutdownSound() {
 		const AudioContextConstructor =
 			window.AudioContext ||
-			(window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+			(window as Window & { webkitAudioContext?: typeof AudioContext })
+				.webkitAudioContext;
 		if (!AudioContextConstructor) return;
 
 		try {
@@ -222,7 +242,10 @@ export function createSessionActions(deps: any) {
 			for (const tone of tones) {
 				const oscillator = context.createOscillator();
 				oscillator.type = 'triangle';
-				oscillator.frequency.setValueAtTime(tone.frequency, now + tone.start);
+				oscillator.frequency.setValueAtTime(
+					tone.frequency,
+					now + tone.start
+				);
 				oscillator.connect(masterGain);
 				oscillator.start(now + tone.start);
 				oscillator.stop(now + tone.start + tone.duration);
@@ -276,19 +299,29 @@ export function createSessionActions(deps: any) {
 		loginSubmitting.value = true;
 		loginError.value = '';
 		try {
-			const payload = await $fetch<{ role: AuthSessionRole }>('/api/auth/login', {
-				method: 'POST',
-				body: {
-					user: selectedLoginUser.value,
-					password: selectedLoginUser.value === 'admin' ? adminLoginPassword.value : ''
+			const payload = await $fetch<{ role: AuthSessionRole }>(
+				'/api/auth/login',
+				{
+					method: 'POST',
+					body: {
+						user: selectedLoginUser.value,
+						password:
+							selectedLoginUser.value === 'admin'
+								? adminLoginPassword.value
+								: ''
+					}
 				}
-			});
+			);
 
 			sessionRole.value = payload.role;
 			adminLoginPassword.value = '';
 			splashVisible.value = false;
 			await loadBlogPosts();
-			pushStatus(payload.role === 'admin' ? 'signed in as admin.' : 'signed in as guest.');
+			pushStatus(
+				payload.role === 'admin'
+					? 'signed in as admin.'
+					: 'signed in as guest.'
+			);
 		} catch (error) {
 			loginError.value = readApiErrorMessage(
 				error,

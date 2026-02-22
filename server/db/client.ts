@@ -20,7 +20,10 @@ function resolveDatabaseUrl() {
 		typeof runtimeConfig.databaseUrl === 'string'
 			? runtimeConfig.databaseUrl.trim()
 			: '';
-	const fromEnv = typeof process.env.DATABASE_URL === 'string' ? process.env.DATABASE_URL.trim() : '';
+	const fromEnv =
+		typeof process.env.DATABASE_URL === 'string'
+			? process.env.DATABASE_URL.trim()
+			: '';
 	const databaseUrl = fromConfig || fromEnv;
 
 	if (!databaseUrl) {
@@ -48,7 +51,9 @@ function createDbRuntimeState(databaseUrl: string): DbRuntimeState {
 	const pool = new Pool({
 		connectionString: databaseUrl,
 		max: 6,
-		ssl: shouldUseSsl(databaseUrl) ? { rejectUnauthorized: false } : undefined
+		ssl: shouldUseSsl(databaseUrl)
+			? { rejectUnauthorized: false }
+			: undefined
 	});
 
 	const db = drizzle(pool, { schema });
@@ -64,7 +69,10 @@ function getDbRuntimeState() {
 	const databaseUrl = resolveDatabaseUrl();
 	const globalState = globalThis as GlobalDbState;
 
-	if (!globalState.__okamiBlogDb || globalState.__okamiBlogDb.url !== databaseUrl) {
+	if (
+		!globalState.__okamiBlogDb ||
+		globalState.__okamiBlogDb.url !== databaseUrl
+	) {
 		globalState.__okamiBlogDb = createDbRuntimeState(databaseUrl);
 	}
 
@@ -72,7 +80,9 @@ function getDbRuntimeState() {
 }
 
 async function seedBlogPosts(pool: Pool) {
-	const countResult = await pool.query<{ count: string }>('SELECT COUNT(*)::int AS count FROM blog_posts');
+	const countResult = await pool.query<{ count: string }>(
+		'SELECT COUNT(*)::int AS count FROM blog_posts'
+	);
 	const existingCount = Number(countResult.rows[0]?.count ?? 0);
 	if (existingCount > 0) return;
 
@@ -120,16 +130,25 @@ export async function ensureBlogStorage() {
 			CREATE INDEX IF NOT EXISTS blog_posts_published_created_idx
 			ON blog_posts (published, created_at DESC);
 
-			CREATE TABLE IF NOT EXISTS chat_messages (
-				id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-				name varchar(48) NOT NULL,
-				message text NOT NULL,
-				created_at timestamptz NOT NULL DEFAULT now()
-			);
+				CREATE TABLE IF NOT EXISTS chat_messages (
+					id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+					name varchar(48) NOT NULL,
+					message text NOT NULL,
+					created_at timestamptz NOT NULL DEFAULT now()
+				);
 
-			CREATE INDEX IF NOT EXISTS chat_messages_created_idx
-			ON chat_messages (created_at);
-		`);
+				CREATE INDEX IF NOT EXISTS chat_messages_created_idx
+				ON chat_messages (created_at);
+
+				CREATE TABLE IF NOT EXISTS chat_blacklisted_words (
+					id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+					word varchar(64) NOT NULL UNIQUE,
+					created_at timestamptz NOT NULL DEFAULT now()
+				);
+
+				CREATE INDEX IF NOT EXISTS chat_blacklisted_words_created_idx
+				ON chat_blacklisted_words (created_at);
+			`);
 
 		await seedBlogPosts(runtime.pool);
 	})().catch((error) => {

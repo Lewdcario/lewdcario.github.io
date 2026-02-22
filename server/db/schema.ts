@@ -1,4 +1,13 @@
-import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	index,
+	integer,
+	pgTable,
+	text,
+	timestamp,
+	uniqueIndex,
+	varchar
+} from 'drizzle-orm/pg-core';
 
 export const blogPosts = pgTable(
 	'blog_posts',
@@ -10,12 +19,19 @@ export const blogPosts = pgTable(
 		content: text('content').notNull(),
 		author: varchar('author', { length: 120 }).notNull().default('Okami'),
 		published: boolean('published').notNull().default(true),
-		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
 	},
 	(table) => ({
 		slugUnique: uniqueIndex('blog_posts_slug_unique').on(table.slug),
-		publishedCreatedIdx: index('blog_posts_published_created_idx').on(table.published, table.createdAt)
+		publishedCreatedIdx: index('blog_posts_published_created_idx').on(
+			table.published,
+			table.createdAt
+		)
 	})
 );
 
@@ -25,9 +41,30 @@ export const chatMessages = pgTable(
 		id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 		name: varchar('name', { length: 48 }).notNull(),
 		message: text('message').notNull(),
-		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
 	},
 	(table) => ({
 		createdIdx: index('chat_messages_created_idx').on(table.createdAt)
+	})
+);
+
+export const chatBlacklistedWords = pgTable(
+	'chat_blacklisted_words',
+	{
+		id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+		word: varchar('word', { length: 64 }).notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true })
+			.notNull()
+			.defaultNow()
+	},
+	(table) => ({
+		wordUnique: uniqueIndex('chat_blacklisted_words_word_unique').on(
+			table.word
+		),
+		createdIdx: index('chat_blacklisted_words_created_idx').on(
+			table.createdAt
+		)
 	})
 );
