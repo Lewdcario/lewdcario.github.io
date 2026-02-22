@@ -246,6 +246,39 @@ export function createBrowserMediaActions(deps: any) {
 		);
 	}
 
+	const blockedIframePhrases = [
+		'refused to connect',
+		'blocked by response',
+		'err_blocked_by_response',
+		'x-frame-options',
+		'frame-ancestors',
+		'cannot be displayed in a frame',
+		'site can’t be reached',
+		"site can't be reached"
+	];
+
+	function detectBlockedIframeDocument() {
+		try {
+			const frame = browserFrameRef.value;
+			const doc = frame?.contentDocument ?? frame?.contentWindow?.document ?? null;
+			if (!doc) return { inspectable: false, blocked: false };
+
+			const title = (doc.title ?? '').toLowerCase();
+			const bodyText = (
+				doc.body?.innerText ??
+				doc.documentElement?.innerText ??
+				''
+			).toLowerCase();
+			const combined = `${title}\n${bodyText}`;
+			const blocked = blockedIframePhrases.some((phrase) =>
+				combined.includes(phrase)
+			);
+			return { inspectable: true, blocked };
+		} catch {
+			return { inspectable: false, blocked: false };
+		}
+	}
+
 	function handleDirectBrowserFrameLoad() {
 		if (browserRenderMode.value !== 'direct') return;
 		if (!browserLoading.value) return;
@@ -266,7 +299,15 @@ export function createBrowserMediaActions(deps: any) {
 			return;
 		}
 
-		if (!canInspectLocation) {
+		const blockedDocument = detectBlockedIframeDocument();
+		if (blockedDocument.inspectable && blockedDocument.blocked) {
+			void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
+				pushHistory: false
+			});
+			return;
+		}
+
+		if (!canInspectLocation || !blockedDocument.inspectable) {
 			return;
 		}
 
