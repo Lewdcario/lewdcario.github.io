@@ -5,6 +5,15 @@ import { shellIcons } from '~/src/features/shell/constants/shell';
 import { useShellControllerContext } from '~/src/features/shell/model/useShellController';
 import ShellWindowFrame from './ShellWindowFrame.vue';
 
+const props = withDefaults(
+	defineProps<{
+		showTwitterLink?: boolean;
+	}>(),
+	{
+		showTwitterLink: false
+	}
+);
+
 const shell = useShellControllerContext();
 const mode = ref<'icons' | 'viewer'>('icons');
 const securityShieldVisible = ref(false);
@@ -174,7 +183,7 @@ function openSelectedArtwork() {
 
 function backToIcons() {
 	mode.value = 'icons';
-	shell.pushStatus('Returned to My Pictures icon view.');
+	shell.pushStatus('Returned to My Art icon view.');
 	void nextTick(() => {
 		updateIconLoadWindow();
 	});
@@ -190,17 +199,6 @@ function stepArtwork(offset: number) {
 	if (!target) return;
 	selectedArtworkId.value = target.id;
 	shell.pushStatus(`Viewing ${target.title}.`);
-}
-
-function openArtworkInNavigator() {
-	if (!selectedArtwork.value) return;
-	const source = artworkSource(selectedArtwork.value, 'image');
-	const url = /^https?:\/\//i.test(source)
-		? source
-		: typeof window === 'undefined'
-			? source
-			: new URL(source, window.location.origin).toString();
-	shell.openStandardBrowser(url, selectedArtwork.value.title);
 }
 
 function scrollFilmstripToSelected() {
@@ -228,6 +226,55 @@ function formatPostedAt(value: string) {
 		minute: '2-digit'
 	});
 }
+
+function extractTweetId(artwork: ArtworkItem) {
+	const notesMatch = artwork.notes.match(/tweet\s+(\d{8,25})/i);
+	if (notesMatch?.[1]) return notesMatch[1];
+	const imageMatch = artwork.image.match(/\/(\d{8,25})(?:_\d+)?\.[a-z0-9]+$/i);
+	if (imageMatch?.[1]) return imageMatch[1];
+	const idMatch = artwork.id.match(/-(\d{8,25})-(?:\d+)-/);
+	if (idMatch?.[1]) return idMatch[1];
+	return '';
+}
+
+function extractTwitterHandle(artwork: ArtworkItem) {
+	const mediumMatch = artwork.medium.match(/^twitter\/([^/\s]+)$/i);
+	if (mediumMatch?.[1]) return mediumMatch[1];
+	const imageMatch = artwork.image.match(/^\/twitter\/([^/]+)\//i);
+	if (imageMatch?.[1]) return imageMatch[1];
+	const notesMatch = artwork.notes.match(/twitter\/([^,\s]+)/i);
+	if (notesMatch?.[1]) return notesMatch[1];
+	return '';
+}
+
+function buildTwitterStatusUrl(artwork: ArtworkItem) {
+	const handle = extractTwitterHandle(artwork);
+	const tweetId = extractTweetId(artwork);
+	if (!handle || !tweetId) return '';
+	return `https://twitter.com/${handle}/status/${tweetId}`;
+}
+
+function formatArtworkNotes(notes: string) {
+	const stripped = notes.replace(/^Imported from\s+/i, '').trim();
+	const withoutTwitterUrls = stripped
+		.replace(/https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/\S+/gi, '')
+		.replace(/\s{2,}/g, ' ')
+		.trim();
+	if (/^twitter\/[^,\s]+,\s*tweet\s+\d{8,25}$/i.test(withoutTwitterUrls)) {
+		return '';
+	}
+	return withoutTwitterUrls;
+}
+
+const selectedArtworkTwitterUrl = computed(() => {
+	if (!props.showTwitterLink || !selectedArtwork.value) return '';
+	return buildTwitterStatusUrl(selectedArtwork.value);
+});
+
+const selectedArtworkNotes = computed(() => {
+	if (!selectedArtwork.value) return '';
+	return formatArtworkNotes(selectedArtwork.value.notes);
+});
 
 function markIconLoaded(artworkId: string) {
 	if (iconImagesLoaded.value[artworkId]) return;
@@ -349,19 +396,19 @@ function detectBlockedCommand(event: KeyboardEvent) {
 
 	if (ctrlOrMeta && ['s', 'p', 'c', 'x', 'u'].includes(key)) {
 		return {
-			message: 'Copy and save shortcuts are blocked in My Pictures.'
+			message: 'Copy and save shortcuts are blocked in My Art.'
 		};
 	}
 
 	if (ctrlOrMeta && event.shiftKey && ['i', 'j', 'c'].includes(key)) {
 		return {
-			message: 'Developer-tool shortcuts are blocked while My Pictures is open.'
+			message: 'Developer-tool shortcuts are blocked while My Art is open.'
 		};
 	}
 
 	if (event.key === 'F12') {
 		return {
-			message: 'Developer-tool shortcuts are blocked while My Pictures is open.'
+			message: 'Developer-tool shortcuts are blocked while My Art is open.'
 		};
 	}
 
@@ -482,9 +529,9 @@ onBeforeUnmount(() => {
 <template>
 	<ShellWindowFrame
 		window-id="gallery"
-		title="My Pictures"
+		title="My Art"
 		:icon="shellIcons.picture"
-		icon-alt="my pictures icon"
+		icon-alt="my art icon"
 		window-class="gallery-window"
 		body-class="gallery-window-body"
 	>
@@ -492,19 +539,19 @@ onBeforeUnmount(() => {
 			class="gallery-shell"
 			:class="{ 'gallery-security-active': securityShieldVisible }"
 			@contextmenu.prevent="
-				handleProtectedInteraction('Context menu is disabled while My Pictures is open.')
+				handleProtectedInteraction('Context menu is disabled while My Art is open.')
 			"
 			@dragstart.prevent="
-				handleProtectedInteraction('Dragging or saving pictures is disabled in My Pictures.')
+				handleProtectedInteraction('Dragging or saving pictures is disabled in My Art.')
 			"
-			@copy.prevent="handleProtectedInteraction('Copy is disabled while My Pictures is open.')"
-			@cut.prevent="handleProtectedInteraction('Cut is disabled while My Pictures is open.')"
+			@copy.prevent="handleProtectedInteraction('Copy is disabled while My Art is open.')"
+			@cut.prevent="handleProtectedInteraction('Cut is disabled while My Art is open.')"
 			@selectstart.prevent="
-				handleProtectedInteraction('Text and image selection is disabled in My Pictures.')
+				handleProtectedInteraction('Text and image selection is disabled in My Art.')
 			"
 		>
 			<div class="gallery-content">
-				<nav class="gallery-menu-bar" aria-label="My Pictures menu">
+				<nav class="gallery-menu-bar" aria-label="My Art menu">
 					<button type="button" @click="shell.pushStatus('File menu is not available in this build.')">File</button>
 					<button type="button" @click="shell.pushStatus('Edit menu is not available in this build.')">Edit</button>
 					<button type="button" @click="shell.pushStatus('View menu is not available in this build.')">View</button>
@@ -515,7 +562,7 @@ onBeforeUnmount(() => {
 
 				<div v-if="mode === 'icons'" class="gallery-explorer-view">
 					<header class="gallery-header">
-						<h2>My Pictures</h2>
+						<h2>My Art</h2>
 						<p>Masonry feed by year. Double-click any image to open XP Picture Viewer.</p>
 					</header>
 
@@ -567,10 +614,9 @@ onBeforeUnmount(() => {
 
 				<div v-else class="gallery-viewer-mode">
 					<div class="gallery-viewer-toolbar">
-						<button type="button" @click="backToIcons">Back To Pictures</button>
+						<button type="button" @click="backToIcons">Back To Art</button>
 						<button type="button" @click="stepArtwork(-1)">Previous</button>
 						<button type="button" @click="stepArtwork(1)">Next</button>
-						<button type="button" @click="openArtworkInNavigator">Open In Navigator</button>
 					</div>
 
 					<div v-if="selectedArtwork" class="gallery-viewer-layout">
@@ -582,14 +628,16 @@ onBeforeUnmount(() => {
 								@error="handleArtworkSourceError(selectedArtwork, 'image')"
 							/>
 						</div>
-						<aside class="gallery-viewer-info">
-							<h3>{{ selectedArtwork.title }}</h3>
-							<p><strong>Year:</strong> {{ selectedArtwork.year }}</p>
-							<p><strong>Posted:</strong> {{ formatPostedAt(selectedArtwork.postedAt) }}</p>
-							<p><strong>Medium:</strong> {{ selectedArtwork.medium }}</p>
-							<p>{{ selectedArtwork.notes }}</p>
-						</aside>
-					</div>
+							<aside class="gallery-viewer-info">
+								<p><strong>Year:</strong> {{ selectedArtwork.year }}</p>
+								<p><strong>Posted:</strong> {{ formatPostedAt(selectedArtwork.postedAt) }}</p>
+								<p v-if="selectedArtworkTwitterUrl">
+									<strong>Tweet:</strong>&nbsp;
+									<a :href="selectedArtworkTwitterUrl" target="_blank" rel="noopener noreferrer">Link</a>
+								</p>
+								<p v-if="selectedArtworkNotes">{{ selectedArtworkNotes }}</p>
+							</aside>
+						</div>
 
 					<div
 						ref="filmstripRef"

@@ -334,7 +334,7 @@ const allDesktopIcons: DesktopIcon[] = [
 	},
 	{
 		id: 'my-pictures',
-		label: 'My Pictures',
+		label: 'My Art',
 		icon: shellIcons.picture,
 		windowId: 'gallery',
 		x: 322,
@@ -427,7 +427,7 @@ const allWindowsMeta: WindowMeta[] = [
 	},
 	{
 		id: 'gallery',
-		label: 'My Pictures',
+		label: 'My Art',
 		icon: shellIcons.picture
 	},
 	{
