@@ -14,8 +14,7 @@ export type WindowId =
 	| 'paint'
 	| 'gallery'
 	| 'control'
-	| 'otaclock'
-	| 'remote';
+	| 'otaclock';
 
 export interface ShellShortcut {
 	id: string;

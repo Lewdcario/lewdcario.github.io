@@ -12,7 +12,6 @@ import ShellOtaClockWindow from './ShellOtaClockWindow.vue';
 import ShellPaintWindow from './ShellPaintWindow.vue';
 import ShellGalleryWindow from './ShellGalleryWindow.vue';
 import ShellRecycleWindow from './ShellRecycleWindow.vue';
-import ShellRemoteWindow from './ShellRemoteWindow.vue';
 import ShellVlcWindow from './ShellVlcWindow.vue';
 </script>
 
@@ -32,7 +31,6 @@ import ShellVlcWindow from './ShellVlcWindow.vue';
 		<ShellControlPanelWindow />
 		<ShellVlcWindow />
 		<ShellNoiseWindow />
-		<ShellRemoteWindow />
 		<ShellRecycleWindow />
 		<ShellOtaClockWindow />
 		<ShellMainWindow />

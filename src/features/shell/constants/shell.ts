@@ -39,7 +39,6 @@ export const shellIcons = {
 	control: '/xp-icons/pack/control-panel.png',
 	accessibility: '/xp-icons/pack/accessibility-options.png',
 	addRemovePrograms: '/xp-icons/pack/add-remove-programs.png',
-	remote: '/xp-icons/pack/computer.png',
 	otaclock: '/otaclock/icons/group_113_frame0_48x48.png',
 	folder: '/xp-icons/pack/folder-closed.png',
 	folderOpen: '/xp-icons/pack/folder-open.png',
@@ -261,14 +260,6 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 156
 	},
 	{
-		id: 'remote-app',
-		label: 'Remote App',
-		icon: shellIcons.remote,
-		windowId: 'remote',
-		x: 130,
-		y: 264
-	},
-	{
 		id: 'otaclock',
 		label: 'OtaClock',
 		icon: shellIcons.otaclock,
@@ -391,11 +382,6 @@ export const windowsMeta: WindowMeta[] = [
 		id: 'control',
 		label: 'Control Panel',
 		icon: shellIcons.control
-	},
-	{
-		id: 'remote',
-		label: 'Remote App Stream',
-		icon: shellIcons.remote
 	},
 	{
 		id: 'otaclock',
