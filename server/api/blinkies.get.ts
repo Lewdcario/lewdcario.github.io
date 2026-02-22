@@ -2,6 +2,7 @@ import { createError, defineEventHandler, getQuery } from 'h3';
 import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { extname, join } from 'node:path';
+import { blinkieBadges, blinkieStamps } from '~/src/data/blinkies';
 
 const allowedThemePattern = /^[a-z0-9-]+$/i;
 const supportedExtensions = new Set([
@@ -22,17 +23,24 @@ function resolvePublicDir() {
 		}
 	}
 
-	throw createError({
-		statusCode: 500,
-		statusMessage: 'Public assets directory is unavailable.'
-	});
+	return null;
+}
+
+function fallbackBlinkies(type: 'badges' | 'stamps', themeFolder: string) {
+	const source = type === 'badges' ? blinkieBadges : blinkieStamps;
+	const prefix = `/img/${type}/${themeFolder}/`;
+	return source.filter((entry) => entry.startsWith(prefix));
 }
 
 async function listBlinkieFiles(
-	publicDir: string,
+	publicDir: string | null,
 	type: 'badges' | 'stamps',
 	themeFolder: string
 ) {
+	if (!publicDir) {
+		return fallbackBlinkies(type, themeFolder);
+	}
+
 	const directory = join(publicDir, 'img', type, themeFolder);
 
 	try {
@@ -49,13 +57,10 @@ async function listBlinkieFiles(
 			'code' in error &&
 			(error as { code?: string }).code === 'ENOENT'
 		) {
-			return [];
+			return fallbackBlinkies(type, themeFolder);
 		}
 
-		throw createError({
-			statusCode: 500,
-			statusMessage: `Failed loading ${type} folder "${themeFolder}".`
-		});
+		return fallbackBlinkies(type, themeFolder);
 	}
 }
 
