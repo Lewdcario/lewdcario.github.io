@@ -10,6 +10,7 @@ import ShellMinesweeperWindow from './ShellMinesweeperWindow.vue';
 import ShellNoiseWindow from './ShellNoiseWindow.vue';
 import ShellOtaClockWindow from './ShellOtaClockWindow.vue';
 import ShellPaintWindow from './ShellPaintWindow.vue';
+import ShellGalleryWindow from './ShellGalleryWindow.vue';
 import ShellRecycleWindow from './ShellRecycleWindow.vue';
 import ShellRemoteWindow from './ShellRemoteWindow.vue';
 import ShellVlcWindow from './ShellVlcWindow.vue';
@@ -27,6 +28,7 @@ import ShellVlcWindow from './ShellVlcWindow.vue';
 		<ShellChatWindow />
 		<ShellMinesweeperWindow />
 		<ShellPaintWindow />
+		<ShellGalleryWindow />
 		<ShellControlPanelWindow />
 		<ShellVlcWindow />
 		<ShellNoiseWindow />

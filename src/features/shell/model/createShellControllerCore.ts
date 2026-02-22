@@ -180,7 +180,7 @@ function buildShellController() {
 		fallbackTimer: null as number | null
 	};
 	const windowRuntime = {
-		zCounter: 18,
+		zCounter: 24,
 		draggedIconIds: new Set<string>()
 	};
 

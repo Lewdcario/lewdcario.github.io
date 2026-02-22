@@ -156,9 +156,21 @@ const shell = useShellControllerContext();
 					/>
 					<span>Open Paint</span>
 				</button>
-				<button
-					class="start-menu-item"
-					@click="shell.openWindowFromMenu('control')"
+					<button
+						class="start-menu-item"
+						@click="shell.openWindowFromMenu('gallery')"
+					>
+					<img
+						:src="shellIcons.picture"
+						width="16"
+						height="16"
+						alt="my pictures icon"
+					/>
+						<span>Open My Pictures</span>
+					</button>
+					<button
+						class="start-menu-item"
+						@click="shell.openWindowFromMenu('control')"
 				>
 					<img
 						:src="shellIcons.control"

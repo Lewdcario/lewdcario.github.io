@@ -35,6 +35,7 @@ export const shellIcons = {
 	chat: '/xp-icons/pack/msn-messenger-icon.png',
 	mines: '/xp-icons/pack/minesweeper-icon.png',
 	paint: '/xp-icons/pack/paint.png',
+	picture: '/xp-icons/pack/documents.png',
 	control: '/xp-icons/pack/control-panel.png',
 	accessibility: '/xp-icons/pack/accessibility-options.png',
 	addRemovePrograms: '/xp-icons/pack/add-remove-programs.png',
@@ -276,14 +277,6 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 372
 	},
 	{
-		id: 'projects',
-		label: 'Projects',
-		icon: shellIcons.computer,
-		tab: 'projects',
-		x: 130,
-		y: 480
-	},
-	{
 		id: 'contact',
 		label: 'Contact',
 		icon: shellIcons.contact,
@@ -316,11 +309,19 @@ export const desktopIcons: DesktopIcon[] = [
 		y: 372
 	},
 	{
+		id: 'my-pictures',
+		label: 'My Pictures',
+		icon: shellIcons.picture,
+		windowId: 'gallery',
+		x: 322,
+		y: 48
+	},
+	{
 		id: 'recycle-bin',
 		label: 'Recycle Bin',
 		icon: shellIcons.recycle,
 		recycle: true,
-		x: 226,
+		x: 322,
 		y: 480
 	}
 ];
@@ -382,6 +383,11 @@ export const windowsMeta: WindowMeta[] = [
 		icon: shellIcons.paint
 	},
 	{
+		id: 'gallery',
+		label: 'My Pictures',
+		icon: shellIcons.picture
+	},
+	{
 		id: 'control',
 		label: 'Control Panel',
 		icon: shellIcons.control
@@ -414,10 +420,11 @@ export function createDefaultWindowPositions(): Record<
 		otaclock: { x: 880, y: 120, z: 14 },
 		remote: { x: 610, y: 90, z: 15 },
 		chat: { x: 690, y: 138, z: 16 },
-		mines: { x: 760, y: 170, z: 17 },
-		control: { x: 580, y: 140, z: 18 },
-		paint: { x: 640, y: 164, z: 19 }
-	};
+			mines: { x: 760, y: 170, z: 17 },
+			control: { x: 580, y: 140, z: 18 },
+			paint: { x: 640, y: 164, z: 19 },
+			gallery: { x: 420, y: 96, z: 20 }
+		};
 }
 
 export function createDefaultWindowState(): WindowStateMap {
@@ -430,13 +437,14 @@ export function createDefaultWindowState(): WindowStateMap {
 		vlc: { isOpen: false, isMinimized: false, isMaximized: false },
 		noise: { isOpen: false, isMinimized: false, isMaximized: false },
 		cmd: { isOpen: false, isMinimized: false, isMaximized: false },
-		chat: { isOpen: false, isMinimized: false, isMaximized: false },
-		mines: { isOpen: false, isMinimized: false, isMaximized: false },
-		paint: { isOpen: false, isMinimized: false, isMaximized: false },
-		control: { isOpen: false, isMinimized: false, isMaximized: false },
-		otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
-		remote: { isOpen: false, isMinimized: false, isMaximized: false }
-	};
+			chat: { isOpen: false, isMinimized: false, isMaximized: false },
+			mines: { isOpen: false, isMinimized: false, isMaximized: false },
+			paint: { isOpen: false, isMinimized: false, isMaximized: false },
+			gallery: { isOpen: false, isMinimized: false, isMaximized: false },
+			control: { isOpen: false, isMinimized: false, isMaximized: false },
+			otaclock: { isOpen: false, isMinimized: false, isMaximized: false },
+			remote: { isOpen: false, isMinimized: false, isMaximized: false }
+		};
 }
 
 export function noiseWindowHeightForPresetList() {
@@ -461,11 +469,12 @@ export function createDefaultWindowSizes(): WindowSizesMap {
 		vlc: { width: 640, height: 430 },
 		noise: { width: 430, height: noiseWindowHeightForPresetList() },
 		cmd: { width: 560, height: 360 },
-		chat: { width: 700, height: 470 },
-		mines: { width: 320, height: 410 },
-		paint: { width: 760, height: 560 },
-		control: { width: 720, height: 620 },
-		otaclock: { width: 440, height: 520 },
-		remote: { width: 760, height: 520 }
-	};
+			chat: { width: 700, height: 470 },
+			mines: { width: 320, height: 410 },
+			paint: { width: 760, height: 560 },
+			gallery: { width: 780, height: 560 },
+			control: { width: 720, height: 620 },
+			otaclock: { width: 440, height: 520 },
+			remote: { width: 760, height: 520 }
+		};
 }

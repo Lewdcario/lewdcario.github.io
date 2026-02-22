@@ -12,6 +12,7 @@ export type WindowId =
 	| 'chat'
 	| 'mines'
 	| 'paint'
+	| 'gallery'
 	| 'control'
 	| 'otaclock'
 	| 'remote';

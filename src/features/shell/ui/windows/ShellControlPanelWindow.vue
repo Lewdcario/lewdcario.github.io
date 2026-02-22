@@ -71,6 +71,12 @@ const controlApplets: ControlApplet[] = [
 		onOpen: () => openWindow('paint')
 	},
 	{
+		id: 'pictures',
+		label: 'My Pictures',
+		icon: shellIcons.picture,
+		onOpen: () => openWindow('gallery')
+	},
+	{
 		id: 'folder-options',
 		label: 'Folder Options',
 		icon: shellIcons.folder,
