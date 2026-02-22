@@ -82,7 +82,20 @@ const shell = useShellControllerContext();
 				<textarea id="otaclock-alarm-times" v-model="shell.otaClockAlarmTimesInput" rows="2" spellcheck="false"></textarea>
 			</div>
 		</div>
-		<audio :ref="shell.otaClockAudioLaughRef" src="/otaclock/alarm_laugh.wav" preload="auto"></audio>
-		<audio :ref="shell.otaClockAudioOkRef" src="/otaclock/alarm_ok.wav" preload="auto"></audio>
+		<audio
+			:ref="
+				(element) =>
+					(shell.otaClockAudioLaughRef = element as HTMLAudioElement | null)
+			"
+			src="/otaclock/alarm_laugh.wav"
+			preload="auto"
+		></audio>
+		<audio
+			:ref="
+				(element) => (shell.otaClockAudioOkRef = element as HTMLAudioElement | null)
+			"
+			src="/otaclock/alarm_ok.wav"
+			preload="auto"
+		></audio>
 	</ShellWindowFrame>
 </template>

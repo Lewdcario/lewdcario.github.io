@@ -7,7 +7,7 @@ const shell = useShellControllerContext();
 <template>
 	<div
 		v-if="shell.contextMenuVisible"
-		:ref="shell.contextMenuRef"
+		:ref="(element) => (shell.contextMenuRef = element as HTMLElement | null)"
 		class="xp-context-menu"
 		:style="{ left: `${shell.contextMenuX}px`, top: `${shell.contextMenuY}px` }"
 		@contextmenu.stop.prevent

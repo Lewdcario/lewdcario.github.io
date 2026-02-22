@@ -765,6 +765,15 @@ export function createBrowserMediaActions(deps: any) {
 		const vlcFrameWindow = vlcFrameRef.value?.contentWindow;
 		if (vlcFrameWindow && event.source === vlcFrameWindow) {
 			handleVlcFrameMessage(event.data);
+			return;
+		}
+
+		const isYouTubeMessageOrigin =
+			event.origin === 'https://www.youtube.com' ||
+			event.origin === 'https://youtube.com' ||
+			event.origin === 'https://www.youtube-nocookie.com';
+		if (isYouTubeMessageOrigin) {
+			handleVlcFrameMessage(event.data);
 		}
 	}
 

@@ -49,7 +49,7 @@ const shell = useShellControllerContext();
 		</div>
 		<div class="vlc-content">
 			<iframe
-				:ref="shell.vlcFrameRef"
+				:ref="(element) => (shell.vlcFrameRef = element as HTMLIFrameElement | null)"
 				class="vlc-frame"
 				:src="shell.vlcEmbedUrl"
 				title="VLC playlist player"

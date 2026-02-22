@@ -59,7 +59,7 @@ const shell = useShellControllerContext();
 				<label for="browser-address">Location:</label>
 				<input
 					id="browser-address"
-					:ref="shell.browserAddressInputRef"
+					:ref="(element) => (shell.browserAddressInputRef = element as HTMLInputElement | null)"
 					v-model="shell.browserAddress"
 					type="text"
 					@keydown.enter.prevent="shell.navigateBrowserAddress"
@@ -100,7 +100,7 @@ const shell = useShellControllerContext();
 					<div class="netscape-search-row">
 						<input
 							id="browser-search-query"
-							:ref="shell.browserSearchInputRef"
+							:ref="(element) => (shell.browserSearchInputRef = element as HTMLInputElement | null)"
 							v-model="shell.browserSearchQuery"
 							type="text"
 							placeholder="type query..."
@@ -130,7 +130,7 @@ const shell = useShellControllerContext();
 			<div class="netscape-content-wrap">
 				<iframe
 					v-if="shell.browserRenderMode === 'direct'"
-					:ref="shell.browserFrameRef"
+					:ref="(element) => (shell.browserFrameRef = element as HTMLIFrameElement | null)"
 					class="browser-frame netscape-browser-frame"
 					:src="shell.browserFrameSrc"
 					title="Browser content"
@@ -141,7 +141,7 @@ const shell = useShellControllerContext();
 				></iframe>
 				<iframe
 					v-else
-					:ref="shell.browserFrameRef"
+					:ref="(element) => (shell.browserFrameRef = element as HTMLIFrameElement | null)"
 					class="browser-frame netscape-browser-frame"
 					:srcdoc="shell.browserDocument"
 					title="Browser compatibility content"
