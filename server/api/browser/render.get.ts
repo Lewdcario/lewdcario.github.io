@@ -48,7 +48,9 @@ function isDuckDuckGoProtectionPage(target: URL, result: HeadlessRenderResult) {
 	}
 
 	if (final && isDuckDuckGoHost(final.hostname)) {
-		const blockedPath = final.pathname.toLowerCase().startsWith('/static-pages/418');
+		const blockedPath = final.pathname
+			.toLowerCase()
+			.startsWith('/static-pages/418');
 		if (blockedPath) return true;
 	}
 
@@ -140,7 +142,8 @@ async function fetchStaticHtml(target: URL): Promise<StaticHtmlFetchResult> {
 	}
 
 	const finalUrl = response.url || target.toString();
-	const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+	const contentType =
+		response.headers.get('content-type')?.toLowerCase() ?? '';
 	const responseBuffer = await response.arrayBuffer();
 	if (responseBuffer.byteLength > maxHtmlBytes) {
 		throw createError({
@@ -153,7 +156,9 @@ async function fetchStaticHtml(target: URL): Promise<StaticHtmlFetchResult> {
 	return { finalUrl, contentType, body };
 }
 
-async function renderWithHeadlessBrowser(target: URL): Promise<HeadlessRenderResult> {
+async function renderWithHeadlessBrowser(
+	target: URL
+): Promise<HeadlessRenderResult> {
 	const playwright = await import('playwright');
 	const browser = await playwright.chromium.launch({
 		headless: true,
@@ -175,12 +180,15 @@ async function renderWithHeadlessBrowser(target: URL): Promise<HeadlessRenderRes
 				timeout: requestTimeoutMs
 			});
 			await page
-				.waitForLoadState('networkidle', { timeout: headlessNetworkIdleTimeoutMs })
+				.waitForLoadState('networkidle', {
+					timeout: headlessNetworkIdleTimeoutMs
+				})
 				.catch(() => undefined);
 			await page.waitForTimeout(headlessExtraWaitMs);
 
 			const finalUrl = page.url() || target.toString();
-			const contentType = response?.headers()['content-type']?.toLowerCase() ?? '';
+			const contentType =
+				response?.headers()['content-type']?.toLowerCase() ?? '';
 			const html = await page.content();
 			if (Buffer.byteLength(html, 'utf8') > maxHtmlBytes) {
 				throw createError({
@@ -189,7 +197,8 @@ async function renderWithHeadlessBrowser(target: URL): Promise<HeadlessRenderRes
 				});
 			}
 
-			const title = (await page.title()).trim() || new URL(finalUrl).hostname;
+			const title =
+				(await page.title()).trim() || new URL(finalUrl).hostname;
 			return { finalUrl, contentType, html, title };
 		} finally {
 			await context.close();
@@ -205,7 +214,10 @@ function stripDangerousMarkup(html: string) {
 		.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '')
 		.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '')
 		.replace(/<embed\b[^>]*>/gi, '')
-		.replace(/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy['"]?[^>]*>/gi, '')
+		.replace(
+			/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy['"]?[^>]*>/gi,
+			''
+		)
 		.replace(
 			/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy-report-only['"]?[^>]*>/gi,
 			''
@@ -220,14 +232,20 @@ function stripDangerousMarkup(html: string) {
 
 function injectBrowserBridge(html: string, sourceUrl: string) {
 	const safeSourceUrl = escapeHtml(sourceUrl);
-	const injectedHead = `<base href="${safeSourceUrl}"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'browser:navigate',href:absolute},'*');});document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){parent.postMessage({type:'browser:navigate',href:action},'*');return;}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}parent.postMessage({type:'browser:navigate',href:nextUrl.toString()},'*');});})();</script>`;
+	const injectedHead = `<base href="${safeSourceUrl}" target="_self"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};const navigate=(href)=>{const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'browser:navigate',href:absolute},'*');};for(const anchor of document.querySelectorAll('a[target]')){anchor.setAttribute('target','_self');}window.open=(rawUrl)=>{if(rawUrl===undefined||rawUrl===null)return null;navigate(String(rawUrl));return null;};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function'){event.stopImmediatePropagation();}navigate(href);},true);document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){return;}event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function'){event.stopImmediatePropagation();}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}navigate(nextUrl.toString());},true);})();</script>`;
 
 	if (/<head\b[^>]*>/i.test(html)) {
-		return html.replace(/<head\b[^>]*>/i, (match) => `${match}${injectedHead}`);
+		return html.replace(
+			/<head\b[^>]*>/i,
+			(match) => `${match}${injectedHead}`
+		);
 	}
 
 	if (/<html\b[^>]*>/i.test(html)) {
-		return html.replace(/<html\b[^>]*>/i, (match) => `${match}<head>${injectedHead}</head>`);
+		return html.replace(
+			/<html\b[^>]*>/i,
+			(match) => `${match}<head>${injectedHead}</head>`
+		);
 	}
 
 	return `<!doctype html><html><head>${injectedHead}</head><body>${html}</body></html>`;
@@ -264,7 +282,8 @@ export default defineEventHandler(async (event) => {
 			const query = duckDuckGoQuery(target);
 			if (query) {
 				const startpageTarget = new URL(startpageSearchUrl(query));
-				headlessResult = await renderWithHeadlessBrowser(startpageTarget);
+				headlessResult =
+					await renderWithHeadlessBrowser(startpageTarget);
 			}
 		}
 		if (
@@ -300,7 +319,11 @@ export default defineEventHandler(async (event) => {
 		}
 
 		return {
-			...toBrowserPayload(staticResult.finalUrl, new URL(staticResult.finalUrl).hostname, staticResult.body),
+			...toBrowserPayload(
+				staticResult.finalUrl,
+				new URL(staticResult.finalUrl).hostname,
+				staticResult.body
+			),
 			title: `${new URL(staticResult.finalUrl).hostname} (compat)`
 		};
 	}

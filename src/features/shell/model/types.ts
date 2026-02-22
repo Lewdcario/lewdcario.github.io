@@ -120,6 +120,7 @@ export interface BrowserRequestOptions {
 	pushHistory?: boolean;
 	backend?: BrowserBackend;
 	skin?: BrowserSkin;
+	external?: boolean;
 }
 
 export interface BlinkiePayload {

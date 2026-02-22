@@ -20,7 +20,7 @@ export const vlcDefaultPlaylistUrl =
 export const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [b6cb38da]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [1aa142ad]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
@@ -60,6 +60,7 @@ export const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	briefcase: '/xp-icons/pack/briefcase.png',
 	freePalestine: '/xp-icons/pack/free-palestine.png',
+	dissociationTracker: 'https://tracker.okami.codes/icons/icon-192.png',
 	browser: '/xp-icons/pack/browser.png',
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
@@ -346,6 +347,14 @@ const allDesktopIcons: DesktopIcon[] = [
 		icon: shellIcons.missingno,
 		x: 322,
 		y: 264
+	},
+	{
+		id: 'dissociation-tracker',
+		label: 'Dissociation Tracker',
+		icon: shellIcons.dissociationTracker,
+		href: 'https://tracker.okami.codes/',
+		x: 322,
+		y: 372
 	},
 	{
 		id: 'free-palestine',

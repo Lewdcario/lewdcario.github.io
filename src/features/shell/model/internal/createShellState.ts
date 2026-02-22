@@ -85,6 +85,10 @@ export function createShellState() {
 	const browserSearchEngine = ref<
 		'ahmia' | 'duckduckgo' | 'wiby' | 'startpage'
 	>('duckduckgo');
+	const browserLogViewerOpen = ref(false);
+	const browserLogs = ref<
+		Array<{ id: number; timestamp: number; time: string; message: string }>
+	>([]);
 	const vlcFrameRef = ref<HTMLIFrameElement | null>(null);
 	const vlcPlaylistInput = ref(vlcDefaultPlaylistUrl);
 	const vlcPlaylistId = ref(vlcDefaultPlaylistId);
@@ -200,6 +204,8 @@ export function createShellState() {
 		browserSearchMenuOpen,
 		browserSearchQuery,
 		browserSearchEngine,
+		browserLogViewerOpen,
+		browserLogs,
 		vlcFrameRef,
 		vlcPlaylistInput,
 		vlcPlaylistId,

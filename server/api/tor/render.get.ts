@@ -6,7 +6,10 @@ const requestTimeoutMs = 16_000;
 const headlessNetworkIdleTimeoutMs = 5_000;
 const headlessExtraWaitMs = 550;
 const allowedProtocols = new Set(['http:', 'https:']);
-const defaultTorProxyCandidates = ['socks5://127.0.0.1:9050', 'socks5://127.0.0.1:9150'];
+const defaultTorProxyCandidates = [
+	'socks5://127.0.0.1:9050',
+	'socks5://127.0.0.1:9150'
+];
 const torUserAgent =
 	'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0 TorBrowser/13.5';
 
@@ -40,9 +43,14 @@ function shouldRetryAhmiaSearch(target: URL, finalUrl: string) {
 	}
 }
 
-async function retryAhmiaSearch(page: import('playwright').Page, query: string) {
+async function retryAhmiaSearch(
+	page: import('playwright').Page,
+	query: string
+) {
 	const input = page
-		.locator('form#searchForm input[name="q"], form[action*="/search"] input[name="q"]')
+		.locator(
+			'form#searchForm input[name="q"], form[action*="/search"] input[name="q"]'
+		)
 		.first();
 	const count = await input.count();
 	if (count === 0) {
@@ -52,7 +60,10 @@ async function retryAhmiaSearch(page: import('playwright').Page, query: string) 
 	await input.fill(query);
 	await Promise.all([
 		page
-			.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: requestTimeoutMs })
+			.waitForNavigation({
+				waitUntil: 'domcontentloaded',
+				timeout: requestTimeoutMs
+			})
 			.catch(() => undefined),
 		input.press('Enter').catch(async () => {
 			const submit = page
@@ -68,7 +79,9 @@ async function retryAhmiaSearch(page: import('playwright').Page, query: string) 
 	]);
 
 	await page
-		.waitForLoadState('networkidle', { timeout: headlessNetworkIdleTimeoutMs })
+		.waitForLoadState('networkidle', {
+			timeout: headlessNetworkIdleTimeoutMs
+		})
 		.catch(() => undefined);
 	await page.waitForTimeout(headlessExtraWaitMs);
 	return true;
@@ -168,7 +181,10 @@ async function resolveTorProxy() {
 	});
 }
 
-async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<HeadlessRenderResult> {
+async function renderWithTorBrowser(
+	target: URL,
+	proxyServer: string
+): Promise<HeadlessRenderResult> {
 	const playwright = await import('playwright');
 	const browser = await playwright.chromium.launch({
 		headless: true,
@@ -191,7 +207,9 @@ async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<H
 				timeout: requestTimeoutMs
 			});
 			await page
-				.waitForLoadState('networkidle', { timeout: headlessNetworkIdleTimeoutMs })
+				.waitForLoadState('networkidle', {
+					timeout: headlessNetworkIdleTimeoutMs
+				})
 				.catch(() => undefined);
 			await page.waitForTimeout(headlessExtraWaitMs);
 
@@ -203,7 +221,8 @@ async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<H
 					finalUrl = page.url() || target.toString();
 				}
 			}
-			const contentType = response?.headers()['content-type']?.toLowerCase() ?? '';
+			const contentType =
+				response?.headers()['content-type']?.toLowerCase() ?? '';
 			const html = await page.content();
 			if (Buffer.byteLength(html, 'utf8') > maxHtmlBytes) {
 				throw createError({
@@ -212,7 +231,8 @@ async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<H
 				});
 			}
 
-			const title = (await page.title()).trim() || new URL(finalUrl).hostname;
+			const title =
+				(await page.title()).trim() || new URL(finalUrl).hostname;
 			return { finalUrl, contentType, html, title };
 		} finally {
 			await context.close();
@@ -226,7 +246,8 @@ async function renderWithTorBrowser(target: URL, proxyServer: string): Promise<H
 		) {
 			throw createError({
 				statusCode: 504,
-				statusMessage: 'Timed out while requesting the website through Tor.'
+				statusMessage:
+					'Timed out while requesting the website through Tor.'
 			});
 		}
 
@@ -254,7 +275,10 @@ function stripDangerousMarkup(html: string) {
 		.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, '')
 		.replace(/<object\b[^>]*>[\s\S]*?<\/object>/gi, '')
 		.replace(/<embed\b[^>]*>/gi, '')
-		.replace(/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy['"]?[^>]*>/gi, '')
+		.replace(
+			/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy['"]?[^>]*>/gi,
+			''
+		)
 		.replace(
 			/<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy-report-only['"]?[^>]*>/gi,
 			''
@@ -269,14 +293,20 @@ function stripDangerousMarkup(html: string) {
 
 function injectBrowserBridge(html: string, sourceUrl: string) {
 	const safeSourceUrl = escapeHtml(sourceUrl);
-	const injectedHead = `<base href="${safeSourceUrl}"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'browser:navigate',href:absolute},'*');});document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;event.preventDefault();const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){parent.postMessage({type:'browser:navigate',href:action},'*');return;}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}parent.postMessage({type:'browser:navigate',href:nextUrl.toString()},'*');});})();</script>`;
+	const injectedHead = `<base href="${safeSourceUrl}" target="_self"><meta name="referrer" content="no-referrer"><style>html,body{margin:0;padding:0;background:#fff;color:#111;}</style><script>(()=>{const toAbsolute=(href)=>{try{return new URL(href,document.baseURI).toString();}catch{return'';}};const navigate=(href)=>{const absolute=toAbsolute(href);if(!absolute)return;parent.postMessage({type:'browser:navigate',href:absolute},'*');};for(const anchor of document.querySelectorAll('a[target]')){anchor.setAttribute('target','_self');}window.open=(rawUrl)=>{if(rawUrl===undefined||rawUrl===null)return null;navigate(String(rawUrl));return null;};document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest('a[href]');if(!anchor)return;const href=anchor.getAttribute('href')||'';const lowered=href.trim().toLowerCase();if(!href||lowered.startsWith('#')||lowered.startsWith('javascript:')||lowered.startsWith('mailto:')||lowered.startsWith('tel:'))return;event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function'){event.stopImmediatePropagation();}navigate(href);},true);document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;const rawAction=form.getAttribute('action')||document.location.href;const action=toAbsolute(rawAction);if(!action)return;const method=(form.getAttribute('method')||'get').toLowerCase();if(method!=='get'){return;}event.preventDefault();event.stopPropagation();if(typeof event.stopImmediatePropagation==='function'){event.stopImmediatePropagation();}const params=new URLSearchParams();for(const [key,value] of new FormData(form).entries()){if(typeof value==='string'){params.append(key,value);}}const nextUrl=new URL(action);for(const [key,value] of params.entries()){nextUrl.searchParams.append(key,value);}navigate(nextUrl.toString());},true);})();</script>`;
 
 	if (/<head\b[^>]*>/i.test(html)) {
-		return html.replace(/<head\b[^>]*>/i, (match) => `${match}${injectedHead}`);
+		return html.replace(
+			/<head\b[^>]*>/i,
+			(match) => `${match}${injectedHead}`
+		);
 	}
 
 	if (/<html\b[^>]*>/i.test(html)) {
-		return html.replace(/<html\b[^>]*>/i, (match) => `${match}<head>${injectedHead}</head>`);
+		return html.replace(
+			/<html\b[^>]*>/i,
+			(match) => `${match}<head>${injectedHead}</head>`
+		);
 	}
 
 	return `<!doctype html><html><head>${injectedHead}</head><body>${html}</body></html>`;
@@ -313,5 +343,9 @@ export default defineEventHandler(async (event) => {
 		};
 	}
 
-	return toBrowserPayload(result.finalUrl, result.title || 'Tor Browser', result.html);
+	return toBrowserPayload(
+		result.finalUrl,
+		result.title || 'Tor Browser',
+		result.html
+	);
 });

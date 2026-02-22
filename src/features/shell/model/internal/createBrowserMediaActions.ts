@@ -37,6 +37,8 @@ export function createBrowserMediaActions(deps: any) {
 		browserSearchMenuOpen,
 		browserSearchQuery,
 		browserSearchEngine,
+		browserLogViewerOpen,
+		browserLogs,
 		browserSearchEngines,
 		browserDefaultHome,
 		startMenuOpen,
@@ -69,17 +71,72 @@ export function createBrowserMediaActions(deps: any) {
 	};
 	const directModeFallbackDelayMs = 7000;
 	const forcedSnapshotHosts = ['neocities.org'];
+	const interactiveDirectHosts = [
+		'tracker.okami.codes',
+		'localhost',
+		'127.0.0.1'
+	];
+	let trackerDirectLoadCount = 0;
+	let trackerAuthWarningShown = false;
+	let trackerLocalhostWarningShown = false;
+	let trackerAuthPopup: Window | null = null;
+	let trackerAuthPopupPollTimer: number | null = null;
+	let trackerAuthPending = false;
+	let trackerAuthPendingUntil = 0;
+	let trackerAuthResyncAttempts = 0;
+	let trackerAuthResyncTimer: number | null = null;
+	let trackerAuthListenersBound = false;
+	const trackerAuthPendingWindowMs = 4 * 60 * 1000;
+	const trackerAuthMaxResyncAttempts = 6;
+	const trackerAuthResyncIntervalMs = 5000;
 
 	function clamp(value: number, min: number, max: number) {
 		return Math.min(max, Math.max(min, value));
 	}
 
 	function browserShellTitle() {
-		return browserSkin.value === 'tor' ? 'Tor Browser' : standardBrowserName;
+		return browserSkin.value === 'tor'
+			? 'Tor Browser'
+			: standardBrowserName;
 	}
 
 	function browserNetSearchLabel() {
 		return browserBackend.value === 'tor' ? 'Tor Search' : 'Net Search';
+	}
+
+	function formatBrowserLogTime(timestamp: number) {
+		const date = new Date(timestamp);
+		const hours = date.getHours().toString().padStart(2, '0');
+		const minutes = date.getMinutes().toString().padStart(2, '0');
+		const seconds = date.getSeconds().toString().padStart(2, '0');
+		const ms = date.getMilliseconds().toString().padStart(3, '0');
+		return `${hours}:${minutes}:${seconds}.${ms}`;
+	}
+
+	function pushBrowserLog(message: string) {
+		const timestamp = Date.now();
+		const nextEntry = {
+			id: timestamp + Math.floor(Math.random() * 1000),
+			timestamp,
+			time: formatBrowserLogTime(timestamp),
+			message
+		};
+		const nextLogs = [...browserLogs.value, nextEntry];
+		browserLogs.value = nextLogs.slice(-140);
+	}
+
+	function clearBrowserLogs() {
+		browserLogs.value = [];
+		pushBrowserLog('Log viewer cleared.');
+	}
+
+	function toggleBrowserLogViewer() {
+		browserLogViewerOpen.value = !browserLogViewerOpen.value;
+		pushBrowserLog(
+			browserLogViewerOpen.value
+				? 'Log viewer opened.'
+				: 'Log viewer hidden.'
+		);
 	}
 
 	function normalizeBrowserUrl(rawUrl: string) {
@@ -98,7 +155,11 @@ export function createBrowserMediaActions(deps: any) {
 			.replaceAll("'", '&#39;');
 	}
 
-	function browserPlaceholderDocument(message: string, url: string, title = standardBrowserName) {
+	function browserPlaceholderDocument(
+		message: string,
+		url: string,
+		title = standardBrowserName
+	) {
 		const safeMessage = escapeHtml(message);
 		const safeUrl = escapeHtml(url);
 		const safeTitle = escapeHtml(title);
@@ -130,7 +191,10 @@ export function createBrowserMediaActions(deps: any) {
 	function pushBrowserHistory(url: string) {
 		const current = browserHistory.value[browserHistoryIndex.value];
 		if (current === url) return;
-		const nextHistory = browserHistory.value.slice(0, browserHistoryIndex.value + 1);
+		const nextHistory = browserHistory.value.slice(
+			0,
+			browserHistoryIndex.value + 1
+		);
 		nextHistory.push(url);
 		browserHistory.value = nextHistory;
 		browserHistoryIndex.value = nextHistory.length - 1;
@@ -151,23 +215,258 @@ export function createBrowserMediaActions(deps: any) {
 		}
 	}
 
+	function shouldKeepDirectModeForUrl(url: string) {
+		try {
+			const hostname = new URL(url).hostname.toLowerCase();
+			return interactiveDirectHosts.some(
+				(host) => hostname === host || hostname.endsWith(`.${host}`)
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	function isTrackerHostUrl(url: string) {
+		try {
+			const hostname = new URL(url).hostname.toLowerCase();
+			return (
+				hostname === 'tracker.okami.codes' ||
+				hostname.endsWith('.tracker.okami.codes')
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	function isDiscordHostUrl(url: string) {
+		try {
+			const hostname = new URL(url).hostname.toLowerCase();
+			return (
+				hostname === 'discord.com' ||
+				hostname.endsWith('.discord.com') ||
+				hostname === 'discordapp.com' ||
+				hostname.endsWith('.discordapp.com')
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	function openUrlExternally(targetUrl: string) {
+		const externalWindow = window.open(
+			targetUrl,
+			'_blank',
+			'noopener,noreferrer'
+		);
+		if (externalWindow) {
+			externalWindow.opener = null;
+		}
+		return Boolean(externalWindow);
+	}
+
+	function clearTrackerAuthPopupPoll() {
+		if (trackerAuthPopupPollTimer !== null) {
+			window.clearInterval(trackerAuthPopupPollTimer);
+			trackerAuthPopupPollTimer = null;
+		}
+	}
+
+	function clearTrackerAuthResyncTimer() {
+		if (trackerAuthResyncTimer !== null) {
+			window.clearInterval(trackerAuthResyncTimer);
+			trackerAuthResyncTimer = null;
+		}
+	}
+
+	function bindTrackerAuthSyncListeners() {
+		if (trackerAuthListenersBound) return;
+		window.addEventListener('focus', handleTrackerAuthWindowFocus);
+		document.addEventListener(
+			'visibilitychange',
+			handleTrackerAuthVisibilityChange
+		);
+		trackerAuthListenersBound = true;
+	}
+
+	function unbindTrackerAuthSyncListeners() {
+		if (!trackerAuthListenersBound) return;
+		window.removeEventListener('focus', handleTrackerAuthWindowFocus);
+		document.removeEventListener(
+			'visibilitychange',
+			handleTrackerAuthVisibilityChange
+		);
+		trackerAuthListenersBound = false;
+	}
+
+	function shouldWarnTrackerAuthLocalhost() {
+		const host = window.location.hostname.toLowerCase();
+		return host === 'localhost' || host === '127.0.0.1';
+	}
+
+	function trackerCurrentUrl() {
+		const current = browserCurrentUrl.value;
+		if (isTrackerHostUrl(current)) return current;
+		if (isTrackerHostUrl(browserAddress.value)) return browserAddress.value;
+		return 'https://tracker.okami.codes/';
+	}
+
+	function markTrackerAuthPending(reason: string) {
+		trackerAuthPending = true;
+		trackerAuthPendingUntil = Date.now() + trackerAuthPendingWindowMs;
+		trackerAuthResyncAttempts = 0;
+		bindTrackerAuthSyncListeners();
+		pushBrowserLog(`Tracker auth pending (${reason}).`);
+		if (shouldWarnTrackerAuthLocalhost() && !trackerLocalhostWarningShown) {
+			trackerLocalhostWarningShown = true;
+			pushStatus(
+				'Tracker auth may not sync from localhost embeds. Use https://test.okami.codes for same-site cookies.'
+			);
+			pushBrowserLog(
+				'Localhost host detected. Tracker session cookies can be blocked in cross-site iframes.'
+			);
+		}
+
+		if (trackerAuthResyncTimer !== null) return;
+		trackerAuthResyncTimer = window.setInterval(() => {
+			if (!trackerAuthPending) {
+				clearTrackerAuthResyncTimer();
+				return;
+			}
+			if (Date.now() > trackerAuthPendingUntil) {
+				clearTrackerAuthPending();
+				pushBrowserLog('Tracker auth sync window expired.');
+				return;
+			}
+			if (trackerAuthPopup && !trackerAuthPopup.closed) {
+				return;
+			}
+			if (document.visibilityState !== 'visible') return;
+			if (!document.hasFocus()) return;
+			reloadTrackerAfterExternalAuth('poll');
+		}, trackerAuthResyncIntervalMs);
+	}
+
+	function clearTrackerAuthPending() {
+		trackerAuthPending = false;
+		trackerAuthPendingUntil = 0;
+		trackerAuthResyncAttempts = 0;
+		clearTrackerAuthResyncTimer();
+		unbindTrackerAuthSyncListeners();
+	}
+
+	function reloadTrackerAfterExternalAuth(source: string) {
+		if (!trackerAuthPending) return;
+		if (
+			!isTrackerHostUrl(browserCurrentUrl.value) &&
+			!isTrackerHostUrl(browserAddress.value)
+		) {
+			return;
+		}
+
+		if (Date.now() > trackerAuthPendingUntil) {
+			clearTrackerAuthPending();
+			pushBrowserLog('Tracker auth sync timed out before refresh.');
+			return;
+		}
+
+		if (trackerAuthResyncAttempts >= trackerAuthMaxResyncAttempts) {
+			clearTrackerAuthPending();
+			pushBrowserLog('Tracker auth sync attempt limit reached.');
+			pushStatus(
+				'Tracker sign-in not detected in embedded mode yet. If you are on localhost, switch to test.okami.codes.'
+			);
+			return;
+		}
+
+		trackerAuthResyncAttempts += 1;
+		pushBrowserLog(
+			`Tracker auth sync refresh (${source}) [${trackerAuthResyncAttempts}/${trackerAuthMaxResyncAttempts}].`
+		);
+		trackerAuthPending = false;
+		clearTrackerAuthResyncTimer();
+		unbindTrackerAuthSyncListeners();
+		openInBrowser(trackerCurrentUrl(), 'Dissociation Tracker', {
+			backend: 'standard',
+			skin: 'netscape',
+			pushHistory: false
+		});
+	}
+
+	function handleTrackerAuthWindowFocus() {
+		reloadTrackerAfterExternalAuth('focus');
+	}
+
+	function handleTrackerAuthVisibilityChange() {
+		if (document.visibilityState !== 'visible') return;
+		reloadTrackerAfterExternalAuth('visible');
+	}
+
+	function openTrackerDiscordSignIn() {
+		clearTrackerAuthPopupPoll();
+		markTrackerAuthPending('tracker sign-in button');
+		const callbackUrl = encodeURIComponent('https://tracker.okami.codes/');
+		const signInUrl = `https://tracker.okami.codes/api/auth/signin?callbackUrl=${callbackUrl}`;
+		const popup = window.open(
+			signInUrl,
+			'tracker-discord-auth',
+			'popup=yes,width=520,height=760'
+		);
+		if (!popup) {
+			const opened = openUrlExternally(signInUrl);
+			pushStatus(
+				opened
+					? 'Discord sign-in opened in external browser tab. Return here after login.'
+					: 'Browser blocked popup. Allow popups to continue Discord sign-in.'
+			);
+			pushBrowserLog(
+				'Tracker Discord sign-in popup blocked; attempted external tab fallback.'
+			);
+			return;
+		}
+
+		trackerAuthPopup = popup;
+		pushBrowserLog('Tracker Discord sign-in popup opened.');
+		pushStatus(
+			'Complete Discord sign-in in popup. Tracker will refresh when it closes.'
+		);
+
+		trackerAuthPopupPollTimer = window.setInterval(() => {
+			if (!trackerAuthPopup || !trackerAuthPopup.closed) return;
+			clearTrackerAuthPopupPoll();
+			trackerAuthPopup = null;
+			pushBrowserLog('Tracker auth popup closed.');
+			reloadTrackerAfterExternalAuth('popup closed');
+		}, 450);
+	}
+
 	async function loadBrowserSnapshot(
 		requestSerial: number,
 		url: string,
 		backend: BrowserBackend,
 		options: BrowserRequestOptions = {}
 	) {
+		pushBrowserLog(
+			`Compatibility render requested for ${url} via ${backend === 'tor' ? 'tor' : 'standard'} backend.`
+		);
 		try {
-			const payload = await $fetch<BrowserRenderPayload>(snapshotEndpointForBackend(backend), {
-				query: { url }
-			});
-			if (lifecycleRuntime.disposed || requestSerial !== runtime.requestSerial) return;
+			const payload = await $fetch<BrowserRenderPayload>(
+				snapshotEndpointForBackend(backend),
+				{
+					query: { url }
+				}
+			);
+			if (
+				lifecycleRuntime.disposed ||
+				requestSerial !== runtime.requestSerial
+			)
+				return;
 
 			browserRenderMode.value = 'snapshot';
 			browserCurrentUrl.value = payload.url;
 			browserAddress.value = payload.url;
 			browserDocument.value = payload.html;
-			browserTitle.value = payload.title?.trim() || browserWindowTitleFromUrl(payload.url);
+			browserTitle.value =
+				payload.title?.trim() || browserWindowTitleFromUrl(payload.url);
 			browserError.value = '';
 			browserLoading.value = false;
 
@@ -178,10 +477,17 @@ export function createBrowserMediaActions(deps: any) {
 			) {
 				replaceCurrentBrowserHistory(payload.url);
 			}
+			pushBrowserLog(`Compatibility render loaded: ${payload.url}`);
 		} catch (error) {
-			if (lifecycleRuntime.disposed || requestSerial !== runtime.requestSerial) return;
+			if (
+				lifecycleRuntime.disposed ||
+				requestSerial !== runtime.requestSerial
+			)
+				return;
 			const message =
-				error instanceof Error ? error.message : 'Unable to load this page in the browser.';
+				error instanceof Error
+					? error.message
+					: 'Unable to load this page in the browser.';
 			browserError.value = message;
 			browserRenderMode.value = 'snapshot';
 			browserDocument.value = browserPlaceholderDocument(
@@ -197,17 +503,52 @@ export function createBrowserMediaActions(deps: any) {
 					? 'Tor Browser failed to load the requested page.'
 					: 'Browser failed to load the requested page.'
 			);
+			pushBrowserLog(`Compatibility render failed: ${message}`);
 		}
 	}
 
-	function openInBrowser(url: string, label?: string, options: BrowserRequestOptions = {}) {
+	function openInBrowser(
+		url: string,
+		label?: string,
+		options: BrowserRequestOptions = {}
+	) {
 		const normalized = normalizeBrowserUrl(url);
 		const backend = options.backend ?? browserBackend.value;
 		const skin = options.skin ?? (backend === 'tor' ? 'tor' : 'netscape');
 		const pushHistory = options.pushHistory ?? true;
+		const external = options.external ?? false;
+
+		if (external) {
+			if (isTrackerHostUrl(normalized) || isDiscordHostUrl(normalized)) {
+				markTrackerAuthPending('external browser open');
+			}
+			const opened = openUrlExternally(normalized);
+			pushBrowserLog(`URL opened externally: ${normalized}`);
+			pushStatus(
+				opened
+					? `${label ?? normalized} opened in external browser tab.`
+					: 'Browser blocked popup. Allow popups and try again.'
+			);
+			return;
+		}
+
+		if (isDiscordHostUrl(normalized)) {
+			markTrackerAuthPending('discord external redirect');
+			const opened = openUrlExternally(normalized);
+			pushBrowserLog(`Discord URL opened externally: ${normalized}`);
+			pushStatus(
+				opened
+					? 'Discord opened in external browser tab.'
+					: 'Browser blocked popup. Allow popups to continue Discord sign-in.'
+			);
+			return;
+		}
+
 		if (pushHistory) {
 			pushBrowserHistory(normalized);
-		} else if (browserHistory.value[browserHistoryIndex.value] !== normalized) {
+		} else if (
+			browserHistory.value[browserHistoryIndex.value] !== normalized
+		) {
 			replaceCurrentBrowserHistory(normalized);
 		}
 
@@ -235,29 +576,66 @@ export function createBrowserMediaActions(deps: any) {
 		startMenuOpen.value = false;
 		focusWindow('browser');
 		pushStatus(`${label ?? normalized} opened in ${browserShellTitle()}.`);
+		pushBrowserLog(
+			`Navigate to ${normalized} (${backend === 'tor' ? 'tor' : 'standard'} mode).`
+		);
+		trackerDirectLoadCount = 0;
+		trackerAuthWarningShown = false;
 
 		if (backend === 'tor') {
 			browserRenderMode.value = 'snapshot';
 			browserFrameSrc.value = 'about:blank';
-			void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
-			return;
-		}
-
-		if (shouldForceSnapshotForUrl(normalized)) {
-			browserRenderMode.value = 'snapshot';
-			browserFrameSrc.value = 'about:blank';
+			pushBrowserLog(
+				'Direct mode disabled for Tor; switching to compatibility render.'
+			);
 			void loadBrowserSnapshot(requestSerial, normalized, backend, {
 				pushHistory: false
 			});
 			return;
 		}
 
-		runtime.fallbackTimer = window.setTimeout(() => {
-			if (lifecycleRuntime.disposed || requestSerial !== runtime.requestSerial) return;
-				if (browserRenderMode.value !== 'direct') return;
-				void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
-			}, directModeFallbackDelayMs);
+		if (shouldForceSnapshotForUrl(normalized)) {
+			browserRenderMode.value = 'snapshot';
+			browserFrameSrc.value = 'about:blank';
+			pushBrowserLog(
+				'Direct mode bypassed for forced compatibility host.'
+			);
+			void loadBrowserSnapshot(requestSerial, normalized, backend, {
+				pushHistory: false
+			});
+			return;
 		}
+
+		if (shouldKeepDirectModeForUrl(normalized)) {
+			pushBrowserLog(
+				'Keeping page in direct mode (interactive host allowlist).'
+			);
+			if (isTrackerHostUrl(normalized)) {
+				pushStatus(
+					'Tracker loaded. Use "Tracker Sign-in" in Netscape for Discord auth.'
+				);
+				pushBrowserLog(
+					'Note: OAuth providers like Discord block iframe embedding. Use external login if Discord auth appears stuck.'
+				);
+			}
+			return;
+		}
+
+		runtime.fallbackTimer = window.setTimeout(() => {
+			if (
+				lifecycleRuntime.disposed ||
+				requestSerial !== runtime.requestSerial
+			)
+				return;
+			if (browserRenderMode.value !== 'direct') return;
+			pushBrowserLog(
+				'Direct-mode timeout reached; switching to compatibility render.'
+			);
+			void loadBrowserSnapshot(requestSerial, normalized, backend, {
+				pushHistory: false
+			});
+		}, directModeFallbackDelayMs);
+	}
 
 	function isIframeBlockedLocation(href: string) {
 		const lowered = href.trim().toLowerCase();
@@ -282,7 +660,10 @@ export function createBrowserMediaActions(deps: any) {
 	function detectBlockedIframeDocument() {
 		try {
 			const frame = browserFrameRef.value;
-			const doc = frame?.contentDocument ?? frame?.contentWindow?.document ?? null;
+			const doc =
+				frame?.contentDocument ??
+				frame?.contentWindow?.document ??
+				null;
 			if (!doc) return { inspectable: false, blocked: false };
 
 			const title = (doc.title ?? '').toLowerCase();
@@ -303,40 +684,103 @@ export function createBrowserMediaActions(deps: any) {
 
 	function handleDirectBrowserFrameLoad() {
 		if (browserRenderMode.value !== 'direct') return;
-		if (!browserLoading.value) return;
+		const isInitialDirectLoad = browserLoading.value;
 
 		const requestSerial = runtime.requestSerial;
+		const keepDirectMode = shouldKeepDirectModeForUrl(
+			browserCurrentUrl.value
+		);
+		if (!isInitialDirectLoad && !keepDirectMode) return;
 		let locationHref = '';
 		try {
-			locationHref = browserFrameRef.value?.contentWindow?.location.href ?? '';
+			locationHref =
+				browserFrameRef.value?.contentWindow?.location.href ?? '';
 		} catch {}
 
-		if (locationHref && isIframeBlockedLocation(locationHref)) {
-			void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
-				pushHistory: false
-			});
+		if (
+			!keepDirectMode &&
+			locationHref &&
+			isIframeBlockedLocation(locationHref)
+		) {
+			pushBrowserLog(
+				`Direct frame reported blocked location (${locationHref}); switching to compatibility render.`
+			);
+			void loadBrowserSnapshot(
+				requestSerial,
+				browserCurrentUrl.value,
+				browserBackend.value,
+				{
+					pushHistory: false
+				}
+			);
 			return;
 		}
 
 		const blockedDocument = detectBlockedIframeDocument();
-		if (blockedDocument.inspectable && blockedDocument.blocked) {
-			void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
-				pushHistory: false
-			});
+		if (
+			!keepDirectMode &&
+			blockedDocument.inspectable &&
+			blockedDocument.blocked
+		) {
+			pushBrowserLog(
+				'Direct frame content appears blocked; switching to compatibility render.'
+			);
+			void loadBrowserSnapshot(
+				requestSerial,
+				browserCurrentUrl.value,
+				browserBackend.value,
+				{
+					pushHistory: false
+				}
+			);
 			return;
 		}
 
 		clearBrowserFallbackTimer();
 		browserLoading.value = false;
 		browserError.value = '';
+		if (isInitialDirectLoad) {
+			pushBrowserLog('Direct frame loaded successfully.');
+		} else {
+			pushBrowserLog('Direct frame internal navigation detected.');
+		}
+
+		if (keepDirectMode && isTrackerHostUrl(browserCurrentUrl.value)) {
+			trackerDirectLoadCount += 1;
+			if (trackerDirectLoadCount >= 3 && !trackerAuthWarningShown) {
+				trackerAuthWarningShown = true;
+				pushBrowserLog(
+					'Detected likely Discord auth redirect loop in iframe; external login is required.'
+				);
+				pushStatus(
+					'Discord sign-in is blocked in embedded mode. Use Open Externally to complete login.'
+				);
+			}
+		}
 	}
 
 	function handleDirectBrowserFrameError() {
 		if (browserRenderMode.value !== 'direct') return;
+		if (shouldKeepDirectModeForUrl(browserCurrentUrl.value)) {
+			clearBrowserFallbackTimer();
+			browserLoading.value = false;
+			pushBrowserLog(
+				'Direct frame load error ignored for interactive allowlist host.'
+			);
+			return;
+		}
 		const requestSerial = runtime.requestSerial;
-		void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
-			pushHistory: false
-		});
+		pushBrowserLog(
+			'Direct frame load error; switching to compatibility render.'
+		);
+		void loadBrowserSnapshot(
+			requestSerial,
+			browserCurrentUrl.value,
+			browserBackend.value,
+			{
+				pushHistory: false
+			}
+		);
 	}
 
 	function forceBrowserCompatibilityMode() {
@@ -344,9 +788,15 @@ export function createBrowserMediaActions(deps: any) {
 		clearBrowserFallbackTimer();
 		browserLoading.value = true;
 		browserError.value = '';
-		void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
-			pushHistory: false
-		});
+		pushBrowserLog('Manual compatibility mode requested.');
+		void loadBrowserSnapshot(
+			requestSerial,
+			browserCurrentUrl.value,
+			browserBackend.value,
+			{
+				pushHistory: false
+			}
+		);
 	}
 
 	function stopBrowserLoading() {
@@ -355,6 +805,7 @@ export function createBrowserMediaActions(deps: any) {
 		browserLoading.value = false;
 		browserError.value = '';
 		pushStatus(`${browserShellTitle()} load stopped.`);
+		pushBrowserLog('Browser loading stopped by user.');
 	}
 
 	function focusBrowserAddress() {
@@ -427,7 +878,8 @@ export function createBrowserMediaActions(deps: any) {
 	function loadVlcPlaylist() {
 		const playlistId = extractYouTubePlaylistId(vlcPlaylistInput.value);
 		if (!playlistId) {
-			vlcError.value = 'Enter a valid YouTube playlist URL or playlist ID.';
+			vlcError.value =
+				'Enter a valid YouTube playlist URL or playlist ID.';
 			pushStatus('VLC playlist URL is invalid.');
 			return;
 		}
@@ -474,7 +926,11 @@ export function createBrowserMediaActions(deps: any) {
 
 	function toggleVlcSourcePanel() {
 		vlcSourcePanelOpen.value = !vlcSourcePanelOpen.value;
-		pushStatus(vlcSourcePanelOpen.value ? 'Open media panel shown.' : 'Open media panel hidden.');
+		pushStatus(
+			vlcSourcePanelOpen.value
+				? 'Open media panel shown.'
+				: 'Open media panel hidden.'
+		);
 	}
 
 	function openVlcMenuItem(item: string) {
@@ -542,7 +998,11 @@ export function createBrowserMediaActions(deps: any) {
 		const target = event.target as HTMLInputElement | null;
 		if (!target) return;
 
-		const nextVolume = clamp(Number.parseInt(target.value, 10) || 0, 0, 100);
+		const nextVolume = clamp(
+			Number.parseInt(target.value, 10) || 0,
+			0,
+			100
+		);
 		vlcVolume.value = nextVolume;
 
 		if (nextVolume <= 0) {
@@ -561,7 +1021,9 @@ export function createBrowserMediaActions(deps: any) {
 		if (!target || vlcDurationSeconds.value <= 0) return;
 
 		const nextPercent = clamp(Number.parseFloat(target.value) || 0, 0, 100);
-		const seekSeconds = Math.floor((nextPercent / 100) * vlcDurationSeconds.value);
+		const seekSeconds = Math.floor(
+			(nextPercent / 100) * vlcDurationSeconds.value
+		);
 		vlcCurrentSeconds.value = seekSeconds;
 		void postVlcCommand('seekTo', [seekSeconds, true]);
 	}
@@ -579,7 +1041,9 @@ export function createBrowserMediaActions(deps: any) {
 		}
 
 		void postVlcCommand('setVolume', [vlcVolume.value]);
-		void postVlcCommand(vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute');
+		void postVlcCommand(
+			vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute'
+		);
 	}
 
 	function handleVlcUiToggle() {
@@ -610,7 +1074,9 @@ export function createBrowserMediaActions(deps: any) {
 
 		if (eventType === 'onReady') {
 			void postVlcCommand('setVolume', [vlcVolume.value]);
-			void postVlcCommand(vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute');
+			void postVlcCommand(
+				vlcMuted.value || vlcVolume.value <= 0 ? 'mute' : 'unMute'
+			);
 			return;
 		}
 
@@ -622,13 +1088,20 @@ export function createBrowserMediaActions(deps: any) {
 		}
 
 		const duration = info.duration;
-		if (typeof duration === 'number' && Number.isFinite(duration) && duration > 0) {
+		if (
+			typeof duration === 'number' &&
+			Number.isFinite(duration) &&
+			duration > 0
+		) {
 			vlcDurationSeconds.value = duration;
 		}
 	}
 
 	async function startNoiseGenerator(announce = true) {
-		const result = await noiseEngine.start(selectedNoisePreset.value, noiseVolume.value);
+		const result = await noiseEngine.start(
+			selectedNoisePreset.value,
+			noiseVolume.value
+		);
 		if (!result.ok) {
 			noiseIsPlaying.value = false;
 			noiseError.value = result.error ?? 'Unable to start audio output.';
@@ -662,7 +1135,11 @@ export function createBrowserMediaActions(deps: any) {
 	function setNoiseVolume(event: Event) {
 		const input = event.target as HTMLInputElement | null;
 		if (!input) return;
-		noiseVolume.value = clamp(Number.parseInt(input.value, 10) || 0, 0, 100);
+		noiseVolume.value = clamp(
+			Number.parseInt(input.value, 10) || 0,
+			0,
+			100
+		);
 		noiseEngine.applyPreset(selectedNoisePreset.value, noiseVolume.value);
 	}
 
@@ -670,11 +1147,15 @@ export function createBrowserMediaActions(deps: any) {
 		const previousPreset = selectedNoisePreset.value;
 		noisePresetId.value = nextPreset;
 		if (noiseIsPlaying.value) {
-			const sourceChanged = previousPreset.source !== selectedNoisePreset.value.source;
+			const sourceChanged =
+				previousPreset.source !== selectedNoisePreset.value.source;
 			if (sourceChanged) {
 				void startNoiseGenerator(false);
 			} else {
-				noiseEngine.applyPreset(selectedNoisePreset.value, noiseVolume.value);
+				noiseEngine.applyPreset(
+					selectedNoisePreset.value,
+					noiseVolume.value
+				);
 			}
 			pushStatus(`${selectedNoisePreset.value.label} preset selected.`);
 			return;
@@ -683,9 +1164,13 @@ export function createBrowserMediaActions(deps: any) {
 	}
 
 	function cycleNoisePreset(direction: -1 | 1) {
-		const currentIndex = noisePresets.findIndex((preset) => preset.id === noisePresetId.value);
+		const currentIndex = noisePresets.findIndex(
+			(preset) => preset.id === noisePresetId.value
+		);
 		const safeCurrent = currentIndex >= 0 ? currentIndex : 0;
-		const nextIndex = (safeCurrent + direction + noisePresets.length) % noisePresets.length;
+		const nextIndex =
+			(safeCurrent + direction + noisePresets.length) %
+			noisePresets.length;
 		selectNoisePreset(noisePresets[nextIndex]!.id);
 	}
 
@@ -718,15 +1203,23 @@ export function createBrowserMediaActions(deps: any) {
 	function submitBrowserSearch() {
 		const backend = browserBackend.value;
 		syncBrowserSearchEngine(backend);
-		const targetUrl = browserSearchUrl(browserSearchEngine.value, browserSearchQuery.value);
+		const targetUrl = browserSearchUrl(
+			browserSearchEngine.value,
+			browserSearchQuery.value
+		);
 		const selectedEngine = browserSearchEngines.value.find(
-			(engine: { id: BrowserSearchEngineId }) => engine.id === browserSearchEngine.value
+			(engine: { id: BrowserSearchEngineId }) =>
+				engine.id === browserSearchEngine.value
 		);
 
-		openInBrowser(targetUrl, selectedEngine?.label ?? browserNetSearchLabel(), {
-			backend,
-			skin: browserSkin.value
-		});
+		openInBrowser(
+			targetUrl,
+			selectedEngine?.label ?? browserNetSearchLabel(),
+			{
+				backend,
+				skin: browserSkin.value
+			}
+		);
 	}
 
 	function searchWithEngine(engineId: BrowserSearchEngineId) {
@@ -738,7 +1231,10 @@ export function createBrowserMediaActions(deps: any) {
 		openInBrowser(url, label, { backend: 'tor', skin: 'tor' });
 	}
 
-	function openStandardBrowser(url = browserHomeUrl, label = standardBrowserName) {
+	function openStandardBrowser(
+		url = browserHomeUrl,
+		label = standardBrowserName
+	) {
 		openInBrowser(url, label, { backend: 'standard', skin: 'netscape' });
 	}
 
@@ -773,15 +1269,22 @@ export function createBrowserMediaActions(deps: any) {
 	function goBrowserBack() {
 		if (browserHistoryIndex.value <= 0) return;
 		browserHistoryIndex.value -= 1;
-		openInBrowser(browserHistory.value[browserHistoryIndex.value], 'Back', { pushHistory: false });
+		openInBrowser(browserHistory.value[browserHistoryIndex.value], 'Back', {
+			pushHistory: false
+		});
 	}
 
 	function goBrowserForward() {
-		if (browserHistoryIndex.value >= browserHistory.value.length - 1) return;
+		if (browserHistoryIndex.value >= browserHistory.value.length - 1)
+			return;
 		browserHistoryIndex.value += 1;
-		openInBrowser(browserHistory.value[browserHistoryIndex.value], 'Forward', {
-			pushHistory: false
-		});
+		openInBrowser(
+			browserHistory.value[browserHistoryIndex.value],
+			'Forward',
+			{
+				pushHistory: false
+			}
+		);
 	}
 
 	function reloadBrowserPage() {
@@ -801,19 +1304,29 @@ export function createBrowserMediaActions(deps: any) {
 
 	function openBrowserExternally() {
 		const target = browserCurrentUrl.value || browserAddress.value;
-		const externalWindow = window.open(target, '_blank', 'noopener,noreferrer');
-		if (externalWindow) {
-			externalWindow.opener = null;
+		if (isTrackerHostUrl(target) || isDiscordHostUrl(target)) {
+			markTrackerAuthPending('manual open externally');
 		}
-		pushStatus('Opened in external browser tab.');
+		const opened = openUrlExternally(target);
+		pushStatus(
+			opened
+				? 'Opened in external browser tab.'
+				: 'Browser blocked popup. Allow popups and try again.'
+		);
 	}
 
 	function handleBrowserWindowMessage(event: MessageEvent) {
 		const browserFrameWindow = browserFrameRef.value?.contentWindow;
 		if (browserFrameWindow && event.source === browserFrameWindow) {
 			const data = event.data as { type?: string; href?: string } | null;
-			if (!data || data.type !== 'browser:navigate' || typeof data.href !== 'string') return;
+			if (
+				!data ||
+				data.type !== 'browser:navigate' ||
+				typeof data.href !== 'string'
+			)
+				return;
 
+			pushBrowserLog(`Bridge navigation requested: ${data.href}`);
 			openInBrowser(data.href, data.href);
 			return;
 		}
@@ -836,6 +1349,9 @@ export function createBrowserMediaActions(deps: any) {
 	function disposeBrowserMediaActions() {
 		runtime.requestSerial += 1;
 		clearBrowserFallbackTimer();
+		clearTrackerAuthPopupPoll();
+		clearTrackerAuthPending();
+		unbindTrackerAuthSyncListeners();
 	}
 
 	return {
@@ -882,6 +1398,8 @@ export function createBrowserMediaActions(deps: any) {
 		cycleNoisePreset,
 		syncBrowserSearchEngine,
 		toggleBrowserSearchMenu,
+		toggleBrowserLogViewer,
+		clearBrowserLogs,
 		submitBrowserSearch,
 		searchWithEngine,
 		openTorBrowser,
@@ -894,6 +1412,7 @@ export function createBrowserMediaActions(deps: any) {
 		reloadBrowserPage,
 		goBrowserHome,
 		openBrowserExternally,
+		openTrackerDiscordSignIn,
 		handleBrowserWindowMessage,
 		disposeBrowserMediaActions
 	};

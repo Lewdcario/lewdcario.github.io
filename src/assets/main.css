@@ -4363,6 +4363,30 @@ legend {
 	box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.18);
 }
 
+.netscape-auth-hint {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 4px 8px 5px;
+	border-bottom: 1px solid #87837d;
+	background: #c6c3be;
+	font-size: 11px;
+	color: #1c1c1c;
+}
+
+.netscape-auth-hint .netscape-search-engine {
+	height: 20px;
+	padding: 0 7px;
+	font-size: 10px;
+}
+
+.netscape-auth-hint-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .netscape-search-menu {
 	padding: 6px 8px 8px;
 	border-bottom: 1px solid #87837d;
@@ -4433,10 +4457,77 @@ legend {
 	gap: 3px;
 }
 
+.netscape-log-viewer {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 5px 8px 7px;
+	border-bottom: 1px solid #87837d;
+	background: #c6c3be;
+}
+
+.netscape-log-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	color: #000;
+}
+
+.netscape-log-header .netscape-search-engine {
+	height: 20px;
+	padding: 0 7px;
+	font-size: 10px;
+}
+
+.netscape-log-list {
+	max-height: 122px;
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px;
+	border: 1px solid #6c6a65;
+	background: #fff;
+	box-shadow:
+		inset 1px 1px 0 #f8f8f8,
+		inset -1px -1px 0 #b1afa9;
+}
+
+.netscape-log-empty {
+	padding: 4px 2px;
+	font-size: 11px;
+	color: #555;
+}
+
+.netscape-log-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	font-size: 11px;
+	color: #111;
+	line-height: 1.3;
+	word-break: break-word;
+}
+
+.netscape-log-time {
+	flex: 0 0 auto;
+	font-family: 'Lucida Console', 'Courier New', monospace;
+	color: #3b3b3b;
+}
+
+.netscape-log-message {
+	flex: 1;
+	min-width: 0;
+}
+
 .tor-browser-skin .netscape-menu-row,
 .tor-browser-skin .netscape-toolbar-row,
 .tor-browser-skin .netscape-location-row,
 .tor-browser-skin .netscape-shortcuts-row,
+.tor-browser-skin .netscape-auth-hint,
 .tor-browser-skin .netscape-search-menu {
 	background: #d9d0ec;
 	border-bottom-color: #6f5a96;
@@ -4500,6 +4591,18 @@ legend {
 .tor-browser-skin .netscape-search-engine {
 	background: linear-gradient(180deg, #faf7ff 0%, #e8ddf9 42%, #ccb8ec 100%);
 	border-color: #2f1f4f;
+}
+
+.tor-browser-skin .netscape-log-viewer {
+	background: #d9d0ec;
+	border-bottom-color: #6f5a96;
+}
+
+.tor-browser-skin .netscape-log-list {
+	border-color: #5f4a89;
+	box-shadow:
+		inset 1px 1px 0 #ffffff,
+		inset -1px -1px 0 #b8a8d9;
 }
 
 .tor-browser-skin .netscape-search-go:active,
