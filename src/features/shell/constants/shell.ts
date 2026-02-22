@@ -20,7 +20,7 @@ export const vlcDefaultPlaylistUrl =
 export const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [1aa142ad]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [e4cad540]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
