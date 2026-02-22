@@ -67,6 +67,8 @@ export function createBrowserMediaActions(deps: any) {
 		requestSerial: number;
 		fallbackTimer: number | null;
 	};
+	const directModeFallbackDelayMs = 7000;
+	const forcedSnapshotHosts = ['neocities.org'];
 
 	function clamp(value: number, min: number, max: number) {
 		return Math.min(max, Math.max(min, value));
@@ -136,6 +138,17 @@ export function createBrowserMediaActions(deps: any) {
 
 	function snapshotEndpointForBackend(backend: BrowserBackend) {
 		return backend === 'tor' ? '/api/tor/render' : '/api/browser/render';
+	}
+
+	function shouldForceSnapshotForUrl(url: string) {
+		try {
+			const hostname = new URL(url).hostname.toLowerCase();
+			return forcedSnapshotHosts.some(
+				(host) => hostname === host || hostname.endsWith(`.${host}`)
+			);
+		} catch {
+			return false;
+		}
 	}
 
 	async function loadBrowserSnapshot(
@@ -230,12 +243,21 @@ export function createBrowserMediaActions(deps: any) {
 			return;
 		}
 
+		if (shouldForceSnapshotForUrl(normalized)) {
+			browserRenderMode.value = 'snapshot';
+			browserFrameSrc.value = 'about:blank';
+			void loadBrowserSnapshot(requestSerial, normalized, backend, {
+				pushHistory: false
+			});
+			return;
+		}
+
 		runtime.fallbackTimer = window.setTimeout(() => {
 			if (lifecycleRuntime.disposed || requestSerial !== runtime.requestSerial) return;
-			if (browserRenderMode.value !== 'direct') return;
-			void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
-		}, 2600);
-	}
+				if (browserRenderMode.value !== 'direct') return;
+				void loadBrowserSnapshot(requestSerial, normalized, backend, { pushHistory: false });
+			}, directModeFallbackDelayMs);
+		}
 
 	function isIframeBlockedLocation(href: string) {
 		const lowered = href.trim().toLowerCase();
@@ -285,12 +307,9 @@ export function createBrowserMediaActions(deps: any) {
 
 		const requestSerial = runtime.requestSerial;
 		let locationHref = '';
-		let canInspectLocation = true;
 		try {
 			locationHref = browserFrameRef.value?.contentWindow?.location.href ?? '';
-		} catch {
-			canInspectLocation = false;
-		}
+		} catch {}
 
 		if (locationHref && isIframeBlockedLocation(locationHref)) {
 			void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
@@ -304,10 +323,6 @@ export function createBrowserMediaActions(deps: any) {
 			void loadBrowserSnapshot(requestSerial, browserCurrentUrl.value, browserBackend.value, {
 				pushHistory: false
 			});
-			return;
-		}
-
-		if (!canInspectLocation || !blockedDocument.inspectable) {
 			return;
 		}
 
