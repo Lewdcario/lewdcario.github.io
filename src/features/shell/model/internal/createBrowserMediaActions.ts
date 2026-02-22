@@ -76,6 +76,11 @@ export function createBrowserMediaActions(deps: any) {
 		'localhost',
 		'127.0.0.1'
 	];
+	const recursivePortfolioHosts = [
+		'okami.codes',
+		'www.okami.codes',
+		'test.okami.codes'
+	];
 	let trackerDirectLoadCount = 0;
 	let trackerAuthWarningShown = false;
 	let trackerLocalhostWarningShown = false;
@@ -246,6 +251,20 @@ export function createBrowserMediaActions(deps: any) {
 				hostname.endsWith('.discord.com') ||
 				hostname === 'discordapp.com' ||
 				hostname.endsWith('.discordapp.com')
+			);
+		} catch {
+			return false;
+		}
+	}
+
+	function isRecursivePortfolioUrl(url: string) {
+		try {
+			const parsed = new URL(url);
+			const hostname = parsed.hostname.toLowerCase();
+			const currentHostname = window.location.hostname.toLowerCase();
+			return (
+				hostname === currentHostname ||
+				recursivePortfolioHosts.includes(hostname)
 			);
 		} catch {
 			return false;
@@ -517,6 +536,19 @@ export function createBrowserMediaActions(deps: any) {
 		const skin = options.skin ?? (backend === 'tor' ? 'tor' : 'netscape');
 		const pushHistory = options.pushHistory ?? true;
 		const external = options.external ?? false;
+
+		if (!external && isRecursivePortfolioUrl(normalized)) {
+			const opened = openUrlExternally(normalized);
+			pushBrowserLog(
+				`Blocked recursive self-embed; opened externally: ${normalized}`
+			);
+			pushStatus(
+				opened
+					? 'Portfolio pages open externally to prevent recursive browser embedding.'
+					: 'Browser blocked popup. Allow popups and try again.'
+			);
+			return;
+		}
 
 		if (external) {
 			if (isTrackerHostUrl(normalized) || isDiscordHostUrl(normalized)) {
