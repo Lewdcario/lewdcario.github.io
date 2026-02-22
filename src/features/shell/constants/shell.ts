@@ -59,6 +59,7 @@ export function isShortcutEnabled(
 export const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	briefcase: '/xp-icons/pack/briefcase.png',
+	freePalestine: '/xp-icons/pack/free-palestine.png',
 	browser: '/xp-icons/pack/browser.png',
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
@@ -337,6 +338,14 @@ const allDesktopIcons: DesktopIcon[] = [
 		windowId: 'gallery',
 		x: 322,
 		y: 48
+	},
+	{
+		id: 'free-palestine',
+		label: 'FREE PALESTINE!!!',
+		icon: shellIcons.freePalestine,
+		href: 'https://www.pcrf.net/',
+		x: 322,
+		y: 156
 	},
 	{
 		id: 'recycle-bin',
