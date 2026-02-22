@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+set -e
+
+if [ -f "$(dirname -- "$0")/_/husky.sh" ]; then
+	. "$(dirname -- "$0")/_/husky.sh"
+fi
+
+if [ "${OKAMI_SKIP_COMMIT_HASH_AMEND:-0}" = "1" ]; then
+	exit 0
+fi
+
+yarn node scripts/update-control-room-hash.mjs
+
+if git diff --quiet -- src/features/shell/constants/shell.ts; then
+	exit 0
+fi
+
+git add src/features/shell/constants/shell.ts
+OKAMI_SKIP_COMMIT_HASH_AMEND=1 git commit --amend --no-edit --no-verify

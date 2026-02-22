@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+if [ -f "$(dirname -- "$0")/_/husky.sh" ]; then
+	. "$(dirname -- "$0")/_/husky.sh"
+fi
 
 # https://github.com/yarnpkg/berry/issues/4095#issuecomment-1033869430
 PATH=$PATH:"/c/Program Files/Git/usr/bin"
