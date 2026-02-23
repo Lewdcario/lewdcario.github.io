@@ -330,6 +330,16 @@ export function createBrowserMediaActions(deps: any) {
 		return 'https://tracker.okami.codes/';
 	}
 
+	function trackerRefreshUrl() {
+		try {
+			const next = new URL(trackerCurrentUrl());
+			next.searchParams.set('_navcat_sync', String(Date.now()));
+			return next.toString();
+		} catch {
+			return `https://tracker.okami.codes/?_navcat_sync=${Date.now()}`;
+		}
+	}
+
 	function markTrackerAuthPending(reason: string) {
 		trackerAuthPending = true;
 		trackerAuthPendingUntil = Date.now() + trackerAuthPendingWindowMs;
@@ -406,7 +416,7 @@ export function createBrowserMediaActions(deps: any) {
 		pushBrowserLog(
 			`Tracker auth sync refresh (${source}) [${trackerAuthResyncAttempts}/${trackerAuthMaxResyncAttempts}].`
 		);
-		openInBrowser(trackerCurrentUrl(), 'Dissociation Tracker', {
+		openInBrowser(trackerRefreshUrl(), 'Dissociation Tracker', {
 			backend: 'standard',
 			skin: 'netscape',
 			pushHistory: false
@@ -780,6 +790,10 @@ export function createBrowserMediaActions(deps: any) {
 		}
 
 		if (keepDirectMode && isTrackerHostUrl(browserCurrentUrl.value)) {
+			if (trackerAuthPending && trackerAuthResyncAttempts > 0) {
+				pushBrowserLog('Tracker auth sync page loaded.');
+				clearTrackerAuthPending();
+			}
 			trackerDirectLoadCount += 1;
 			if (trackerDirectLoadCount >= 3 && !trackerAuthWarningShown) {
 				trackerAuthWarningShown = true;
