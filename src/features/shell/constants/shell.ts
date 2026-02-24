@@ -15,12 +15,11 @@ export const browserHomeUrl = 'https://library.okami.codes/';
 export const torBrowserHomeUrl = 'https://check.torproject.org/';
 export const torSearchHomeUrl = 'https://ahmia.fi/';
 
-export const vlcDefaultPlaylistUrl =
-	'https://www.youtube.com/watch?v=_laE9-4N3bA&list=PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
-export const vlcDefaultPlaylistId = 'PLvVEXejrE-HT5SPUUMaZ1QcTxa2S3PvPw';
+export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
+export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [afce3e38]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [687edbda]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
