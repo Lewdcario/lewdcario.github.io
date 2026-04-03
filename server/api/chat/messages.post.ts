@@ -6,6 +6,7 @@ import {
 	setResponseHeader
 } from 'h3';
 import type { H3Event } from 'h3';
+import { isProfane } from 'no-profanity';
 import {
 	chatMessageResponseSchema,
 	createChatMessageInputSchema
@@ -149,6 +150,12 @@ export default defineEventHandler(async (event) => {
 			throw createError({
 				statusCode: 400,
 				statusMessage: 'Message blocked by chat word filter.'
+			});
+		}
+		if (isProfane(input.message)) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: 'Message blocked by chat profanity filter.'
 			});
 		}
 

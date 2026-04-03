@@ -9147,6 +9147,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"no-profanity@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "no-profanity@npm:1.5.1"
+  checksum: 10c0/0d64cce3802f721590916da8bd8d31aa28326f0dc477b979826a998ac0ef4c5ba4c1909e467bb442b91338f78784b86b6a6ca2efae700fa6086ee97fe3de0c13
+  languageName: node
+  linkType: hard
+
 "node-addon-api@npm:^7.0.0":
   version: 7.1.1
   resolution: "node-addon-api@npm:7.1.1"
@@ -10353,6 +10360,7 @@ __metadata:
     jsdom: "npm:^28.1.0"
     lint-staged: "npm:^15.2.10"
     markdown-it: "npm:^14.1.1"
+    no-profanity: "npm:^1.5.1"
     npm-run-all: "npm:^4.1.5"
     nuxt: "npm:^4.3.1"
     pg: "npm:^8.18.0"
