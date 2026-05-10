@@ -1909,6 +1909,10 @@ legend {
 	color: #7f00a0;
 }
 
+.disabled-link {
+	color: #5d5d5d;
+}
+
 .small-window-body {
 	font-size: 12px;
 	text-align: center;

@@ -7,15 +7,28 @@ const shell = useShellControllerContext();
 </script>
 
 <template>
-	<ShellWindowFrame window-id="links" title="Links" window-class="side-window" body-class="links-window-body">
+	<ShellWindowFrame
+		window-id="links"
+		title="Links"
+		window-class="side-window"
+		body-class="links-window-body"
+	>
 		<template v-for="group in linkGroups" :key="group.title">
 			<span class="group-title">{{ group.title }}</span>
 			<br />
-			<template v-for="link in group.links" :key="link.href">
+			<template
+				v-for="link in group.links"
+				:key="link.href ?? link.label"
+			>
 				<span class="link-prefix">[-]</span>
-				<a :href="link.href" @click.prevent="shell.openInBrowser(link.href, link.label)">
+				<a
+					v-if="link.href"
+					:href="link.href"
+					@click.prevent="shell.openInBrowser(link.href, link.label)"
+				>
 					{{ link.label }}
 				</a>
+				<span v-else class="disabled-link">{{ link.label }}</span>
 				<br />
 			</template>
 		</template>

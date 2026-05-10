@@ -19,7 +19,7 @@ export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
 export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [b861726c]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [f396ee23]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
@@ -179,8 +179,19 @@ export const noisePresets: NoisePreset[] = [
 
 export const linkGroups: LinkGroup[] = [
 	{
-		title: 'Project Hubs',
+		title: 'Neburose',
 		links: [
+			{ label: 'Neburose LLC', href: 'https://neburose.org' },
+			{ label: 'Discord Bot' }
+		]
+	},
+	{
+		title: 'Web Projects',
+		links: [
+			{
+				label: 'Constellations',
+				href: 'https://constellations.okami.codes'
+			},
 			{ label: 'Progressive Victory', href: 'https://progress.win' },
 			{ label: 'Smashcords', href: 'https://smashcords.com' },
 			{ label: 'discord.js', href: 'https://discord.js.org' }

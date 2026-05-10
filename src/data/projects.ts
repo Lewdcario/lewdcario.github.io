@@ -10,6 +10,26 @@ export interface PortfolioProject {
 
 const projects: PortfolioProject[] = [
 	{
+		alt: 'neburose',
+		title: 'Neburose',
+		timeframe: 'May 2026 - Ongoing',
+		description:
+			'Owner of Neburose LLC, an organization building privacy-focused, accessible software.',
+		image: '/project-icons/neburose.png',
+		link: 'https://neburose.org',
+		tech: 'Software organization'
+	},
+	{
+		alt: 'kudosleague',
+		title: 'Kudos League',
+		timeframe: 'December 2024 - Ongoing',
+		description:
+			'Senior software engineer for a charity platform for organizing events, profiles, and sharing resources.',
+		image: '/project-icons/kudosleague.png',
+		link: 'https://kudosleague.org',
+		tech: 'Full-stack web platform'
+	},
+	{
 		alt: 'pv',
 		title: 'Progressive Victory',
 		timeframe: '2022 - 2024',
