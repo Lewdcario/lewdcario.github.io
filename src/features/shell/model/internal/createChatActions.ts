@@ -73,10 +73,18 @@ export function createChatActions(deps: any) {
 	function formatChatTimestamp(value: string) {
 		const parsed = new Date(value);
 		if (Number.isNaN(parsed.getTime())) return value;
-		return parsed.toLocaleTimeString([], {
-			hour: 'numeric',
-			minute: '2-digit'
+		const date = parsed.toLocaleDateString('en-US', {
+			month: '2-digit',
+			day: '2-digit',
+			year: '2-digit'
 		});
+		const time = parsed.toLocaleTimeString([], {
+			hour: '2-digit',
+			minute: '2-digit',
+			hourCycle: 'h23'
+		});
+
+		return `${date} ${time}`;
 	}
 
 	async function loadChatBlacklist(options?: { quiet?: boolean }) {
