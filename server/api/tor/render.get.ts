@@ -1,10 +1,19 @@
-import { createError, defineEventHandler, getQuery } from 'h3';
+import {
+	createError,
+	defineEventHandler,
+	getHeader,
+	getQuery,
+	type H3Event
+} from 'h3';
+import { timingSafeEqual } from 'node:crypto';
 import net from 'node:net';
 
 const maxHtmlBytes = 1_500_000;
 const requestTimeoutMs = 16_000;
+const remoteRendererTimeoutMs = 24_000;
 const headlessNetworkIdleTimeoutMs = 5_000;
 const headlessExtraWaitMs = 550;
+const rendererAuthHeader = 'x-tor-renderer-token';
 const allowedProtocols = new Set(['http:', 'https:']);
 const defaultTorProxyCandidates = [
 	'socks5://127.0.0.1:9050',
@@ -18,6 +27,12 @@ interface HeadlessRenderResult {
 	contentType: string;
 	html: string;
 	title: string;
+}
+
+interface BrowserPayload {
+	url: string;
+	title: string;
+	html: string;
 }
 
 function isAhmiaHost(hostname: string) {
@@ -124,6 +139,164 @@ function parseTargetUrl(rawUrl: unknown) {
 	return target;
 }
 
+function configuredValue(...names: string[]) {
+	for (const name of names) {
+		const value = process.env[name]?.trim();
+		if (value) return value;
+	}
+
+	return '';
+}
+
+function configuredRendererUrl() {
+	return configuredValue('TOR_RENDERER_URL', 'NUXT_TOR_RENDERER_URL');
+}
+
+function configuredRendererToken() {
+	return configuredValue('TOR_RENDERER_TOKEN', 'NUXT_TOR_RENDERER_TOKEN');
+}
+
+function constantTimeEquals(left: string, right: string) {
+	const leftBuffer = Buffer.from(left);
+	const rightBuffer = Buffer.from(right);
+	return (
+		leftBuffer.length === rightBuffer.length &&
+		timingSafeEqual(leftBuffer, rightBuffer)
+	);
+}
+
+function authorizeLocalRendererRequest(event: H3Event) {
+	const requiredToken = configuredRendererToken();
+	if (!requiredToken) return;
+
+	const bearerToken = getHeader(event, 'authorization')
+		?.replace(/^bearer\s+/i, '')
+		.trim();
+	const providedToken =
+		getHeader(event, rendererAuthHeader)?.trim() || bearerToken;
+	if (!providedToken || !constantTimeEquals(providedToken, requiredToken)) {
+		throw createError({
+			statusCode: 401,
+			statusMessage: 'Tor renderer authorization required.'
+		});
+	}
+}
+
+function remoteRendererEndpoint(baseUrl: string, target: URL) {
+	let endpoint: URL;
+	try {
+		endpoint = new URL(baseUrl);
+	} catch {
+		throw createError({
+			statusCode: 500,
+			statusMessage: 'TOR_RENDERER_URL is invalid.'
+		});
+	}
+
+	if (!['http:', 'https:'].includes(endpoint.protocol)) {
+		throw createError({
+			statusCode: 500,
+			statusMessage: 'TOR_RENDERER_URL must be an http or https URL.'
+		});
+	}
+
+	if (!endpoint.pathname || endpoint.pathname === '/') {
+		endpoint.pathname = '/api/tor/render';
+	}
+
+	endpoint.searchParams.set('url', target.toString());
+	return endpoint;
+}
+
+function normalizeRemoteBrowserPayload(payload: unknown): BrowserPayload {
+	if (!payload || typeof payload !== 'object') {
+		throw createError({
+			statusCode: 502,
+			statusMessage: 'Remote Tor renderer returned an invalid response.'
+		});
+	}
+
+	const casted = payload as Partial<BrowserPayload>;
+	const url = typeof casted.url === 'string' ? casted.url : '';
+	const title = typeof casted.title === 'string' ? casted.title : '';
+	const html = typeof casted.html === 'string' ? casted.html : '';
+
+	if (!url || !html || Buffer.byteLength(html, 'utf8') > maxHtmlBytes) {
+		throw createError({
+			statusCode: 502,
+			statusMessage: 'Remote Tor renderer returned an invalid response.'
+		});
+	}
+
+	return {
+		url,
+		title: title || new URL(url).hostname,
+		html
+	};
+}
+
+async function renderWithRemoteRenderer(
+	target: URL,
+	rendererUrl: string
+): Promise<BrowserPayload> {
+	const endpoint = remoteRendererEndpoint(rendererUrl, target);
+	const controller = new AbortController();
+	const timeout = setTimeout(
+		() => controller.abort(),
+		remoteRendererTimeoutMs
+	);
+	const token = configuredRendererToken();
+	const headers: Record<string, string> = {
+		Accept: 'application/json'
+	};
+	if (token) {
+		headers[rendererAuthHeader] = token;
+	}
+
+	try {
+		const response = await fetch(endpoint, {
+			headers,
+			cache: 'no-store',
+			signal: controller.signal
+		});
+
+		if (!response.ok) {
+			throw createError({
+				statusCode: 502,
+				statusMessage:
+					response.status === 401
+						? 'Remote Tor renderer rejected the request.'
+						: 'Remote Tor renderer could not render this URL.'
+			});
+		}
+
+		return normalizeRemoteBrowserPayload(await response.json());
+	} catch (error) {
+		if (error instanceof Error && error.name === 'AbortError') {
+			throw createError({
+				statusCode: 504,
+				statusMessage: 'Timed out waiting for the remote Tor renderer.'
+			});
+		}
+
+		if (
+			error &&
+			typeof error === 'object' &&
+			'statusCode' in error &&
+			typeof (error as { statusCode?: unknown }).statusCode === 'number'
+		) {
+			throw error;
+		}
+
+		throw createError({
+			statusCode: 502,
+			statusMessage: 'Remote Tor renderer is not reachable.'
+		});
+	} finally {
+		clearTimeout(timeout);
+	}
+}
+
 function proxyCandidates() {
 	const configured = [process.env.TOR_PROXY, process.env.NUXT_TOR_PROXY]
 		.map((value) => value?.trim())
@@ -182,11 +355,20 @@ async function renderWithTorBrowser(
 	proxyServer: string
 ): Promise<HeadlessRenderResult> {
 	const playwright = await import('playwright');
-	const browser = await playwright.chromium.launch({
-		headless: true,
-		args: ['--no-sandbox', '--disable-setuid-sandbox'],
-		proxy: { server: proxyServer }
-	});
+	let browser: import('playwright').Browser;
+	try {
+		browser = await playwright.chromium.launch({
+			headless: true,
+			args: ['--no-sandbox', '--disable-setuid-sandbox'],
+			proxy: { server: proxyServer }
+		});
+	} catch {
+		throw createError({
+			statusCode: 503,
+			statusMessage:
+				'Tor renderer browser is not installed. Run yarn playwright install chromium on the renderer host.'
+		});
+	}
 
 	try {
 		const context = await browser.newContext({
@@ -332,6 +514,13 @@ function toBrowserPayload(url: string, title: string, html: string) {
 
 export default defineEventHandler(async (event) => {
 	const target = parseTargetUrl(getQuery(event).url);
+	const rendererUrl = configuredRendererUrl();
+	if (rendererUrl) {
+		return renderWithRemoteRenderer(target, rendererUrl);
+	}
+
+	authorizeLocalRendererRequest(event);
+
 	const proxyServer = await resolveTorProxy();
 	if (!proxyServer) {
 		return {

@@ -4,4 +4,39 @@ services:
     container_name: portfolio-tor-proxy
     restart: unless-stopped
     ports:
-      - "9050:9050"
+      - "127.0.0.1:9050:9050"
+
+  tor-renderer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-tor-renderer
+    restart: unless-stopped
+    depends_on:
+      - tor
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      NUXT_TOR_PROXY: socks5://tor:9050
+      TOR_RENDERER_TOKEN: ${TOR_RENDERER_TOKEN:?TOR_RENDERER_TOKEN is required}
+    ports:
+      - "127.0.0.1:8337:3000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: portfolio-tor-caddy
+    restart: unless-stopped
+    depends_on:
+      - tor-renderer
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
