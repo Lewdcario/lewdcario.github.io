@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+.git
+.nuxt
+.output
+.vercel
+coverage
+dist
+logs
+node_modules
+*.log
+*.tsbuildinfo
