@@ -174,11 +174,7 @@ async function resolveTorProxy() {
 		}
 	}
 
-	throw createError({
-		statusCode: 503,
-		statusMessage:
-			'Tor proxy not available. Start Tor Browser (or tor daemon) and ensure SOCKS is open on 127.0.0.1:9050 or 127.0.0.1:9150.'
-	});
+	return null;
 }
 
 async function renderWithTorBrowser(
@@ -318,6 +314,13 @@ function buildFallbackDocument(targetUrl: string, message: string) {
 	return `<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;padding:12px;font:12px Tahoma,Arial,sans-serif;background:#fff;color:#111}h1{margin:0 0 8px;font-size:13px}.hint{color:#555}</style></head><body><h1>Tor Browser</h1><p>${safeMessage}</p><p class="hint">${safeTargetUrl}</p></body></html>`;
 }
 
+function buildTorUnavailableDocument(targetUrl: string) {
+	return buildFallbackDocument(
+		targetUrl,
+		'This server cannot reach a Tor SOCKS proxy right now. Start the local Tor service or configure TOR_PROXY to browse through Tor.'
+	);
+}
+
 function toBrowserPayload(url: string, title: string, html: string) {
 	const sanitized = stripDangerousMarkup(html);
 	return {
@@ -330,6 +333,14 @@ function toBrowserPayload(url: string, title: string, html: string) {
 export default defineEventHandler(async (event) => {
 	const target = parseTargetUrl(getQuery(event).url);
 	const proxyServer = await resolveTorProxy();
+	if (!proxyServer) {
+		return {
+			url: target.toString(),
+			title: 'Tor proxy unavailable',
+			html: buildTorUnavailableDocument(target.toString())
+		};
+	}
+
 	const result = await renderWithTorBrowser(target, proxyServer);
 
 	if (result.contentType && !result.contentType.includes('text/html')) {
