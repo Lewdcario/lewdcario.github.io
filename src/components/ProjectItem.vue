@@ -1,59 +1,93 @@
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { PortfolioProject } from '~/src/data/projects';
 
-export default defineComponent({
-	props: {
-		title: {
-			type: String,
-			required: true
-		},
-		description: {
-			type: String,
-			required: true
-		},
-		image: {
-			type: String,
-			required: true
-		},
-		link: {
-			type: String,
-			required: true
-		},
-		timeframe: {
-			type: String,
-			required: true
-		},
-		alt: {
-			type: String,
-			required: true
-		}
-	} as any
-});
+const props = defineProps<PortfolioProject>();
+
+const compactProjectIcons = new Set([
+	'neburose',
+	'constellations',
+	'kudosleague'
+]);
+
+const projectImageClass = computed(() =>
+	compactProjectIcons.has(props.alt) ? 'project-card__image--compact' : ''
+);
 </script>
 
 <template>
-	<b-card
-		img-top
-		style='max-width: 20rem'
-		class='mb-2 bg-transparent mx-auto border-0'
-	>
-		<a ref='noreferrer' :href='link' target='_blank'>
-			<b-card-img :alt='title' :src='image' />
+	<article class="project-card">
+		<a
+			class="project-card__link"
+			rel="noreferrer"
+			:href="link"
+			target="_blank"
+			:aria-label="title"
+		>
+			<img
+				class="project-card__image"
+				:class="projectImageClass"
+				:alt="title"
+				:src="image"
+			/>
+			<div class="project-card__body">
+				<h3 class="project-card__title">
+					{{ title }}
+				</h3>
+				<p>
+					<small>
+						{{ timeframe }}
+					</small>
+				</p>
+				<h5 class="project-card__description">
+					{{ description }}
+				</h5>
+			</div>
 		</a>
-		<b-card-title>
-			<h3 class='animated-link'>
-				{{ title }}
-			</h3>
-		</b-card-title>
-		<b-card-text>
-			<p>
-				<small>
-					{{ timeframe }}
-				</small>
-			</p>
-			<h5>
-				{{ description }}
-			</h5>
-		</b-card-text>
-	</b-card>
+	</article>
 </template>
+
+<style scoped>
+.project-card {
+	max-width: 20rem;
+	margin: 0 auto 0.5rem;
+	border: 0;
+	background: rgba(255, 255, 255, 0.82);
+	background: transparent;
+	color: inherit;
+}
+
+.project-card__link {
+	display: block;
+	color: inherit;
+	text-decoration: none;
+}
+
+.project-card__image {
+	display: block;
+	width: 100%;
+	height: auto;
+	margin: 0 auto;
+	object-fit: contain;
+}
+
+.project-card__image--compact {
+	width: 25%;
+	max-width: 5.25rem;
+}
+
+.project-card__body {
+	text-align: center;
+}
+
+.project-card__title {
+	margin: 0.75rem 0 0.35rem;
+	font-size: 1.35rem;
+}
+
+.project-card__description {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 500;
+}
+</style>

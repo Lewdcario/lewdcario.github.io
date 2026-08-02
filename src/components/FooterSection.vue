@@ -1,5 +1,5 @@
 <template>
-	<footer>
+	<footer class="portfolio-footer">
 		<p>&copy; Okami {{ currentDate }}</p>
 	</footer>
 </template>
@@ -13,3 +13,14 @@ export default {
 	}
 };
 </script>
+
+<style scoped>
+.portfolio-footer {
+	color: #37405f;
+	font-weight: 700;
+}
+
+.portfolio-footer p {
+	margin: 0;
+}
+</style>

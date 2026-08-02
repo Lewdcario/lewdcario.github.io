@@ -5,19 +5,17 @@ export interface PortfolioProject {
 	description: string;
 	image: string;
 	link: string;
-	tech: string;
 }
 
 const projects: PortfolioProject[] = [
 	{
-		alt: 'neburose',
-		title: 'Neburose',
-		timeframe: 'May 2026 - Ongoing',
+		alt: 'constellations',
+		title: 'Constellations',
+		timeframe: '2026 - Ongoing',
 		description:
-			'Owner of Neburose LLC, an organization building privacy-focused, accessible software.',
-		image: '/project-icons/neburose.png',
-		link: 'https://neburose.org',
-		tech: 'Software organization'
+			'Founder and lead developer of a symptom tracker and system workspace for dissociatives and multiples.',
+		image: 'https://app.neburose.com/icons/icon-512.png',
+		link: 'https://app.neburose.com'
 	},
 	{
 		alt: 'kudosleague',
@@ -26,8 +24,7 @@ const projects: PortfolioProject[] = [
 		description:
 			'Senior software engineer for a charity platform for organizing events, profiles, and sharing resources.',
 		image: '/project-icons/kudosleague.png',
-		link: 'https://kudosleague.org',
-		tech: 'Full-stack web platform'
+		link: 'https://kudosleague.org'
 	},
 	{
 		alt: 'pv',
@@ -36,8 +33,7 @@ const projects: PortfolioProject[] = [
 		description:
 			'Lead developer of a political project dedicated to getting candidates elected in key races.',
 		image: 'https://user-images.githubusercontent.com/11844002/230267579-abe1407a-4fdd-447e-a590-37011d2a8e2c.png',
-		link: 'https://progress.win',
-		tech: 'TypeScript, Full-stack web platform'
+		link: 'https://progress.win'
 	},
 	{
 		alt: 'oooh',
@@ -46,8 +42,7 @@ const projects: PortfolioProject[] = [
 			'Maintained Discord bot, client services and core functionalities of website.',
 		timeframe: '2021 - 2023',
 		image: 'https://i.imgur.com/CiGAwE5.png',
-		link: '#',
-		tech: 'Node.js, Discord platform tooling'
+		link: 'https://www.linkedin.com/company/oooh/posts/?feedView=all'
 	},
 	{
 		alt: 'smashcords',
@@ -56,8 +51,7 @@ const projects: PortfolioProject[] = [
 		description:
 			'Developer and owner for a website containing the central hub for all smash-related Discord servers.',
 		image: 'https://i.imgur.com/WKUM61X.png',
-		link: 'https://smashcords.com',
-		tech: 'Community platform engineering'
+		link: 'https://smashcords.com'
 	},
 	{
 		alt: 'discord.js',
@@ -66,8 +60,7 @@ const projects: PortfolioProject[] = [
 			'Past maintainer of discord.js, the biggest Discord bot library, written in Node.js.',
 		timeframe: '2018 - 2019',
 		image: '/djs.svg',
-		link: 'https://discord.js.org',
-		tech: 'Node.js library maintenance'
+		link: 'https://discord.js.org'
 	}
 ];
 

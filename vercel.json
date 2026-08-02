@@ -1,4 +1,17 @@
 {
 	"installCommand": "corepack prepare yarn@4.7.0 --activate && corepack yarn install --immutable",
-	"buildCommand": "corepack yarn build"
+	"buildCommand": "corepack yarn build",
+	"redirects": [
+		{
+			"source": "/:path*",
+			"has": [
+				{
+					"type": "host",
+					"value": "portfolio.okami.codes"
+				}
+			],
+			"destination": "https://okami.codes/portfolio",
+			"permanent": true
+		}
+	]
 }

@@ -19,7 +19,7 @@ export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
 export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [cca42cd6]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [1f66764d]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
@@ -250,7 +250,7 @@ const allDesktopIcons: DesktopIcon[] = [
 		id: 'portfolio',
 		label: 'Portfolio',
 		icon: shellIcons.briefcase,
-		href: 'https://portfolio.okami.codes',
+		href: '/portfolio',
 		x: 34,
 		y: 48
 	},
