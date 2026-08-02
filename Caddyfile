@@ -9,5 +9,7 @@ tor-renderer.okami.codes {
 		reverse_proxy tor-renderer:3000
 	}
 
-	respond 404
+	handle {
+		respond 404
+	}
 }
