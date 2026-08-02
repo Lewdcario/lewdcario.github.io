@@ -1,11 +1,13 @@
 tor-renderer.okami.codes {
 	encode zstd gzip
 
-	@health path /health
-	respond @health "ok" 200
+	handle /health {
+		respond "ok" 200
+	}
 
-	@torRenderer path /api/tor/render*
-	reverse_proxy @torRenderer tor-renderer:3000
+	handle /api/tor/render* {
+		reverse_proxy tor-renderer:3000
+	}
 
 	respond 404
 }
