@@ -4,7 +4,7 @@ tor-renderer.okami.codes {
 	@health path /health
 	respond @health "ok" 200
 
-	@torRenderer path /api/tor/render
+	@torRenderer path /api/tor/render*
 	reverse_proxy @torRenderer tor-renderer:3000
 
 	respond 404
