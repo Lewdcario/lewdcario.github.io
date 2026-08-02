@@ -2974,12 +2974,22 @@ legend {
 	border-top: 1px solid #c0bca8;
 }
 
+.chat-window {
+	display: flex;
+	flex-direction: column;
+	min-height: 260px;
+	max-height: calc(100dvh - 52px);
+}
+
 .chat-window .window-body {
-	height: calc(100% - 22px);
+	flex: 1;
+	height: auto;
+	min-height: 0;
 	margin: 0;
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 	background: #d8e1f3;
 }
 
@@ -2991,8 +3001,10 @@ legend {
 
 .msn-shell {
 	height: 100%;
+	min-height: 0;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 	background: #f4f6fc;
 }
 
@@ -3031,6 +3043,7 @@ legend {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	min-height: 0;
 	padding: 8px 7px;
 	background: linear-gradient(180deg, #f2f5ff 0%, #e4ecff 100%);
 	border-right: 1px solid #8ea5d0;
@@ -3198,6 +3211,7 @@ legend {
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
+	overflow: hidden;
 	padding: 8px;
 	background: linear-gradient(180deg, #f6f9ff 0%, #e9effb 100%);
 }
@@ -3400,12 +3414,15 @@ legend {
 @media (max-width: 900px) {
 	.msn-shell-body {
 		grid-template-columns: 1fr;
+		grid-template-rows: minmax(128px, 0.42fr) minmax(0, 1fr);
+		overflow: hidden;
 	}
 
 	.msn-buddy-pane {
 		border-right: 0;
 		border-bottom: 1px solid #8ea5d0;
-		max-height: 48%;
+		max-height: none;
+		overflow: hidden;
 	}
 
 	.msn-compose {
@@ -5832,6 +5849,17 @@ fieldset {
 		overflow: visible;
 	}
 
+	.chat-window {
+		max-height: min(520px, calc(100dvh - 96px));
+	}
+
+	.chat-window .window-body {
+		flex: 1;
+		height: auto !important;
+		min-height: 0;
+		overflow: hidden;
+	}
+
 	.browser-frame {
 		flex: none;
 		height: 420px;
@@ -5880,7 +5908,29 @@ fieldset {
 
 @media (max-width: 780px) {
 	.desktop-icons {
-		display: none;
+		position: relative;
+		inset: auto;
+		z-index: 5;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+		gap: 12px 6px;
+		align-items: start;
+		padding: 2px 4px 8px;
+		pointer-events: auto;
+	}
+
+	.desktop-icon {
+		position: relative;
+		left: auto !important;
+		top: auto !important;
+		justify-self: center;
+		width: 72px;
+		cursor: pointer;
+		touch-action: manipulation;
+	}
+
+	.desktop-icon-glitch-strips {
+		left: 20px;
 	}
 
 	.xp-shell {

@@ -126,7 +126,10 @@ export function createDesktopActions(deps: any) {
 					1,
 					Math.min(remaining, Math.floor(Math.random() * 6) + 1)
 				);
-				missingnoCrashProgress.value = Math.min(100, current + nextStep);
+				missingnoCrashProgress.value = Math.min(
+					100,
+					current + nextStep
+				);
 			}, 130);
 		}, missingnoDesktopGlitchDurationMs);
 	}
@@ -179,7 +182,7 @@ export function createDesktopActions(deps: any) {
 		if (windowId === 'vlc') return { width: 420, height: 280 };
 		if (windowId === 'noise') return { width: 340, height: 280 };
 		if (windowId === 'cmd') return { width: 420, height: 240 };
-		if (windowId === 'chat') return { width: 520, height: 320 };
+		if (windowId === 'chat') return { width: 520, height: 260 };
 		if (windowId === 'mines') return { width: 280, height: 320 };
 		if (windowId === 'paint') return { width: 520, height: 360 };
 		if (windowId === 'gallery') return { width: 560, height: 400 };
@@ -198,9 +201,7 @@ export function createDesktopActions(deps: any) {
 		const size = getWindowSize(windowId);
 		const isMaximized = state?.isMaximized ?? false;
 		const width = isMaximized ? window.innerWidth - 8 : size.width;
-		const height = isMaximized
-			? window.innerHeight - 42
-			: size.height;
+		const height = isMaximized ? window.innerHeight - 42 : size.height;
 		const maxX = Math.max(12, window.innerWidth - width - 12);
 		const maxY = Math.max(12, window.innerHeight - height - 40);
 
@@ -231,7 +232,11 @@ export function createDesktopActions(deps: any) {
 
 		for (const windowId of Object.keys(windowState.value) as WindowId[]) {
 			if (!windowPositions.value[windowId]) {
-				windowPositions.value[windowId] = { x: 150, y: 96, z: ++runtime.zCounter };
+				windowPositions.value[windowId] = {
+					x: 150,
+					y: 96,
+					z: ++runtime.zCounter
+				};
 			}
 			if (!windowSizes.value[windowId]) {
 				windowSizes.value[windowId] = windowMinSize(windowId);
