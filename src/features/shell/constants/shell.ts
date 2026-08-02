@@ -19,7 +19,7 @@ export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
 export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [1f66764d]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [0c3645b5]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
