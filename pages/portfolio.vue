@@ -11,7 +11,11 @@ defineOptions({
 
 useHead({
 	htmlAttrs: {
+		class: 'portfolio-scroll-hidden',
 		lang: 'en'
+	},
+	bodyAttrs: {
+		class: 'portfolio-scroll-hidden'
 	},
 	link: [
 		{
@@ -40,3 +44,19 @@ useHead({
 <template>
 	<PortfolioView />
 </template>
+
+<style>
+html.portfolio-scroll-hidden,
+body.portfolio-scroll-hidden {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+html.portfolio-scroll-hidden::-webkit-scrollbar,
+body.portfolio-scroll-hidden::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+	background: transparent;
+}
+</style>
