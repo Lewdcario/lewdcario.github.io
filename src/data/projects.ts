@@ -18,6 +18,24 @@ const projects: PortfolioProject[] = [
 		link: 'https://app.neburose.com'
 	},
 	{
+		alt: 'did-awareness',
+		title: 'DID-Awareness',
+		timeframe: '2026 - Ongoing',
+		description:
+			'Educational DID resource site with citation-backed articles and guided resources.',
+		image: 'https://bettysgraphics.neocities.org/images/web%20graphics/icons/treasure%202.gif',
+		link: 'https://did-help.today'
+	},
+	{
+		alt: 'neburose-home',
+		title: 'Neburose Home',
+		timeframe: '2026 - Ongoing',
+		description:
+			'Home page for Neburose, privacy-focused software, and Constellations.',
+		image: 'https://www.neburose.com/constellations-icon.png',
+		link: 'https://neburose.com'
+	},
+	{
 		alt: 'kudosleague',
 		title: 'Kudos League',
 		timeframe: 'December 2024 - Ongoing',

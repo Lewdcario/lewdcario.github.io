@@ -3,7 +3,7 @@ import { useHead } from '#imports';
 import PortfolioView from '~/src/views/PortfolioView.vue';
 
 const description =
-	"Okami's engineering portfolio, including Constellations, Kudos League, and community platform work.";
+	"Okami's engineering portfolio, including Constellations, DID-Awareness, Neburose Home, and community platform work.";
 
 defineOptions({
 	name: 'PortfolioPage'

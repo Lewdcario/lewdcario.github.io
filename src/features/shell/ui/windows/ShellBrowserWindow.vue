@@ -93,7 +93,7 @@ const shell = useShellControllerContext();
 						class="netscape-tool-icon icon-home"
 						aria-hidden="true"
 					></span>
-					<span>Home</span>
+					<span>Neburose Home</span>
 				</button>
 				<div
 					class="netscape-toolbar-separator"
@@ -191,25 +191,39 @@ const shell = useShellControllerContext();
 						shell.browserCurrentUrl.includes(
 							'tracker.okami.codes'
 						) ||
-						shell.browserAddress.includes('tracker.okami.codes')
+						shell.browserCurrentUrl.includes('app.neburose.com') ||
+						shell.browserCurrentUrl.includes(
+							'constellations.okami.codes'
+						) ||
+						shell.browserAddress.includes('tracker.okami.codes') ||
+						shell.browserAddress.includes('app.neburose.com') ||
+						shell.browserAddress.includes(
+							'constellations.okami.codes'
+						)
 					"
 					type="button"
 					class="netscape-shortcut"
 					@click="shell.openTrackerDiscordSignIn"
 				>
-					Tracker Sign-in
+					Constellations Sign-in
 				</button>
 			</div>
 
 			<div
 				v-if="
 					shell.browserCurrentUrl.includes('tracker.okami.codes') ||
-					shell.browserAddress.includes('tracker.okami.codes')
+					shell.browserCurrentUrl.includes('app.neburose.com') ||
+					shell.browserCurrentUrl.includes(
+						'constellations.okami.codes'
+					) ||
+					shell.browserAddress.includes('tracker.okami.codes') ||
+					shell.browserAddress.includes('app.neburose.com') ||
+					shell.browserAddress.includes('constellations.okami.codes')
 				"
 				class="netscape-auth-hint"
 			>
 				<span
-					>Discord sign-in is handled by the Tracker Sign-in
+					>Discord sign-in is handled by the Constellations Sign-in
 					button.</span
 				>
 				<div class="netscape-auth-hint-actions">

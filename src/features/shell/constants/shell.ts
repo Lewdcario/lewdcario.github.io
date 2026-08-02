@@ -11,7 +11,7 @@ import type {
 	WindowStateMap
 } from '~/src/features/shell/model/types';
 
-export const browserHomeUrl = 'https://library.okami.codes/';
+export const browserHomeUrl = 'https://neburose.com/';
 export const torBrowserHomeUrl = 'https://check.torproject.org/';
 export const torSearchHomeUrl = 'https://ahmia.fi/';
 
@@ -19,7 +19,7 @@ export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
 export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [b7f84d87]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [aa423cac]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
@@ -59,7 +59,10 @@ export const shellIcons = {
 	computer: '/xp-icons/pack/computer.png',
 	briefcase: '/xp-icons/pack/briefcase.png',
 	freePalestine: '/xp-icons/pack/free-palestine.png',
-	dissociationTracker: 'https://tracker.okami.codes/icons/icon-192.png',
+	constellations: 'https://app.neburose.com/icons/icon-192.png',
+	didAwareness:
+		'https://bettysgraphics.neocities.org/images/web%20graphics/icons/treasure%202.gif',
+	neburoseHome: 'https://www.neburose.com/constellations-icon.png',
 	browser: '/xp-icons/pack/browser.png',
 	chrome: '/xp-icons/pack/chrome.png',
 	vlc: '/xp-icons/pack/vlc.png',
@@ -181,17 +184,20 @@ export const linkGroups: LinkGroup[] = [
 	{
 		title: 'Neburose',
 		links: [
-			{ label: 'Neburose LLC', href: 'https://neburose.org' },
+			{ label: 'Neburose Home', href: 'https://neburose.com' },
+			{ label: 'Constellations', href: 'https://app.neburose.com' },
 			{ label: 'Discord Bot' }
 		]
 	},
 	{
 		title: 'Web Projects',
 		links: [
+			{ label: 'DID-Awareness', href: 'https://did-help.today' },
 			{
 				label: 'Constellations',
-				href: 'https://constellations.okami.codes'
+				href: 'https://app.neburose.com'
 			},
+			{ label: 'Neburose Home', href: 'https://neburose.com' },
 			{ label: 'Progressive Victory', href: 'https://progress.win' },
 			{ label: 'Smashcords', href: 'https://smashcords.com' },
 			{ label: 'discord.js', href: 'https://discord.js.org' }
@@ -260,6 +266,22 @@ const allDesktopIcons: DesktopIcon[] = [
 		icon: shellIcons.browser,
 		href: 'https://library.okami.codes',
 		x: 34,
+		y: 156
+	},
+	{
+		id: 'neburose-home',
+		label: 'Neburose Home',
+		icon: shellIcons.neburoseHome,
+		href: 'https://neburose.com/',
+		x: 418,
+		y: 48
+	},
+	{
+		id: 'did-awareness',
+		label: 'DID-Awareness',
+		icon: shellIcons.didAwareness,
+		href: 'https://did-help.today/',
+		x: 418,
 		y: 156
 	},
 	{
@@ -359,10 +381,10 @@ const allDesktopIcons: DesktopIcon[] = [
 		y: 264
 	},
 	{
-		id: 'dissociation-tracker',
-		label: 'Dissociation Tracker',
-		icon: shellIcons.dissociationTracker,
-		href: 'https://tracker.okami.codes/',
+		id: 'constellations',
+		label: 'Constellations',
+		icon: shellIcons.constellations,
+		href: 'https://app.neburose.com/',
 		x: 322,
 		y: 372
 	},

@@ -72,9 +72,16 @@ export function createBrowserMediaActions(deps: any) {
 	const directModeFallbackDelayMs = 7000;
 	const forcedSnapshotHosts = ['neocities.org'];
 	const interactiveDirectHosts = [
+		'app.neburose.com',
+		'constellations.okami.codes',
 		'tracker.okami.codes',
 		'localhost',
 		'127.0.0.1'
+	];
+	const constellationsHosts = [
+		'app.neburose.com',
+		'constellations.okami.codes',
+		'tracker.okami.codes'
 	];
 	const recursivePortfolioHosts = [
 		'okami.codes',
@@ -235,9 +242,8 @@ export function createBrowserMediaActions(deps: any) {
 	function isTrackerHostUrl(url: string) {
 		try {
 			const hostname = new URL(url).hostname.toLowerCase();
-			return (
-				hostname === 'tracker.okami.codes' ||
-				hostname.endsWith('.tracker.okami.codes')
+			return constellationsHosts.some(
+				(host) => hostname === host || hostname.endsWith(`.${host}`)
 			);
 		} catch {
 			return false;
@@ -327,7 +333,7 @@ export function createBrowserMediaActions(deps: any) {
 		const current = browserCurrentUrl.value;
 		if (isTrackerHostUrl(current)) return current;
 		if (isTrackerHostUrl(browserAddress.value)) return browserAddress.value;
-		return 'https://tracker.okami.codes/';
+		return 'https://app.neburose.com/';
 	}
 
 	function trackerRefreshUrl() {
@@ -345,14 +351,14 @@ export function createBrowserMediaActions(deps: any) {
 		trackerAuthPendingUntil = Date.now() + trackerAuthPendingWindowMs;
 		trackerAuthResyncAttempts = 0;
 		bindTrackerAuthSyncListeners();
-		pushBrowserLog(`Tracker auth pending (${reason}).`);
+		pushBrowserLog(`Constellations auth pending (${reason}).`);
 		if (shouldWarnTrackerAuthLocalhost() && !trackerLocalhostWarningShown) {
 			trackerLocalhostWarningShown = true;
 			pushStatus(
-				'Tracker auth may not sync from localhost embeds. Use https://test.okami.codes for same-site cookies.'
+				'Constellations auth may not sync from localhost embeds. Use https://test.okami.codes for same-site cookies.'
 			);
 			pushBrowserLog(
-				'Localhost host detected. Tracker session cookies can be blocked in cross-site iframes.'
+				'Localhost host detected. Constellations session cookies can be blocked in cross-site iframes.'
 			);
 		}
 
@@ -364,7 +370,7 @@ export function createBrowserMediaActions(deps: any) {
 			}
 			if (Date.now() > trackerAuthPendingUntil) {
 				clearTrackerAuthPending();
-				pushBrowserLog('Tracker auth sync window expired.');
+				pushBrowserLog('Constellations auth sync window expired.');
 				return;
 			}
 			if (trackerAuthPopup && !trackerAuthPopup.closed) {
@@ -398,15 +404,17 @@ export function createBrowserMediaActions(deps: any) {
 
 		if (now > trackerAuthPendingUntil) {
 			clearTrackerAuthPending();
-			pushBrowserLog('Tracker auth sync timed out before refresh.');
+			pushBrowserLog(
+				'Constellations auth sync timed out before refresh.'
+			);
 			return;
 		}
 
 		if (trackerAuthResyncAttempts >= trackerAuthMaxResyncAttempts) {
 			clearTrackerAuthPending();
-			pushBrowserLog('Tracker auth sync attempt limit reached.');
+			pushBrowserLog('Constellations auth sync attempt limit reached.');
 			pushStatus(
-				'Tracker sign-in not detected in embedded mode yet. If you are on localhost, switch to test.okami.codes.'
+				'Constellations sign-in not detected in embedded mode yet. If you are on localhost, switch to test.okami.codes.'
 			);
 			return;
 		}
@@ -414,9 +422,9 @@ export function createBrowserMediaActions(deps: any) {
 		trackerAuthResyncAttempts += 1;
 		trackerAuthLastResyncAt = now;
 		pushBrowserLog(
-			`Tracker auth sync refresh (${source}) [${trackerAuthResyncAttempts}/${trackerAuthMaxResyncAttempts}].`
+			`Constellations auth sync refresh (${source}) [${trackerAuthResyncAttempts}/${trackerAuthMaxResyncAttempts}].`
 		);
-		openInBrowser(trackerRefreshUrl(), 'Dissociation Tracker', {
+		openInBrowser(trackerRefreshUrl(), 'Constellations', {
 			backend: 'standard',
 			skin: 'netscape',
 			pushHistory: false
@@ -434,7 +442,7 @@ export function createBrowserMediaActions(deps: any) {
 
 	function openTrackerDiscordSignIn() {
 		clearTrackerAuthPopupPoll();
-		markTrackerAuthPending('tracker sign-in button');
+		markTrackerAuthPending('constellations sign-in button');
 		const callbackUrl = encodeURIComponent('https://tracker.okami.codes/');
 		const signInUrl = `https://tracker.okami.codes/api/auth/signin?callbackUrl=${callbackUrl}`;
 		const popup = window.open(
@@ -450,22 +458,22 @@ export function createBrowserMediaActions(deps: any) {
 					: 'Browser blocked popup. Allow popups to continue Discord sign-in.'
 			);
 			pushBrowserLog(
-				'Tracker Discord sign-in popup blocked; attempted external tab fallback.'
+				'Constellations Discord sign-in popup blocked; attempted external tab fallback.'
 			);
 			return;
 		}
 
 		trackerAuthPopup = popup;
-		pushBrowserLog('Tracker Discord sign-in popup opened.');
+		pushBrowserLog('Constellations Discord sign-in popup opened.');
 		pushStatus(
-			'Complete Discord sign-in in popup. Tracker will refresh when it closes.'
+			'Complete Discord sign-in in popup. Constellations will refresh when it closes.'
 		);
 
 		trackerAuthPopupPollTimer = window.setInterval(() => {
 			if (!trackerAuthPopup || !trackerAuthPopup.closed) return;
 			clearTrackerAuthPopupPoll();
 			trackerAuthPopup = null;
-			pushBrowserLog('Tracker auth popup closed.');
+			pushBrowserLog('Constellations auth popup closed.');
 			reloadTrackerAfterExternalAuth('popup closed');
 		}, 450);
 	}
@@ -656,7 +664,7 @@ export function createBrowserMediaActions(deps: any) {
 			);
 			if (isTrackerHostUrl(normalized)) {
 				pushStatus(
-					'Tracker loaded. Use "Tracker Sign-in" in Netscape for Discord auth.'
+					'Constellations loaded. Use "Constellations Sign-in" in Netscape for Discord auth.'
 				);
 				pushBrowserLog(
 					'Note: OAuth providers like Discord block iframe embedding. Use external login if Discord auth appears stuck.'
@@ -791,7 +799,7 @@ export function createBrowserMediaActions(deps: any) {
 
 		if (keepDirectMode && isTrackerHostUrl(browserCurrentUrl.value)) {
 			if (trackerAuthPending && trackerAuthResyncAttempts > 0) {
-				pushBrowserLog('Tracker auth sync page loaded.');
+				pushBrowserLog('Constellations auth sync page loaded.');
 				clearTrackerAuthPending();
 			}
 			trackerDirectLoadCount += 1;
@@ -1344,7 +1352,7 @@ export function createBrowserMediaActions(deps: any) {
 	}
 
 	function goBrowserHome() {
-		openInBrowser(browserDefaultHome.value, 'Home', {
+		openInBrowser(browserDefaultHome.value, 'Neburose Home', {
 			backend: browserBackend.value,
 			skin: browserSkin.value
 		});

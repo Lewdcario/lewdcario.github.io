@@ -7,6 +7,8 @@ const props = defineProps<PortfolioProject>();
 const compactProjectIcons = new Set([
 	'neburose',
 	'constellations',
+	'did-awareness',
+	'neburose-home',
 	'kudosleague'
 ]);
 

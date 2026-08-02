@@ -22,15 +22,27 @@ function listItemNumber(index: string | number) {
 			<legend>Current Focus</legend>
 			<ul class="tree-view">
 				<li>Developing this website!</li>
-				<li>Working on a dissociation symptoms tracker app!</li>
+				<li>Working on Constellations!</li>
 			</ul>
 		</fieldset>
 
 		<fieldset class="blinkie-gallery">
 			<legend>Blinkies</legend>
-			<p v-if="shell.blinkieLoading" class="blinkie-status">Loading blinkies...</p>
-			<p v-else-if="shell.blinkieError" class="blinkie-status blinkie-status-error">{{ shell.blinkieError }}</p>
-			<p v-else-if="shell.blinkieBadges.length === 0" class="blinkie-status">No badge set found for this theme folder.</p>
+			<p v-if="shell.blinkieLoading" class="blinkie-status">
+				Loading blinkies...
+			</p>
+			<p
+				v-else-if="shell.blinkieError"
+				class="blinkie-status blinkie-status-error"
+			>
+				{{ shell.blinkieError }}
+			</p>
+			<p
+				v-else-if="shell.blinkieBadges.length === 0"
+				class="blinkie-status"
+			>
+				No badge set found for this theme folder.
+			</p>
 			<div class="blinkie-badge-strip">
 				<img
 					v-for="(badgeSrc, index) in shell.blinkieBadges"
@@ -48,7 +60,14 @@ function listItemNumber(index: string | number) {
 
 		<fieldset class="blinkie-gallery">
 			<legend>Stamps</legend>
-			<p v-if="!shell.blinkieLoading && !shell.blinkieError && shell.blinkieStamps.length === 0" class="blinkie-status">
+			<p
+				v-if="
+					!shell.blinkieLoading &&
+					!shell.blinkieError &&
+					shell.blinkieStamps.length === 0
+				"
+				class="blinkie-status"
+			>
 				No stamp set found for this theme folder.
 			</p>
 			<div class="blinkie-stamp-grid">
