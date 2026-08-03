@@ -281,10 +281,13 @@ export function createBrowserMediaActions(deps: any) {
 			const parsed = new URL(url);
 			const hostname = parsed.hostname.toLowerCase();
 			const currentHostname = window.location.hostname.toLowerCase();
-			return (
+			const isPortfolioShellHost =
 				hostname === currentHostname ||
-				recursivePortfolioHosts.includes(hostname)
-			);
+				recursivePortfolioHosts.includes(hostname);
+			if (!isPortfolioShellHost) return false;
+
+			const normalizedPath = parsed.pathname.replace(/\/+$/, '') || '/';
+			return normalizedPath === '/';
 		} catch {
 			return false;
 		}
@@ -576,7 +579,7 @@ export function createBrowserMediaActions(deps: any) {
 			);
 			pushStatus(
 				opened
-					? 'Portfolio pages open externally to prevent recursive browser embedding.'
+					? 'XP shell opens externally to prevent recursive browser embedding.'
 					: 'Browser blocked popup. Allow popups and try again.'
 			);
 			return;
