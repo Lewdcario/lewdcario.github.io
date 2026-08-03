@@ -156,6 +156,18 @@ export function createBrowserMediaActions(deps: any) {
 		const trimmed = rawUrl.trim();
 		if (!trimmed) return browserHomeUrl;
 		if (/^https?:\/\//i.test(trimmed)) return trimmed;
+		if (trimmed.startsWith('//')) return `https:${trimmed}`;
+		if (trimmed.startsWith('/')) {
+			const origin =
+				typeof window === 'undefined'
+					? browserHomeUrl
+					: window.location.origin;
+			try {
+				return new URL(trimmed, origin).toString();
+			} catch {
+				return new URL(trimmed, browserHomeUrl).toString();
+			}
+		}
 		return `https://${trimmed}`;
 	}
 

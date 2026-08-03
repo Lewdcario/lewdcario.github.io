@@ -19,7 +19,7 @@ export const vlcDefaultPlaylistId = 'RDPRGV4FEQFf4';
 export const vlcDefaultPlaylistUrl = `https://www.youtube.com/playlist?list=${vlcDefaultPlaylistId}`;
 
 export const guestLoginPasswordSeed = 'cobalt_2002';
-export const mainWindowTitle = 'okami@workstation:~/control-room [db81f9dd]';
+export const mainWindowTitle = 'okami@workstation:~/control-room [3fdf67d3]';
 export const standardBrowserName = 'Netscape Navigator';
 export const browserPlaceholderPrompt = 'Enter a website and press Go.';
 export const desktopReadyStatus = 'workspace ready.';
@@ -278,7 +278,7 @@ const allDesktopIcons: DesktopIcon[] = [
 	},
 	{
 		id: 'did-awareness',
-		label: 'DID-Awareness',
+		label: 'DID Resources',
 		icon: shellIcons.didAwareness,
 		href: 'https://did-help.today/',
 		x: 418,
