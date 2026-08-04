@@ -15,6 +15,12 @@ const headlessNetworkIdleTimeoutMs = 5_000;
 const headlessExtraWaitMs = 550;
 const rendererAuthHeader = 'x-tor-renderer-token';
 const allowedProtocols = new Set(['http:', 'https:']);
+const blockedMinorExploitationPatterns = [
+	/\bcsam\b/i,
+	/\bchild\s*(?:porn|sex|sexual|abuse|exploitation)\b/i,
+	/\b(?:porn|sex|sexual)\s*[-+/ ]+\s*(?:child|kiddie|preteen|underage)\b/i,
+	/\b(?:child|kiddie|preteen|underage)\s*[-+/ ]+\s*(?:porn|sex|sexual)\b/i
+];
 const defaultTorProxyCandidates = [
 	'socks5://127.0.0.1:9050',
 	'socks5://127.0.0.1:9150'
@@ -139,6 +145,38 @@ function parseTargetUrl(rawUrl: unknown) {
 	return target;
 }
 
+function decodeRepeatedly(value: string) {
+	let current = value.replace(/\+/g, ' ');
+
+	for (let index = 0; index < 4; index += 1) {
+		try {
+			const decoded = decodeURIComponent(current);
+			if (decoded === current) break;
+			current = decoded.replace(/\+/g, ' ');
+		} catch {
+			break;
+		}
+	}
+
+	return current;
+}
+
+function targetSafetyText(target: URL) {
+	const parts = [target.toString(), target.pathname, target.search];
+	for (const [key, value] of target.searchParams.entries()) {
+		parts.push(key, value);
+	}
+
+	return decodeRepeatedly(parts.join(' '));
+}
+
+function isBlockedMinorExploitationTarget(target: URL) {
+	const safetyText = targetSafetyText(target);
+	return blockedMinorExploitationPatterns.some((pattern) =>
+		pattern.test(safetyText)
+	);
+}
+
 function configuredValue(...names: string[]) {
 	for (const name of names) {
 		const value = process.env[name]?.trim();
@@ -261,12 +299,22 @@ async function renderWithRemoteRenderer(
 		});
 
 		if (!response.ok) {
+			if (response.status !== 401) {
+				return {
+					url: target.toString(),
+					title: 'Tor render failed',
+					html: buildFallbackDocument(
+						target.toString(),
+						response.status === 504
+							? 'Timed out while requesting this website through Tor.'
+							: 'The remote Tor renderer could not render this URL. The site may be offline, blocked, or refusing connections.'
+					)
+				};
+			}
+
 			throw createError({
 				statusCode: 502,
-				statusMessage:
-					response.status === 401
-						? 'Remote Tor renderer rejected the request.'
-						: 'Remote Tor renderer could not render this URL.'
+				statusMessage: 'Remote Tor renderer rejected the request.'
 			});
 		}
 
@@ -503,6 +551,13 @@ function buildTorUnavailableDocument(targetUrl: string) {
 	);
 }
 
+function buildBlockedMinorExploitationDocument(targetUrl: string) {
+	return buildFallbackDocument(
+		targetUrl,
+		'This URL is blocked in the Tor renderer because it appears to request illegal sexual abuse content involving minors.'
+	);
+}
+
 function toBrowserPayload(url: string, title: string, html: string) {
 	const sanitized = stripDangerousMarkup(html);
 	return {
@@ -514,6 +569,14 @@ function toBrowserPayload(url: string, title: string, html: string) {
 
 export default defineEventHandler(async (event) => {
 	const target = parseTargetUrl(getQuery(event).url);
+	if (isBlockedMinorExploitationTarget(target)) {
+		return {
+			url: target.toString(),
+			title: 'Blocked Tor URL',
+			html: buildBlockedMinorExploitationDocument(target.toString())
+		};
+	}
+
 	const rendererUrl = configuredRendererUrl();
 	if (rendererUrl) {
 		return renderWithRemoteRenderer(target, rendererUrl);
